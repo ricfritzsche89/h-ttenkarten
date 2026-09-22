@@ -172,7 +172,7 @@
               <h2 class="text-xl font-bold text-white flex items-center gap-2">
                 <span>🎨</span> Karten-Editor & Editionen
               </h2>
-              <p class="text-xs text-slate-400">Wähle eine der 16 Vorlagen oder lade dein eigenes Blanko-PNG hoch</p>
+              <p class="text-xs text-slate-400">Wähle eine der 7 Vorlagen</p>
             </div>
             
             <button onclick="rollRandomScout()" class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition">
@@ -181,17 +181,11 @@
             </button>
           </div>
 
-          <!-- Section 1: Template Selection (9 Thematic Editions) -->
+          <!-- Section 1: Template Selection (7 PNG Editions) -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-2">
               <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                1. Vorlage / Karten-Edition (16 Themes)
-              </label>
-              
-              <!-- Custom Template Upload button -->
-              <label class="cursor-pointer text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition">
-                <span>📁 Eigenes Blanko-PNG laden</span>
-                <input type="file" id="custom-template-input" accept="image/*" class="hidden" onchange="handleCustomTemplateUpload(event)">
+                1. Vorlage / Karten-Edition (7 Themes)
               </label>
             </div>
 
@@ -729,7 +723,7 @@
 
   <script>
     /* ======================================================== */
-    /* THE 16 THEMATIC CARD EDITIONS CONFIGURATION              */
+    /* THE7 PNG CARD EDITIONS CONFIGURATION                     */
     /* ======================================================== */
     const CARD_EDITIONS = [
       /* ---- Eigene freigestellte PNG-Vorlagen (7 Stueck, in /vorlagen) ---- */
@@ -802,97 +796,6 @@
         innerBg: 'bg-black',
         accentColor: '#FDE68A',
         badgeColor: 'text-amber-200'
-      },
-      /* ---- Klassische prozedurale Editionen ---- */
-      {
-        id: 'grandmaster',
-        name: 'Hütten-Kaiser (Patron / Host)',
-        subtitle: 'Kaiser-Gold & DJ-Vinyl',
-        borderGradient: 'from-amber-200 via-yellow-500 to-amber-900',
-        innerBg: 'bg-black',
-        accentColor: '#F59E0B',
-        badgeColor: 'text-amber-300',
-        renderBg: (ctx, w, h) => renderGrandmasterBg(ctx, w, h)
-      },
-      {
-        id: 'toty',
-        name: 'Black Ember / TOTY-Glut',
-        subtitle: 'Obsidian & Magma-Risse',
-        borderGradient: 'from-amber-400 via-orange-600 to-slate-900',
-        innerBg: 'bg-[#09080c]',
-        accentColor: '#F97316',
-        badgeColor: 'text-orange-400',
-        renderBg: (ctx, w, h) => renderTotyBg(ctx, w, h)
-      },
-      {
-        id: 'vintage',
-        name: 'Vintage Blechschild',
-        subtitle: 'Emaille, Messing & Nieten',
-        borderGradient: 'from-amber-200 via-amber-700 to-amber-950',
-        innerBg: 'bg-[#f7f4ea]',
-        accentColor: '#B45309',
-        badgeColor: 'text-amber-800',
-        renderBg: (ctx, w, h) => renderVintageBg(ctx, w, h)
-      },
-      {
-        id: 'schuetze',
-        name: 'Schützenkönig',
-        subtitle: 'Jagdgrün & Eichenlaub',
-        borderGradient: 'from-amber-300 via-emerald-600 to-amber-900',
-        innerBg: 'bg-[#04241a]',
-        accentColor: '#10B981',
-        badgeColor: 'text-emerald-400',
-        renderBg: (ctx, w, h) => renderSchuetzeBg(ctx, w, h)
-      },
-      {
-        id: 'wood',
-        name: 'Hütten-Legende',
-        subtitle: 'Eichenholz & Schmiedeeisen',
-        borderGradient: 'from-amber-700 via-amber-900 to-stone-900',
-        innerBg: 'bg-[#180e08]',
-        accentColor: '#D97706',
-        badgeColor: 'text-amber-500',
-        renderBg: (ctx, w, h) => renderWoodBg(ctx, w, h)
-      },
-      {
-        id: 'beer',
-        name: 'Zapfkönig',
-        subtitle: 'Bernstein, Schaum & Hopfen',
-        borderGradient: 'from-amber-300 via-yellow-500 to-amber-800',
-        innerBg: 'bg-[#1f1202]',
-        accentColor: '#FBBF24',
-        badgeColor: 'text-amber-300',
-        renderBg: (ctx, w, h) => renderBeerBg(ctx, w, h)
-      },
-      {
-        id: 'wildberry',
-        name: 'Wildberry / Glamour',
-        subtitle: 'Roségold, Pfirsich & Glitzer',
-        borderGradient: 'from-rose-300 via-pink-600 to-amber-400',
-        innerBg: 'bg-[#260515]',
-        accentColor: '#F43F5E',
-        badgeColor: 'text-pink-300',
-        renderBg: (ctx, w, h) => renderWildberryBg(ctx, w, h)
-      },
-      {
-        id: 'tracht',
-        name: 'Schützenkönigin / Tracht',
-        subtitle: 'Salbeigrün, Samt & Edelweiß',
-        borderGradient: 'from-rose-300 via-emerald-500 to-blue-900',
-        innerBg: 'bg-[#06152a]',
-        accentColor: '#6EE7B7',
-        badgeColor: 'text-teal-300',
-        renderBg: (ctx, w, h) => renderTrachtBg(ctx, w, h)
-      },
-      {
-        id: 'partyqueen',
-        name: 'Party-Kaiserin',
-        subtitle: 'Königsviolett & Diadem',
-        borderGradient: 'from-fuchsia-400 via-purple-600 to-amber-300',
-        innerBg: 'bg-[#140428]',
-        accentColor: '#C084FC',
-        badgeColor: 'text-fuchsia-300',
-        renderBg: (ctx, w, h) => renderPartyQueenBg(ctx, w, h)
       }
     ];
 
@@ -916,7 +819,7 @@
     };
 
     /* App Global State */
-    let currentEditionId = 'grandmaster';
+    let currentEditionId = 'img_krone';
     let customTemplateDataUrl = null;
     let rawLoadedImage = new Image();
     let isBgRemovalActive = true;
@@ -1256,22 +1159,6 @@
       playSound('score_up');
     }
 
-    function handleCustomTemplateUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        customTemplateDataUrl = e.target.result;
-        const img = document.getElementById('custom-template-img');
-        img.src = customTemplateDataUrl;
-        img.classList.remove('hidden');
-        renderTemplateButtons();
-        showToast('Eigenes Blanko-PNG als Kartenvorlage aktiviert! 🖼️', 'success');
-      };
-      reader.readAsDataURL(file);
-    }
-
     function updateSingleStat(statKey) {
       const val = document.getElementById(`slider-${statKey}`).value;
       document.getElementById(`val-${statKey}`).innerText = val;
@@ -1328,7 +1215,7 @@
       // Chef-Vorlage: gesperrt, sobald der Name nicht mehr "Ric" lautet
       const chefUnlocked = isChefUnlocked();
       if (currentEditionId === 'img_chef' && !chefUnlocked) {
-        currentEditionId = 'grandmaster';
+        currentEditionId = 'img_krone';
         renderTemplateButtons();
         showToast('Chef-Vorlage gesperrt – der Name wurde geändert.', 'info');
       } else if (chefUnlocked !== chefUnlockState) {
@@ -1567,27 +1454,8 @@
         const dh = customImg.height * fit;
         ctx.drawImage(customImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
       } else {
-        // Draw Gradient Background
-        const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
-        const grad = ctx.createLinearGradient(0, 0, 0, H);
-        if (edition.id === 'grandmaster') {
-          grad.addColorStop(0, '#1c1505');
-          grad.addColorStop(0.5, '#050402');
-          grad.addColorStop(1, '#110b02');
-        } else if (edition.id === 'toty') {
-          grad.addColorStop(0, '#1c0c05');
-          grad.addColorStop(0.5, '#0a0910');
-          grad.addColorStop(1, '#050409');
-        } else if (edition.id === 'schuetze') {
-          grad.addColorStop(0, '#0a3022');
-          grad.addColorStop(0.5, '#041f16');
-          grad.addColorStop(1, '#02120c');
-        } else {
-          grad.addColorStop(0, '#241407');
-          grad.addColorStop(0.5, '#0f0803');
-          grad.addColorStop(1, '#1a0d05');
-        }
-        ctx.fillStyle = grad;
+        // Fallback (Vorlage nicht ladbar): neutrale schwarze Kartenbasis
+        ctx.fillStyle = '#000005';
         ctx.fillRect(0, 0, W, H);
       }
 
