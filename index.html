@@ -451,7 +451,7 @@
               <div id="card-inner-layer" class="fut-card-inner relative w-full h-full bg-slate-950 overflow-hidden flex flex-col justify-between">
                 
                 <!-- Custom Uploaded Template Background Image (if active) -->
-                <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none z-0">
+                <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain hidden pointer-events-none z-0">
 
                 <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
                 <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0">
@@ -1343,7 +1343,11 @@
       const innerEl = document.getElementById('card-inner-layer');
       const fadeEl = document.getElementById('photo-bottom-fade');
 
-      borderEl.className = `absolute inset-0 bg-gradient-to-b ${edition.borderGradient} pointer-events-none`;
+      // PNG-Vorlagen: die Vorlage definiert die Karte (schwarze Basis statt
+      // Amber-Rahmen, Asset komplett sichtbar - wie object-contain in der Vorschau)
+      borderEl.className = edition.imageUrl
+        ? 'absolute inset-0 bg-black pointer-events-none'
+        : `absolute inset-0 bg-gradient-to-b ${edition.borderGradient} pointer-events-none`;
       innerEl.className = `fut-card-inner relative w-full h-full ${edition.innerBg} overflow-hidden flex flex-col justify-between`;
 
       // Update bottom fade to blend with innerBg
@@ -1554,10 +1558,13 @@
 
       const customImg = await loadCustomTemplateImage();
       if (customImg) {
-        // object-cover-Verhalten wie in der Vorschau (Bild mittig, randabfallend)
-        const coverScale = Math.max(W / customImg.width, H / customImg.height);
-        const dw = customImg.width * coverScale;
-        const dh = customImg.height * coverScale;
+        // Wie in der Vorschau: schwarze Kartenbasis, Vorlage KOMPLETT und
+        // unverzerrt mittig (object-contain) - Rahmen bleiben erhalten.
+        ctx.fillStyle = '#000005';
+        ctx.fillRect(0, 0, W, H);
+        const fit = Math.min(W / customImg.width, H / customImg.height);
+        const dw = customImg.width * fit;
+        const dh = customImg.height * fit;
         ctx.drawImage(customImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
       } else {
         // Draw Gradient Background
