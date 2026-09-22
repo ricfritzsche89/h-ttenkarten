@@ -2,6 +2,7 @@
 *.jfif
 PROJEKTNOTIZEN.md
 vorlagen/_kontrollbogen.png
+fehler*
 
 # Falls die Seite schmaler werden soll, auskommentieren:
 # vorlagen/
