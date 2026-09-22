@@ -1,0 +1,12 @@
+# Nicht ins Repo (bzw. nicht auf GitHub Pages):
+*.jfif
+PROJEKTNOTIZEN.md
+vorlagen/_kontrollbogen.png
+
+# Falls die Seite schmaler werden soll, auskommentieren:
+# vorlagen/
+# apps-script/
+
+# Sonstiges
+Thumbs.db
+.DS_Store

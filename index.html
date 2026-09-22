@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grillhütte Ultimate Team (GUT) - Studio & Minispiel-Dashboard</title>
+  
+  <!-- Tailwind CSS & Web Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            fut: ['Rajdhani', 'sans-serif'],
+            cinzel: ['Cinzel', 'serif'],
+            stamp: ['Oswald', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              gold: '#F59E0B',
+              goldLight: '#FDE68A',
+              amber: '#D97706',
+              wood: '#2E1911',
+              hunter: '#064E3B',
+              obsidian: '#090D16',
+              roseGold: '#E0A99A',
+              royalPurple: '#2E1065',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Classic FUT Card Geometry */
+    .fut-card-shield {
+      clip-path: polygon(50% 0%, 94% 6.5%, 100% 28%, 100% 86%, 50% 100%, 0% 86%, 0% 28%, 6% 6.5%);
+    }
+
+    .fut-card-inner {
+      clip-path: polygon(50% 0.5%, 93.5% 6.8%, 99.5% 28%, 99.5% 85.5%, 50% 99.2%, 0.5% 85.5%, 0.5% 28%, 6.5% 6.8%);
+    }
+
+    /* 3D Dynamic Card Tilt */
+    .card-perspective {
+      perspective: 1200px;
+    }
+
+    .card-tilt {
+      transition: transform 0.12s ease-out, box-shadow 0.15s ease-out;
+      transform-style: preserve-3d;
+    }
+
+    /* Holographic sheen overlay */
+    .holo-sheen {
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.22) 42%,
+        rgba(255, 220, 100, 0.4) 50%,
+        rgba(255, 255, 255, 0.22) 58%,
+        transparent 80%
+      );
+      background-size: 250% 250%;
+      pointer-events: none;
+      mix-blend-mode: color-dodge;
+    }
+
+    /* Custom range slider styling */
+    input[type=range] {
+      accent-color: #F59E0B;
+    }
+
+    /* Subtle glow keyframes */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+
+    .animate-pulse-glow {
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-amber-500 selection:text-black antialiased overflow-x-hidden">
+
+  <!-- Ambient background glow elements -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-40 left-1/4 w-[500px] h-[500px] bg-amber-600/10 rounded-full blur-[120px]"></div>
+    <div class="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[140px]"></div>
+    <div class="absolute -bottom-40 left-1/3 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px]"></div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Header Navigation -->
+  <header class="relative z-30 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <span class="text-2xl">🥩</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-black tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-500 font-fut">
+              GUT 26
+            </span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+              PRO STUDIO
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Grillhütte Ultimate Team • Karten & Minispiel-Tabelle</p>
+        </div>
+      </div>
+
+      <!-- Main Tabs -->
+      <nav class="flex items-center gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-xl shadow-inner">
+        <button id="nav-btn-studio" onclick="switchTab('studio')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/25">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+          <span>Karten-Studio</span>
+        </button>
+        <button id="nav-btn-leaderboard" onclick="switchTab('leaderboard')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span>Minispiel-Tabelle</span>
+          <span id="player-count-badge" class="px-2 py-0.5 text-[11px] bg-slate-800 text-amber-300 rounded-full border border-slate-700 font-fut font-bold">4</span>
+        </button>
+      </nav>
+
+      <!-- Action Tools -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-300 border border-slate-700 transition" title="Soundeffekte umschalten">
+          <span id="audio-icon">🔊</span>
+        </button>
+        <button onclick="toggleTvMode(true)" class="hidden md:flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-amber-300 border border-amber-500/30 transition shadow-sm">
+          <span>📺</span>
+          <span>Beamer / TV</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: KARTEN-STUDIO                                    -->
+    <!-- ======================================================== -->
+    <div id="view-studio" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Controls & Studio Settings -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Editor Box -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl backdrop-blur-md">
+          
+          <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-800 gap-3 mb-6">
+            <div>
+              <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <span>🎨</span> Karten-Editor & Editionen
+              </h2>
+              <p class="text-xs text-slate-400">Wähle eine der 16 Vorlagen oder lade dein eigenes Blanko-PNG hoch</p>
+            </div>
+            
+            <button onclick="rollRandomScout()" class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition">
+              <span class="group-hover:rotate-180 transition-transform duration-300">🎲</span>
+              <span>Zufalls-Gast (Scout)</span>
+            </button>
+          </div>
+
+          <!-- Section 1: Template Selection (9 Thematic Editions) -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                1. Vorlage / Karten-Edition (16 Themes)
+              </label>
+              
+              <!-- Custom Template Upload button -->
+              <label class="cursor-pointer text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition">
+                <span>📁 Eigenes Blanko-PNG laden</span>
+                <input type="file" id="custom-template-input" accept="image/*" class="hidden" onchange="handleCustomTemplateUpload(event)">
+              </label>
+            </div>
+
+            <!-- 9 Themes Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="template-selector-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Section 2: Smart Portrait Upload & Background Removal -->
+          <div class="mb-6 p-4 bg-slate-950/70 border border-slate-800 rounded-xl space-y-4">
+            
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
+              <label class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📸</span> Spieler-Porträt & KI-Freisteller
+              </label>
+              <div class="flex items-center gap-3">
+                <label class="text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="toggle-bg-removal" checked onchange="toggleBackgroundRemoval()" class="rounded text-amber-500 focus:ring-0">
+                  <span class="text-amber-400 font-semibold">Automatisches Freistellen</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Upload Zone + Demo Guests -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+              
+              <div class="sm:col-span-7">
+                <label class="flex flex-col items-center justify-center p-3.5 border-2 border-dashed border-slate-700 hover:border-amber-400 rounded-xl cursor-pointer bg-slate-900/60 hover:bg-slate-900 transition text-center group">
+                  <svg class="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                  <span class="text-xs font-bold text-white">Foto vom Handy / PC auswählen</span>
+                  <span class="text-[10px] text-slate-400">JPG, PNG oder WebP (Freisteller läuft lokal im Browser)</span>
+                  <input type="file" id="portrait-file-input" accept="image/*" class="hidden" onchange="handleUserPhotoUpload(event)">
+                </label>
+              </div>
+
+              <!-- Demo Portrait Selectors -->
+              <div class="sm:col-span-5 flex flex-col gap-1.5">
+                <span class="text-[11px] font-semibold text-slate-400">Schnellauswahl Demo-Gäste:</span>
+                <div class="flex items-center gap-2" id="preset-avatars-row">
+                  <!-- Filled via JS -->
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Sliders for Cutout Tolerance, Zoom and Positioning -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Freistell-Toleranz</span>
+                  <span id="lbl-tolerance" class="text-amber-400 font-bold">42%</span>
+                </div>
+                <input id="slider-tolerance" type="range" min="5" max="90" value="42" oninput="applyPortraitProcessing()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Kanten-Glättung</span>
+                  <span id="lbl-feather" class="text-amber-400 font-bold">12px</span>
+                </div>
+                <input id="slider-feather" type="range" min="0" max="30" value="12" oninput="applyPortraitProcessing()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Größe / Zoom</span>
+                  <span id="lbl-zoom" class="text-amber-400 font-bold">100%</span>
+                </div>
+                <input id="slider-zoom" type="range" min="50" max="200" value="100" oninput="updatePhotoTransform()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Verschieben X</span>
+                  <span id="lbl-x" class="text-amber-400 font-bold">0px</span>
+                </div>
+                <input id="slider-x" type="range" min="-120" max="120" value="0" oninput="updatePhotoTransform()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Verschieben Y</span>
+                  <span id="lbl-y" class="text-amber-400 font-bold">0px</span>
+                </div>
+                <input id="slider-y" type="range" min="-100" max="100" value="0" oninput="updatePhotoTransform()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-400 mb-1">
+                  <span>Helligkeit</span>
+                  <span id="lbl-brightness" class="text-amber-400 font-bold">100%</span>
+                </div>
+                <input id="slider-brightness" type="range" min="70" max="140" value="100" oninput="updatePhotoTransform()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Section 3: Player Identity & Position -->
+          <div class="mb-6 grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-6">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Name des Gastes</label>
+              <input id="input-name" type="text" value="Werner (Gastgeber)" maxlength="20" oninput="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500">
+            </div>
+
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Hütten-Position</label>
+              <select id="input-pos" onchange="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none">
+                <option value="GK" selected>GK - Grill-Kaiser (Host)</option>
+                <option value="SK">SK - Schützenkönig</option>
+                <option value="ZK">ZK - Zapfkönig</option>
+                <option value="DJ">DJ - Soundmeister</option>
+                <option value="SS">SS - Scharfschütze</option>
+                <option value="PK">PK - Party-Königin</option>
+                <option value="BB">BB - Bierpong-Boss</option>
+                <option value="GS">GS - Gaststar / Joker</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Wappen-Icon</label>
+              <select id="input-badge" onchange="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none">
+                <option value="crown" selected>👑 Kaiser-Krone</option>
+                <option value="target">🎯 Schießscheibe</option>
+                <option value="beer">🍺 Bierkrug</option>
+                <option value="steak">🥩 Zange & Steak</option>
+                <option value="flower">🌸 Edelweiß</option>
+                <option value="fire">🔥 Glut & Flamme</option>
+                <option value="trophy">🏆 Goldpokal</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-8">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Spitzname / Ehrentitel (optional)</label>
+              <input id="input-nickname" type="text" value="DER HÜTTEN-PATRON" maxlength="28" oninput="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none">
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-semibold text-slate-300 mb-1">OVR Wertung</label>
+              <div class="flex items-center gap-2">
+                <input id="input-ovr" type="number" min="50" max="99" value="99" oninput="updateCardUI()" class="w-20 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm font-fut font-bold text-amber-300 focus:border-amber-500 focus:outline-none">
+                <label class="text-[11px] text-slate-400 flex items-center gap-1 cursor-pointer">
+                  <input type="checkbox" id="check-auto-ovr" checked onchange="toggleAutoOvr()" class="rounded text-amber-500">
+                  <span>Auto</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: The 6 Official Party Stats (TRF, DUR, GES, STM, GEM, TAK) -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>⚡</span> Die 6 Hütten-Attribute (0 - 99)
+              </label>
+              <span class="text-xs text-amber-400 font-semibold">GES = Geselligkeit & Networking</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3.5">
+              
+              <!-- TRF -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">TRF (Treffsicherheit - Schießen & Dart)</span>
+                  <span id="val-trf" class="text-white font-fut text-sm font-bold">99</span>
+                </div>
+                <input id="slider-trf" type="range" min="40" max="99" value="99" oninput="updateSingleStat('trf')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <!-- DUR -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">DUR (Durst - Stehvermögen am Tresen)</span>
+                  <span id="val-dur" class="text-white font-fut text-sm font-bold">98</span>
+                </div>
+                <input id="slider-dur" type="range" min="40" max="99" value="98" oninput="updateSingleStat('dur')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <!-- GES (Replaced Grill/Hilfe) -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">GES (Geselligkeit - Schnacken & Witze)</span>
+                  <span id="val-ges" class="text-white font-fut text-sm font-bold">99</span>
+                </div>
+                <input id="slider-ges" type="range" min="40" max="99" value="99" oninput="updateSingleStat('ges')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <!-- STM -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">STM (Stimmung - Tanz & Playlist-Gaudi)</span>
+                  <span id="val-stm" class="text-white font-fut text-sm font-bold">97</span>
+                </div>
+                <input id="slider-stm" type="range" min="40" max="99" value="97" oninput="updateSingleStat('stm')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <!-- GEM -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">GEM (Gemütlichkeit - Lagerfeuer-Sitzfleisch)</span>
+                  <span id="val-gem" class="text-white font-fut text-sm font-bold">99</span>
+                </div>
+                <input id="slider-gem" type="range" min="40" max="99" value="99" oninput="updateSingleStat('gem')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+              <!-- TAK -->
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-amber-300">TAK (Taktik - Minispiel-Regelauslegung)</span>
+                  <span id="val-tak" class="text-white font-fut text-sm font-bold">92</span>
+                </div>
+                <input id="slider-tak" type="range" min="40" max="99" value="92" oninput="updateSingleStat('tak')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Section 5: PlayStyle Perk -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">4. Hütten-PlayStyle+ (Spezialfähigkeit)</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input id="input-perk" type="text" value="Zangen-Doppelklick+" maxlength="25" oninput="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none">
+              <select onchange="applyPerkPreset(this.value)" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none text-slate-400">
+                <option value="">⚡ Beliebte Fähigkeiten auswählen...</option>
+                <option value="Zangen-Doppelklick+">🥩 Zangen-Doppelklick+ (Grillmeister-Aura)</option>
+                <option value="Zielwasser Plus">🎯 Zielwasser Plus (Treffsicherheit +10)</option>
+                <option value="Zapfhahn-Sprint">🍺 Zapfhahn-Sprint (Nie ein leeres Glas)</option>
+                <option value="Compound-Präzision">🏹 Compound-Präzision (Bogenschützen-Meister)</option>
+                <option value="Playlist-Diktator">🎵 Playlist-Diktator (Stimmung x2)</option>
+                <option value="Sitzfleisch-Titan">🪵 Sitzfleisch-Titan (Geht als Allerletzter)</option>
+                <option value="Runden-Spender">🪙 Runden-Spender (Kneipen-Hero)</option>
+                <option value="Wildberry-Charme">🍓 Wildberry-Charme (Glamour & Laune)</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive 3D Card Preview & PNG Export -->
+      <div class="lg:col-span-5 sticky top-24 space-y-5">
+        
+        <div class="flex flex-col items-center">
+          
+          <!-- Card Tilt Container -->
+          <div class="card-perspective w-full max-w-[340px] select-none">
+            
+            <!-- MASTER FUT CARD CONTAINER -->
+            <div id="fut-card-render" class="fut-card-shield card-tilt relative w-full h-[520px] p-2.5 shadow-2xl transition-all duration-300">
+              
+              <!-- Card Border / Theme Frame Layer -->
+              <div id="card-border-layer" class="absolute inset-0 bg-gradient-to-b from-amber-300 via-amber-600 to-amber-900 pointer-events-none"></div>
+
+              <!-- Inner Card Shield -->
+              <div id="card-inner-layer" class="fut-card-inner relative w-full h-full bg-slate-950 overflow-hidden flex flex-col justify-between">
+                
+                <!-- Custom Uploaded Template Background Image (if active) -->
+                <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none z-0">
+
+                <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
+                <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0">
+                  <!-- Injected via JS based on current theme -->
+                </div>
+
+                <!-- Top Card Header: OVR, Position, Nation Flag, Crest -->
+                <div class="relative z-10 pt-4 px-4 flex justify-between items-start">
+                  
+                  <!-- Left Badges Stack -->
+                  <div class="flex flex-col items-center leading-none text-center">
+                    <span id="card-ovr-display" class="font-fut font-extrabold text-5xl tracking-tighter drop-shadow-md text-amber-300">99</span>
+                    <span id="card-pos-display" class="font-fut font-bold text-lg tracking-wider text-amber-100 mt-0.5">GK</span>
+                    
+                    <div class="w-7 h-0.5 bg-amber-400/70 my-1"></div>
+                    
+                    <!-- Flag -->
+                    <div class="w-6 h-4 rounded-sm shadow-sm overflow-hidden border border-white/20 my-0.5">
+                      <div class="w-full h-1/3 bg-black"></div>
+                      <div class="w-full h-1/3 bg-red-600"></div>
+                      <div class="w-full h-1/3 bg-amber-400"></div>
+                    </div>
+
+                    <!-- Selected Crest Icon -->
+                    <div id="card-badge-display" class="w-7 h-7 mt-1 flex items-center justify-center text-xl drop-shadow">
+                      👑
+                    </div>
+                  </div>
+
+                  <!-- Right / Center Player Image Canvas with Bottom Blend -->
+                  <div class="absolute -right-2 top-1 w-64 h-64 overflow-hidden pointer-events-none">
+                    
+                    <!-- Canvas for Processed / Cutout Photo -->
+                    <div id="photo-container" class="w-full h-full relative">
+                      <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
+                    </div>
+
+                    <!-- Bottom gradient fade into card body -->
+                    <div id="photo-bottom-fade" class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none"></div>
+                  </div>
+
+                </div>
+
+                <!-- Card Bottom Section: Name, Nickname & The 6 Stats -->
+                <div class="relative z-20 px-3 pb-3 mt-auto">
+                  
+                  <!-- Player Full Name Banner -->
+                  <div class="text-center">
+                    <h3 id="card-name-display" class="font-fut font-extrabold text-2xl tracking-wider uppercase text-white truncate drop-shadow-md">
+                      WERNER (GASTGEBER)
+                    </h3>
+                    <p id="card-nickname-display" class="text-[10px] font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow">
+                      DER HÜTTEN-PATRON
+                    </p>
+                  </div>
+
+                  <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent my-1.5"></div>
+
+                  <!-- 6 Attributes Grid (FUT Style with GES) -->
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 px-3 text-sm font-fut">
+                    <!-- Column 1 -->
+                    <div class="space-y-0.5">
+                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                        <span id="card-stat-trf" class="font-extrabold text-amber-300 text-base">99</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">TRF</span>
+                      </div>
+                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                        <span id="card-stat-dur" class="font-extrabold text-amber-300 text-base">98</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">DUR</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span id="card-stat-ges" class="font-extrabold text-amber-300 text-base">99</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">GES</span>
+                      </div>
+                    </div>
+                    <!-- Column 2 -->
+                    <div class="space-y-0.5">
+                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                        <span id="card-stat-stm" class="font-extrabold text-amber-300 text-base">97</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">STM</span>
+                      </div>
+                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                        <span id="card-stat-gem" class="font-extrabold text-amber-300 text-base">99</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">GEM</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span id="card-stat-tak" class="font-extrabold text-amber-300 text-base">92</span>
+                        <span class="text-slate-300 font-semibold text-xs tracking-wider">TAK</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- PlayStyle Badge Ribbon at Bottom -->
+                  <div class="mt-2 pt-1 border-t border-white/10 flex items-center justify-center gap-1.5 text-[11px] font-bold">
+                    <span class="text-amber-400">⚡</span>
+                    <span id="card-perk-display" class="text-white uppercase tracking-wider font-fut text-xs truncate">Zangen-Doppelklick+</span>
+                  </div>
+
+                </div>
+
+                <!-- Holographic Light reflection layer -->
+                <div class="holo-sheen absolute inset-0 opacity-40"></div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Buttons for Card -->
+          <div class="w-full max-w-[340px] mt-4 space-y-2">
+            <button onclick="addCurrentCardToTournament()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wide uppercase shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition transform active:scale-95">
+              <span>🏆</span>
+              <span>In Turniertabelle übernehmen</span>
+            </button>
+            
+            <button id="btn-send-host" onclick="sendCardToHost()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm tracking-wide uppercase shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition transform active:scale-95">
+              <span>📬</span>
+              <span>Karte an den Gastgeber senden</span>
+            </button>
+
+            <button id="btn-export-png" onclick="exportCardToHighResPNG()" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>High-Res PNG herunterladen (1800x2700)</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 2: TURNIER & MINISPIEL-TABELLE                      -->
+    <!-- ======================================================== -->
+    <div id="view-leaderboard" class="hidden space-y-6">
+      
+      <!-- Top Scoreboard Bar -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🎯</span>
+            <h2 class="text-2xl font-black text-white font-fut tracking-wide uppercase">Grillhütte Minispiel-Tabelle</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Schnelle Punkte-Eintragung für Schützenfest, Bierpong, Darts & Gaudi</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="toggleTvMode(true)" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition">
+            <span>📺</span>
+            <span>Beamer / TV Modus</span>
+          </button>
+          
+          <button onclick="confirmResetTournament()" class="p-2.5 bg-slate-800 hover:bg-rose-950/60 hover:text-rose-400 text-slate-400 rounded-xl border border-slate-700 transition" title="Alle Punkte auf 0 zurücksetzen">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Rules / Minigame Legend -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-amber-400 font-bold block">+10 Pkt</span>
+          <span class="text-[11px] text-slate-300">🎯 Königsschuss</span>
+        </div>
+        <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-emerald-400 font-bold block">+5 Pkt</span>
+          <span class="text-[11px] text-slate-300">🎪 Dart / Hufeisen</span>
+        </div>
+        <div class="bg-sky-500/10 border border-sky-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-sky-400 font-bold block">+3 Pkt</span>
+          <span class="text-[11px] text-slate-300">🍺 Beerpong Match</span>
+        </div>
+        <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-purple-400 font-bold block">+2 Pkt</span>
+          <span class="text-[11px] text-slate-300">🥳 Runden-Gaudi</span>
+        </div>
+        <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-rose-400 font-bold block">-3 Pkt</span>
+          <span class="text-[11px] text-slate-300">🎵 Nerviger Song</span>
+        </div>
+        <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-2.5 text-center">
+          <span class="text-red-400 font-bold block">-5 Pkt</span>
+          <span class="text-[11px] text-slate-300">🍺 Bier verschüttet</span>
+        </div>
+      </div>
+
+      <!-- Top 3 Podium Showcase -->
+      <div id="podium-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Full Player Table -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+            <span>📋</span> Aktuelle Rangliste & Live-Punkte
+          </h3>
+          <span id="leaderboard-total-count" class="text-xs text-slate-400 font-semibold">4 Teilnehmer aktiv</span>
+        </div>
+
+        <!-- Leaderboard Rows -->
+        <div id="leaderboard-rows" class="divide-y divide-slate-800/80">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- TV / BEAMER FULLSCREEN PRESENTATION MODAL                -->
+  <!-- ======================================================== -->
+  <div id="tv-modal" class="fixed inset-0 z-50 bg-slate-950/98 hidden flex-col justify-between p-6 sm:p-10 select-none overflow-y-auto backdrop-blur-xl">
+    
+    <!-- Top TV Bar -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+      <div class="flex items-center gap-3">
+        <span class="text-4xl animate-bounce">🥩</span>
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-black font-fut uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500">
+            GRILLHÜTTE ULTIMATE TEAM - TURNIER-LEADERBOARD
+          </h1>
+          <p class="text-sm text-slate-400">Live-Schützenfest & Minispiele • Punkte & Podium</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="text-right">
+          <div id="tv-clock" class="text-3xl font-black font-mono text-amber-400">20:45</div>
+          <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Hütten-Zeit</div>
+        </div>
+        <button onclick="toggleTvMode(false)" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main TV Content: Podium Cards Display -->
+    <div class="my-auto py-8">
+      <div id="tv-podium-cards" class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Bottom TV Live Bar -->
+    <div class="border-t border-slate-800/80 pt-4 flex items-center justify-between text-slate-400 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-bold text-slate-200">Live-Übertragung am Hütten-Beamer</span>
+      </div>
+      <div class="text-xs text-slate-500">
+        [ESC] oder X drücken, um Vollbild zu beenden
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Confirmation Modal (No alerts/confirms!) -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-2xl">⚠️</div>
+      <h3 id="confirm-modal-title" class="text-lg font-bold text-white">Bestätigung erforderlich</h3>
+      <p id="confirm-modal-desc" class="text-sm text-slate-400">Möchtest du diese Aktion durchführen?</p>
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-sm font-semibold hover:bg-slate-700">Abbrechen</button>
+        <button id="confirm-modal-ok-btn" class="px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-500">Fortfahren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offscreen Canvas for High-Resolution PNG Exports -->
+  <canvas id="export-canvas" width="1800" height="2700" class="hidden"></canvas>
+
+  <script>
+    /* ======================================================== */
+    /* THE 16 THEMATIC CARD EDITIONS CONFIGURATION              */
+    /* ======================================================== */
+    const CARD_EDITIONS = [
+      /* ---- Eigene freigestellte PNG-Vorlagen (7 Stueck, in /vorlagen) ---- */
+      {
+        id: 'img_krone',
+        name: 'Kaiserliche Prunkkrone',
+        subtitle: 'Roségold, Lila & Diamanten',
+        imageUrl: 'vorlagen/karte_lila_krone.png',
+        borderGradient: 'from-rose-300 via-amber-500 to-amber-900',
+        innerBg: 'bg-black',
+        accentColor: '#E9D5FF',
+        badgeColor: 'text-amber-300'
+      },
+      {
+        id: 'img_tracht',
+        name: 'Edelweiß-Wappen',
+        subtitle: 'Salbei, Roségold & Eichhörnchen',
+        imageUrl: 'vorlagen/karte_blau_tracht.png',
+        borderGradient: 'from-rose-300 via-emerald-600 to-slate-900',
+        innerBg: 'bg-black',
+        accentColor: '#6EE7B7',
+        badgeColor: 'text-teal-300'
+      },
+      {
+        id: 'img_glitzer',
+        name: 'Glitzer-Glamour',
+        subtitle: 'Roségold-Funkeln in Pink',
+        imageUrl: 'vorlagen/karte_glitzer_pink.png',
+        borderGradient: 'from-rose-300 via-pink-600 to-amber-500',
+        innerBg: 'bg-black',
+        accentColor: '#F9A8D4',
+        badgeColor: 'text-pink-300'
+      },
+      {
+        id: 'img_bier',
+        name: 'Goldenes Bierfest',
+        subtitle: 'Bernstein, Schaum & Hopfen',
+        imageUrl: 'vorlagen/karte_bier_gold.png',
+        borderGradient: 'from-amber-300 via-yellow-600 to-amber-900',
+        innerBg: 'bg-black',
+        accentColor: '#FBBF24',
+        badgeColor: 'text-amber-300'
+      },
+      {
+        id: 'img_holz',
+        name: 'Eisenhütte',
+        subtitle: 'Holz, Schmiedeeisen & Funken',
+        imageUrl: 'vorlagen/karte_holz_eisen.png',
+        borderGradient: 'from-slate-600 via-stone-800 to-black',
+        innerBg: 'bg-black',
+        accentColor: '#D6D3D1',
+        badgeColor: 'text-stone-300'
+      },
+      {
+        id: 'img_schuetze',
+        name: 'Schützenwappen',
+        subtitle: 'Jagdgrün, Lorbeer & Gold',
+        imageUrl: 'vorlagen/karte_gruen_gold.png',
+        borderGradient: 'from-amber-300 via-emerald-700 to-amber-900',
+        innerBg: 'bg-black',
+        accentColor: '#34D399',
+        badgeColor: 'text-emerald-400'
+      },
+      {
+        id: 'img_chef',
+        name: 'Gastgeber-Chef',
+        subtitle: 'Gold, Krone & Vinyl – nur Ric',
+        imageUrl: 'vorlagen/karte_chef.png',
+        borderGradient: 'from-amber-300 via-yellow-500 to-amber-900',
+        innerBg: 'bg-black',
+        accentColor: '#FDE68A',
+        badgeColor: 'text-amber-200'
+      },
+      /* ---- Klassische prozedurale Editionen ---- */
+      {
+        id: 'grandmaster',
+        name: 'Hütten-Kaiser (Patron / Host)',
+        subtitle: 'Kaiser-Gold & DJ-Vinyl',
+        borderGradient: 'from-amber-200 via-yellow-500 to-amber-900',
+        innerBg: 'bg-black',
+        accentColor: '#F59E0B',
+        badgeColor: 'text-amber-300',
+        renderBg: (ctx, w, h) => renderGrandmasterBg(ctx, w, h)
+      },
+      {
+        id: 'toty',
+        name: 'Black Ember / TOTY-Glut',
+        subtitle: 'Obsidian & Magma-Risse',
+        borderGradient: 'from-amber-400 via-orange-600 to-slate-900',
+        innerBg: 'bg-[#09080c]',
+        accentColor: '#F97316',
+        badgeColor: 'text-orange-400',
+        renderBg: (ctx, w, h) => renderTotyBg(ctx, w, h)
+      },
+      {
+        id: 'vintage',
+        name: 'Vintage Blechschild',
+        subtitle: 'Emaille, Messing & Nieten',
+        borderGradient: 'from-amber-200 via-amber-700 to-amber-950',
+        innerBg: 'bg-[#f7f4ea]',
+        accentColor: '#B45309',
+        badgeColor: 'text-amber-800',
+        renderBg: (ctx, w, h) => renderVintageBg(ctx, w, h)
+      },
+      {
+        id: 'schuetze',
+        name: 'Schützenkönig',
+        subtitle: 'Jagdgrün & Eichenlaub',
+        borderGradient: 'from-amber-300 via-emerald-600 to-amber-900',
+        innerBg: 'bg-[#04241a]',
+        accentColor: '#10B981',
+        badgeColor: 'text-emerald-400',
+        renderBg: (ctx, w, h) => renderSchuetzeBg(ctx, w, h)
+      },
+      {
+        id: 'wood',
+        name: 'Hütten-Legende',
+        subtitle: 'Eichenholz & Schmiedeeisen',
+        borderGradient: 'from-amber-700 via-amber-900 to-stone-900',
+        innerBg: 'bg-[#180e08]',
+        accentColor: '#D97706',
+        badgeColor: 'text-amber-500',
+        renderBg: (ctx, w, h) => renderWoodBg(ctx, w, h)
+      },
+      {
+        id: 'beer',
+        name: 'Zapfkönig',
+        subtitle: 'Bernstein, Schaum & Hopfen',
+        borderGradient: 'from-amber-300 via-yellow-500 to-amber-800',
+        innerBg: 'bg-[#1f1202]',
+        accentColor: '#FBBF24',
+        badgeColor: 'text-amber-300',
+        renderBg: (ctx, w, h) => renderBeerBg(ctx, w, h)
+      },
+      {
+        id: 'wildberry',
+        name: 'Wildberry / Glamour',
+        subtitle: 'Roségold, Pfirsich & Glitzer',
+        borderGradient: 'from-rose-300 via-pink-600 to-amber-400',
+        innerBg: 'bg-[#260515]',
+        accentColor: '#F43F5E',
+        badgeColor: 'text-pink-300',
+        renderBg: (ctx, w, h) => renderWildberryBg(ctx, w, h)
+      },
+      {
+        id: 'tracht',
+        name: 'Schützenkönigin / Tracht',
+        subtitle: 'Salbeigrün, Samt & Edelweiß',
+        borderGradient: 'from-rose-300 via-emerald-500 to-blue-900',
+        innerBg: 'bg-[#06152a]',
+        accentColor: '#6EE7B7',
+        badgeColor: 'text-teal-300',
+        renderBg: (ctx, w, h) => renderTrachtBg(ctx, w, h)
+      },
+      {
+        id: 'partyqueen',
+        name: 'Party-Kaiserin',
+        subtitle: 'Königsviolett & Diadem',
+        borderGradient: 'from-fuchsia-400 via-purple-600 to-amber-300',
+        innerBg: 'bg-[#140428]',
+        accentColor: '#C084FC',
+        badgeColor: 'text-fuchsia-300',
+        renderBg: (ctx, w, h) => renderPartyQueenBg(ctx, w, h)
+      }
+    ];
+
+    /* Demo Avatars with varied backgrounds for cutout testing */
+    const DEMO_AVATARS = [
+      { name: 'Gastgeber', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80' },
+      { name: 'Schütze', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80' },
+      { name: 'Zapfkönig', url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80' },
+      { name: 'Königin', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80' }
+    ];
+
+    /* Badges icon dictionary */
+    const BADGES = {
+      crown: '👑',
+      target: '🎯',
+      beer: '🍺',
+      steak: '🥩',
+      flower: '🌸',
+      fire: '🔥',
+      trophy: '🏆'
+    };
+
+    /* App Global State */
+    let currentEditionId = 'grandmaster';
+    let customTemplateDataUrl = null;
+    let rawLoadedImage = new Image();
+    let isBgRemovalActive = true;
+    let audioEnabled = true;
+
+    /* Web-App-URL des Google-Apps-Script-Empfaengers.
+       Eintragen nach dem Setup (siehe APPS-SCRIPT-ANLEITUNG.md).
+       Leer lassen = "Senden" deaktiviert, nur Download moeglich. */
+    const GUT_SUBMIT_URL = '';
+
+    /* Bildaufloesung: Vorschau klein & schnell, Export in High-Res */
+    const PHOTO_PREVIEW_MAX = 600;
+    const PHOTO_EXPORT_MAX = 1600;
+
+    /* Tournament Players State */
+    let tournamentRoster = [
+      {
+        id: 'p_1',
+        name: 'Werner (Gastgeber)',
+        nickname: 'DER HÜTTEN-PATRON',
+        ovr: 99,
+        pos: 'GK',
+        badge: 'crown',
+        editionId: 'grandmaster',
+        perk: 'Zangen-Doppelklick+',
+        stats: { trf: 99, dur: 98, ges: 99, stm: 97, gem: 99, tak: 92 },
+        score: 45,
+        photoDataUrl: DEMO_AVATARS[0].url
+      },
+      {
+        id: 'p_2',
+        name: 'Matze der Scharfschütze',
+        nickname: 'ZIELWASSER-MEISTER',
+        ovr: 94,
+        pos: 'SK',
+        badge: 'target',
+        editionId: 'schuetze',
+        perk: 'Zielwasser Plus',
+        stats: { trf: 96, dur: 92, ges: 90, stm: 88, gem: 94, tak: 85 },
+        score: 40,
+        photoDataUrl: DEMO_AVATARS[1].url
+      },
+      {
+        id: 'p_3',
+        name: 'DJ Bierschaum',
+        nickname: 'ZAPFHAHN-SPRINTER',
+        ovr: 92,
+        pos: 'ZK',
+        badge: 'beer',
+        editionId: 'beer',
+        perk: 'Zapfhahn-Sprint',
+        stats: { trf: 82, dur: 99, ges: 96, stm: 95, gem: 86, tak: 84 },
+        score: 31,
+        photoDataUrl: DEMO_AVATARS[2].url
+      },
+      {
+        id: 'p_4',
+        name: 'Lisa Wildberry',
+        nickname: 'GAUDI-KAISERIN',
+        ovr: 93,
+        pos: 'PK',
+        badge: 'crown',
+        editionId: 'wildberry',
+        perk: 'Wildberry-Charme',
+        stats: { trf: 89, dur: 90, ges: 98, stm: 99, gem: 91, tak: 82 },
+        score: 28,
+        photoDataUrl: DEMO_AVATARS[3].url
+      }
+    ];
+
+    /* Pure Web-Audio Synthesizer (No external sound files) */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'score_up') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'victory') {
+          // Arpeggio
+          [0, 0.08, 0.16].forEach((delay, i) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.type = 'square';
+            const freqs = [440, 554.37, 659.25];
+            o.frequency.setValueAtTime(freqs[i], now + delay);
+            g.gain.setValueAtTime(0.12, now + delay);
+            g.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.2);
+            o.start(now + delay);
+            o.stop(now + delay + 0.2);
+          });
+        } else if (type === 'penalty') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } catch (e) {
+        console.warn("Audio not initialized:", e);
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('audio-icon').innerText = audioEnabled ? '🔊' : '🔇';
+      showToast(audioEnabled ? 'Soundeffekte aktiviert' : 'Soundeffekte stummgeschaltet', 'info');
+    }
+
+    /* ======================================================== */
+    /* SMART CANVAS BACKGROUND REMOVAL & EDGE CUTOUT ENGINE     */
+    /* ======================================================== */
+    function loadInitialImage(url) {
+      rawLoadedImage.crossOrigin = 'anonymous';
+      rawLoadedImage.onload = () => {
+        applyPortraitProcessing();
+      };
+      rawLoadedImage.src = url;
+    }
+
+    function handleUserPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        rawLoadedImage = new Image();
+        rawLoadedImage.onload = () => {
+          // Reset alignment sliders
+          document.getElementById('slider-zoom').value = 100;
+          document.getElementById('slider-x').value = 0;
+          document.getElementById('slider-y').value = 0;
+          document.getElementById('slider-brightness').value = 100;
+          applyPortraitProcessing();
+          updatePhotoTransform();
+          showToast('Foto geladen & automatisch freigestellt! 📸', 'success');
+        };
+        rawLoadedImage.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleBackgroundRemoval() {
+      isBgRemovalActive = document.getElementById('toggle-bg-removal').checked;
+      applyPortraitProcessing();
+      showToast(isBgRemovalActive ? 'KI-Freisteller aktiviert' : 'Original-Hintergrund beibehalten', 'info');
+    }
+
+    /* Smart Color Distance & Edge Keying Engine */
+    /* Arbeitet auf beliebigem Ziel-Canvas: Vorschau klein (schnell),
+       fuer den Export wird dasselbe Bild hochaufloesend neu freigestellt. */
+    function processImageToCanvas(img, canvas, maxDim) {
+      if (!img || !img.width || !canvas) return false;
+
+      const ctx = canvas.getContext('2d');
+
+      let w = img.width;
+      let h = img.height;
+      if (w > h && w > maxDim) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else if (h > maxDim) {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+
+      // Draw original onto processing canvas
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      if (!isBgRemovalActive) {
+        return true; // Retain original if user toggled off
+      }
+
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+
+      // Sample Corner Colors to deduce ambient background
+      const corners = [
+        [0, 0],
+        [w - 1, 0],
+        [0, Math.floor(h * 0.15)],
+        [w - 1, Math.floor(h * 0.15)],
+      ];
+
+      let bgR = 0, bgG = 0, bgB = 0;
+      corners.forEach(([cx, cy]) => {
+        const idx = (cy * w + cx) * 4;
+        bgR += data[idx];
+        bgG += data[idx + 1];
+        bgB += data[idx + 2];
+      });
+      bgR /= corners.length;
+      bgG /= corners.length;
+      bgB /= corners.length;
+
+      const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
+      const feather = parseInt(document.getElementById('slider-feather').value) || 12;
+
+      const threshold = (tolerance / 100) * 441; // Max RGB euclidean distance = sqrt(3 * 255^2) approx 441.6
+      const featherRange = (feather / 30) * 70 + 5;
+
+      // Loop through pixels and calculate Euclidean color distance with feathering
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        // Euclidean color distance from inferred corner background
+        const dist = Math.sqrt(
+          (r - bgR) * (r - bgR) +
+          (g - bgG) * (g - bgG) +
+          (b - bgB) * (b - bgB)
+        );
+
+        if (dist < threshold) {
+          // Inside background threshold -> erase
+          data[i + 3] = 0;
+        } else if (dist < threshold + featherRange) {
+          // Feathered soft edge transition
+          const alphaFactor = (dist - threshold) / featherRange;
+          data[i + 3] = Math.min(data[i + 3], Math.round(data[i + 3] * alphaFactor));
+        }
+
+        // Bottom Edge Soft Fade: Gently dissolve the bottom 25% of the portrait
+        const py = Math.floor((i / 4) / w);
+        const bottomThreshold = h * 0.75;
+        if (py > bottomThreshold) {
+          const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
+          data[i + 3] = Math.round(data[i + 3] * Math.max(0, fadeRatio));
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      return true;
+    }
+
+    /* Vorschau-Verarbeitung inkl. Regler-Beschriftungen */
+    function applyPortraitProcessing() {
+      const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
+      const feather = parseInt(document.getElementById('slider-feather').value) || 12;
+      document.getElementById('lbl-tolerance').innerText = `${tolerance}%`;
+      document.getElementById('lbl-feather').innerText = `${feather}px`;
+      processImageToCanvas(rawLoadedImage, document.getElementById('portrait-canvas'), PHOTO_PREVIEW_MAX);
+    }
+
+    function updatePhotoTransform() {
+      const zoom = document.getElementById('slider-zoom').value;
+      const x = document.getElementById('slider-x').value;
+      const y = document.getElementById('slider-y').value;
+      const brightness = document.getElementById('slider-brightness').value;
+
+      document.getElementById('lbl-zoom').innerText = `${zoom}%`;
+      document.getElementById('lbl-x').innerText = `${x}px`;
+      document.getElementById('lbl-y').innerText = `${y}px`;
+      document.getElementById('lbl-brightness').innerText = `${brightness}%`;
+
+      const canvas = document.getElementById('portrait-canvas');
+      canvas.style.transform = `scale(${zoom / 100}) translate(${x}px, ${y}px)`;
+      canvas.style.filter = `brightness(${brightness}%)`;
+    }
+
+    /* ======================================================== */
+    /* CARD UI & PROCEDURAL BACKGROUND RENDERERS                */
+    /* ======================================================== */
+
+    /* Die Chef-Vorlage ist nur waehlbar, wenn oben der Name "Ric" eingetragen ist */
+    function isChefUnlocked() {
+      return (document.getElementById('input-name').value || '').trim().toLowerCase() === 'ric';
+    }
+    function isEditionSelectable(id) {
+      return id !== 'img_chef' || isChefUnlocked();
+    }
+    let chefUnlockState = false; // merkt sich, ob die Sperre gerade umgeschlagen ist
+
+    function renderTemplateButtons() {
+      const container = document.getElementById('template-selector-container');
+      container.innerHTML = CARD_EDITIONS.map(edition => {
+        const locked = !isEditionSelectable(edition.id);
+        const isSelected = edition.id === currentEditionId && !customTemplateDataUrl;
+        return `
+          <button type="button" onclick="selectEdition('${edition.id}')"
+                  class="p-2.5 rounded-xl border text-left flex flex-col justify-between transition ${
+                    locked
+                      ? 'border-slate-900 bg-slate-950/40 text-slate-600 cursor-not-allowed'
+                      : isSelected
+                        ? 'border-amber-400 bg-amber-500/15 text-white shadow-md shadow-amber-500/10'
+                        : 'border-slate-800 bg-slate-950/70 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  }"
+                  title="${locked ? '🔒 Nur für Ric – gib oben den Namen Ric ein' : edition.name + ' ' + edition.subtitle}">
+            <span class="text-xs font-bold truncate">${locked ? '🔒 ' : ''}${edition.name}</span>
+            <span class="text-[10px] ${locked ? 'text-slate-700' : 'text-slate-500'} truncate mt-0.5">${locked ? 'Nur für Ric' : edition.subtitle}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectEdition(id) {
+      if (!isEditionSelectable(id)) {
+        showToast('🔒 Diese Vorlage ist nur für Ric freigeschaltet – gib oben den Namen Ric ein.', 'info', 5000);
+        playSound('penalty');
+        return;
+      }
+      currentEditionId = id;
+      customTemplateDataUrl = null;
+      document.getElementById('custom-template-img').classList.add('hidden');
+      renderTemplateButtons();
+      updateCardUI();
+      playSound('score_up');
+    }
+
+    function handleCustomTemplateUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        customTemplateDataUrl = e.target.result;
+        const img = document.getElementById('custom-template-img');
+        img.src = customTemplateDataUrl;
+        img.classList.remove('hidden');
+        renderTemplateButtons();
+        showToast('Eigenes Blanko-PNG als Kartenvorlage aktiviert! 🖼️', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateSingleStat(statKey) {
+      const val = document.getElementById(`slider-${statKey}`).value;
+      document.getElementById(`val-${statKey}`).innerText = val;
+      document.getElementById(`card-stat-${statKey}`).innerText = val;
+
+      if (document.getElementById('check-auto-ovr').checked) {
+        recalculateAutoOvr();
+      }
+    }
+
+    function recalculateAutoOvr() {
+      const trf = parseInt(document.getElementById('slider-trf').value) || 80;
+      const dur = parseInt(document.getElementById('slider-dur').value) || 80;
+      const ges = parseInt(document.getElementById('slider-ges').value) || 80;
+      const stm = parseInt(document.getElementById('slider-stm').value) || 80;
+      const gem = parseInt(document.getElementById('slider-gem').value) || 80;
+      const tak = parseInt(document.getElementById('slider-tak').value) || 80;
+
+      // Weighted calculation favoring party spirit and accuracy
+      const calculated = Math.round((trf * 1.3 + dur * 1.2 + ges * 1.3 + stm * 1.2 + gem * 0.8 + tak * 0.8) / 6.6);
+      const clamped = Math.min(99, Math.max(50, calculated));
+
+      document.getElementById('input-ovr').value = clamped;
+      document.getElementById('card-ovr-display').innerText = clamped;
+    }
+
+    function toggleAutoOvr() {
+      const isAuto = document.getElementById('check-auto-ovr').checked;
+      document.getElementById('input-ovr').disabled = isAuto;
+      if (isAuto) recalculateAutoOvr();
+    }
+
+    function applyPerkPreset(val) {
+      if (!val) return;
+      document.getElementById('input-perk').value = val;
+      updateCardUI();
+    }
+
+    function updateCardUI() {
+      const name = document.getElementById('input-name').value.trim() || 'GAST';
+      const nickname = document.getElementById('input-nickname').value.trim();
+      const pos = document.getElementById('input-pos').value;
+      const badgeKey = document.getElementById('input-badge').value;
+      const perk = document.getElementById('input-perk').value.trim() || 'Hütten-Held';
+      const ovr = document.getElementById('input-ovr').value;
+
+      document.getElementById('card-name-display').innerText = name;
+      document.getElementById('card-nickname-display').innerText = nickname;
+      document.getElementById('card-pos-display').innerText = pos;
+      document.getElementById('card-ovr-display').innerText = ovr;
+      document.getElementById('card-badge-display').innerText = BADGES[badgeKey] || '👑';
+      document.getElementById('card-perk-display').innerText = perk;
+
+      // Chef-Vorlage: gesperrt, sobald der Name nicht mehr "Ric" lautet
+      const chefUnlocked = isChefUnlocked();
+      if (currentEditionId === 'img_chef' && !chefUnlocked) {
+        currentEditionId = 'grandmaster';
+        renderTemplateButtons();
+        showToast('Chef-Vorlage gesperrt – der Name wurde geändert.', 'info');
+      } else if (chefUnlocked !== chefUnlockState) {
+        // Sperre ist umgeschlagen (freigeschaltet): Auswahl-Buttons neu zeichnen
+        renderTemplateButtons();
+      }
+      chefUnlockState = chefUnlocked;
+
+      // Theme Background and Border
+      const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
+      const borderEl = document.getElementById('card-border-layer');
+      const innerEl = document.getElementById('card-inner-layer');
+      const fadeEl = document.getElementById('photo-bottom-fade');
+
+      borderEl.className = `absolute inset-0 bg-gradient-to-b ${edition.borderGradient} pointer-events-none`;
+      innerEl.className = `fut-card-inner relative w-full h-full ${edition.innerBg} overflow-hidden flex flex-col justify-between`;
+
+      // Update bottom fade to blend with innerBg
+      fadeEl.className = `absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none`;
+
+      // PNG-Vorlagen (Freisteller-Editionen) statt prozeduralem Hintergrund anzeigen
+      const imageSrc = customTemplateDataUrl || edition.imageUrl || null;
+      const templateImg = document.getElementById('custom-template-img');
+      if (imageSrc && templateImg.getAttribute('src') !== imageSrc) {
+        templateImg.src = imageSrc;
+      }
+      imageSrc ? templateImg.classList.remove('hidden') : templateImg.classList.add('hidden');
+
+      // Render procedural background on card (nur, wenn kein PNG aktiv ist)
+      renderProceduralBackground(imageSrc ? null : edition.id);
+    }
+
+    /* Procedural SVG Backgrounds for each edition */
+    function renderProceduralBackground(id) {
+      const container = document.getElementById('procedural-bg-layer');
+      if (!id || customTemplateDataUrl) {
+        container.innerHTML = '';
+        return;
+      }
+
+      if (id === 'grandmaster') {
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full opacity-40 mix-blend-screen" viewBox="0 0 400 600">
+            <defs>
+              <radialGradient id="gmGlow" cx="50%" cy="40%" r="50%">
+                <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#gmGlow)"/>
+            <!-- Vinyl Grooves -->
+            <g stroke="#FDE68A" stroke-width="0.7" fill="none" opacity="0.3">
+              <circle cx="200" cy="240" r="40"/>
+              <circle cx="200" cy="240" r="70"/>
+              <circle cx="200" cy="240" r="100"/>
+              <circle cx="200" cy="240" r="130"/>
+              <circle cx="200" cy="240" r="160"/>
+              <circle cx="200" cy="240" r="190"/>
+            </g>
+          </svg>
+        `;
+      } else if (id === 'toty') {
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full opacity-50 mix-blend-lighten" viewBox="0 0 400 600">
+            <defs>
+              <linearGradient id="lavaGrad" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0%" stop-color="#EA580C" stop-opacity="0.6"/>
+                <stop offset="60%" stop-color="#7C2D12" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#lavaGrad)"/>
+            <path d="M 50 600 L 120 420 L 210 460 L 280 340 L 350 420 L 400 390" stroke="#F97316" stroke-width="2.5" fill="none" opacity="0.7"/>
+            <circle cx="120" cy="420" r="3" fill="#FDE047"/>
+            <circle cx="280" cy="340" r="4" fill="#FDE047"/>
+            <circle cx="210" cy="460" r="2.5" fill="#FFAA00"/>
+          </svg>
+        `;
+      } else if (id === 'schuetze') {
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full opacity-35" viewBox="0 0 400 600">
+            <g stroke="#10B981" stroke-width="1" fill="none" opacity="0.4">
+              <circle cx="200" cy="200" r="60"/>
+              <circle cx="200" cy="200" r="110"/>
+              <line x1="200" y1="60" x2="200" y2="340"/>
+              <line x1="60" y1="200" x2="340" y2="200"/>
+            </g>
+            <path d="M 50 50 Q 80 150 60 250" stroke="#F59E0B" stroke-width="2" fill="none" opacity="0.3"/>
+            <path d="M 350 50 Q 320 150 340 250" stroke="#F59E0B" stroke-width="2" fill="none" opacity="0.3"/>
+          </svg>
+        `;
+      } else if (id === 'beer') {
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full opacity-40 mix-blend-screen" viewBox="0 0 400 600">
+            <!-- Foam Head -->
+            <rect x="0" y="0" width="400" height="70" fill="#FFFBEB" opacity="0.7"/>
+            <path d="M 0 70 Q 50 100 100 70 T 200 70 T 300 70 T 400 70 L 400 0 L 0 0 Z" fill="#FFFBEB" opacity="0.8"/>
+            <!-- Bubbles -->
+            <circle cx="120" cy="280" r="4" fill="#FEF08A" opacity="0.6"/>
+            <circle cx="240" cy="320" r="5" fill="#FEF08A" opacity="0.5"/>
+            <circle cx="180" cy="400" r="3" fill="#FEF08A" opacity="0.7"/>
+            <circle cx="290" cy="220" r="4" fill="#FEF08A" opacity="0.5"/>
+          </svg>
+        `;
+      } else if (id === 'wildberry') {
+        container.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full opacity-40 mix-blend-screen" viewBox="0 0 400 600">
+            <circle cx="80" cy="180" r="2.5" fill="#FFF" opacity="0.8"/>
+            <circle cx="320" cy="140" r="3" fill="#FDA4AF" opacity="0.9"/>
+            <circle cx="270" cy="260" r="2" fill="#FFF" opacity="0.7"/>
+            <circle cx="120" cy="340" r="3.5" fill="#F43F5E" opacity="0.6"/>
+          </svg>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        `;
+      }
+    }
+
+    function rollRandomScout() {
+      const names = [
+        'Klaus-Dieter', 'Hauke', 'Zangen-Toni', 'Bier-Berti', 
+        'Schützen-Siggi', 'Grillgöttin Lisa', 'Hopfen-Hannes', 'Feuer-Florian', 
+        'Lagerfeuer-Lars', 'Zapf-Zoe', 'Sabine (Präsidentin)'
+      ];
+      const titles = [
+        'DER ZIELWASSER-PROPHET', 'HERR DER GLASRÄNDER', 'DIE BRATWURST-LEGEND',
+        'DAS HUFEISEN-PHÄNOMEN', 'DIE SCHÜTZEN-MAJESTÄT', 'DER SITZFLEISCH-KÖNIG',
+        'ZAPFHAHN-CHAMPION', 'DER WÜRFELEI-BLUFFER'
+      ];
+      const positions = ['GK', 'SK', 'ZK', 'DJ', 'SS', 'PK', 'BB', 'GS'];
+      const badges = ['crown', 'target', 'beer', 'steak', 'flower', 'fire', 'trophy'];
+      const editions = CARD_EDITIONS.map(e => e.id).filter(isEditionSelectable);
+
+      const rName = names[Math.floor(Math.random() * names.length)];
+      const rTitle = titles[Math.floor(Math.random() * titles.length)];
+      const rPos = positions[Math.floor(Math.random() * positions.length)];
+      const rBadge = badges[Math.floor(Math.random() * badges.length)];
+      const rEdition = editions[Math.floor(Math.random() * editions.length)];
+
+      const rTrf = Math.floor(Math.random() * 25) + 74;
+      const rDur = Math.floor(Math.random() * 25) + 74;
+      const rGes = Math.floor(Math.random() * 25) + 74;
+      const rStm = Math.floor(Math.random() * 25) + 74;
+      const rGem = Math.floor(Math.random() * 25) + 74;
+      const rTak = Math.floor(Math.random() * 25) + 74;
+
+      document.getElementById('input-name').value = rName;
+      document.getElementById('input-nickname').value = rTitle;
+      document.getElementById('input-pos').value = rPos;
+      document.getElementById('input-badge').value = rBadge;
+
+      document.getElementById('slider-trf').value = rTrf;
+      document.getElementById('slider-dur').value = rDur;
+      document.getElementById('slider-ges').value = rGes;
+      document.getElementById('slider-stm').value = rStm;
+      document.getElementById('slider-gem').value = rGem;
+      document.getElementById('slider-tak').value = rTak;
+
+      document.getElementById('val-trf').innerText = rTrf;
+      document.getElementById('val-dur').innerText = rDur;
+      document.getElementById('val-ges').innerText = rGes;
+      document.getElementById('val-stm').innerText = rStm;
+      document.getElementById('val-gem').innerText = rGem;
+      document.getElementById('val-tak').innerText = rTak;
+
+      selectEdition(rEdition);
+      recalculateAutoOvr();
+      updateCardUI();
+
+      playSound('victory');
+      showToast(`🎲 Neuer Gast gescoutet: ${rName}!`, 'info');
+    }
+
+    /* ======================================================== */
+    /* HIGH RESOLUTION (1800 x 2700) PNG CANVAS EXPORTER        */
+    /* ======================================================== */
+    /* Schild-Pfad im Layout-Koordinatenraum (1200 x 1800) */
+    function createShieldPath(c, W, H) {
+      c.beginPath();
+      c.moveTo(W * 0.5, H * 0.01);
+      c.lineTo(W * 0.94, H * 0.07);
+      c.lineTo(W * 0.99, H * 0.28);
+      c.lineTo(W * 0.99, H * 0.86);
+      c.lineTo(W * 0.5, H * 0.99);
+      c.lineTo(W * 0.01, H * 0.86);
+      c.lineTo(W * 0.01, H * 0.28);
+      c.lineTo(W * 0.06, H * 0.07);
+      c.closePath();
+    }
+
+    /* Lädt die aktive PNG-Vorlage (eigene Uploads UND eingebaute Editionen) */
+    function loadCustomTemplateImage() {
+      return new Promise((resolve) => {
+        const edition = CARD_EDITIONS.find(e => e.id === currentEditionId);
+        const src = customTemplateDataUrl || (edition && edition.imageUrl) || null;
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    /* Rendert die komplette Karte in maximaler Aufloesung (1800x2700)
+       und liefert die PNG als Data-URL. Basis fuer Download UND Versand. */
+    async function renderHighResPNG() {
+      const canvas = document.getElementById('export-canvas');
+      const ctx = canvas.getContext('2d');
+      const W = 1200;      // Layout-Koordinatenraum (wie bisher)
+      const H = 1800;
+      const SCALE = 1.5;   // Ziel-Aufloesung: 1800 x 2700
+
+      canvas.width = W * SCALE;
+      canvas.height = H * SCALE;
+      ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.save();
+      createShieldPath(ctx, W, H);
+      ctx.clip();
+
+      const customImg = await loadCustomTemplateImage();
+      if (customImg) {
+        // object-cover-Verhalten wie in der Vorschau (Bild mittig, randabfallend)
+        const coverScale = Math.max(W / customImg.width, H / customImg.height);
+        const dw = customImg.width * coverScale;
+        const dh = customImg.height * coverScale;
+        ctx.drawImage(customImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      } else {
+        // Draw Gradient Background
+        const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        if (edition.id === 'grandmaster') {
+          grad.addColorStop(0, '#1c1505');
+          grad.addColorStop(0.5, '#050402');
+          grad.addColorStop(1, '#110b02');
+        } else if (edition.id === 'toty') {
+          grad.addColorStop(0, '#1c0c05');
+          grad.addColorStop(0.5, '#0a0910');
+          grad.addColorStop(1, '#050409');
+        } else if (edition.id === 'schuetze') {
+          grad.addColorStop(0, '#0a3022');
+          grad.addColorStop(0.5, '#041f16');
+          grad.addColorStop(1, '#02120c');
+        } else {
+          grad.addColorStop(0, '#241407');
+          grad.addColorStop(0.5, '#0f0803');
+          grad.addColorStop(1, '#1a0d05');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      finishExportDrawing(ctx, W, H);
+      ctx.restore();
+
+      return canvas.toDataURL('image/png');
+    }
+
+    async function exportCardToHighResPNG() {
+      const btn = document.getElementById('btn-export-png');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="animate-spin">⏳</span> <span>Rendere Ultra-HD PNG (1800x2700)...</span>`;
+      btn.disabled = true;
+
+      try {
+        const dataUrl = await renderHighResPNG();
+        const rawName = (document.getElementById('input-name').value.trim() || 'GAST').replace(/\s+/g, '_');
+        const link = document.createElement('a');
+        link.download = `GUT_Karte_${rawName}.png`;
+        link.href = dataUrl;
+        link.click();
+        playSound('score_up');
+        showToast('1800x2700 HD-Karte erfolgreich heruntergeladen! 📥', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Export fehlgeschlagen: ' + e.message, 'error');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    function finishExportDrawing(ctx, W, H) {
+      // 1. Player-Portraet: frischer High-Res-Freisteller aus dem ORIGINALFOTO
+      // (die Vorschau liegt bewusst klein - fuer den Export wird neu freigestellt)
+      const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
+      const posX = (parseInt(document.getElementById('slider-x').value) || 0) * 3 * zoom;
+      const posY = (parseInt(document.getElementById('slider-y').value) || 0) * 3 * zoom;
+      const brightness = parseInt(document.getElementById('slider-brightness').value) || 100;
+
+      const hiResCanvas = document.createElement('canvas');
+      const hasPhoto = processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
+
+      if (hasPhoto && hiResCanvas.width) {
+        const pw = 750 * zoom;
+        const ph = 750 * zoom;
+        const px = W * 0.5 - pw * 0.45 + posX;
+        const py = H * 0.12 + posY;
+
+        ctx.save();
+        ctx.filter = `brightness(${brightness}%)`;
+        ctx.drawImage(hiResCanvas, px, py, pw, ph);
+        ctx.restore();
+
+        // Bottom blend gradient over photo
+        const fadeGrad = ctx.createLinearGradient(0, H * 0.45, 0, H * 0.62);
+        fadeGrad.addColorStop(0, 'rgba(5, 5, 10, 0)');
+        fadeGrad.addColorStop(1, 'rgba(5, 5, 10, 0.95)');
+        ctx.fillStyle = fadeGrad;
+        ctx.fillRect(0, H * 0.4, W, H * 0.3);
+      }
+
+      // 2. Draw Top Information (OVR, Position, Badge)
+      const ovr = document.getElementById('card-ovr-display').innerText;
+      const pos = document.getElementById('card-pos-display').innerText;
+      const badgeIcon = document.getElementById('card-badge-display').innerText;
+
+      ctx.fillStyle = '#FDE68A';
+      ctx.font = '900 145px Rajdhani, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(ovr, 210, 260);
+
+      ctx.font = '700 60px Rajdhani, sans-serif';
+      ctx.fillStyle = '#F3F4F6';
+      ctx.fillText(pos, 210, 330);
+
+      ctx.font = '65px sans-serif';
+      ctx.fillText(badgeIcon, 210, 430);
+
+      // 3. Draw Player Name & Nickname
+      const name = document.getElementById('card-name-display').innerText;
+      const nickname = document.getElementById('card-nickname-display').innerText;
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '800 68px Rajdhani, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(name.toUpperCase(), W * 0.5, H * 0.68);
+
+      if (nickname) {
+        ctx.fillStyle = '#FBBF24';
+        ctx.font = '700 30px Rajdhani, sans-serif';
+        ctx.letterSpacing = '4px';
+        ctx.fillText(nickname.toUpperCase(), W * 0.5, H * 0.71);
+      }
+
+      // Divider Line
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(W * 0.15, H * 0.735);
+      ctx.lineTo(W * 0.85, H * 0.735);
+      ctx.stroke();
+
+      // 4. Draw The 6 Stats
+      const trf = document.getElementById('card-stat-trf').innerText;
+      const dur = document.getElementById('card-stat-dur').innerText;
+      const ges = document.getElementById('card-stat-ges').innerText;
+      const stm = document.getElementById('card-stat-stm').innerText;
+      const gem = document.getElementById('card-stat-gem').innerText;
+      const tak = document.getElementById('card-stat-tak').innerText;
+
+      const col1X = W * 0.32;
+      const col2X = W * 0.68;
+      const row1Y = H * 0.785;
+      const row2Y = H * 0.835;
+      const row3Y = H * 0.885;
+
+      function drawStat(label, val, x, y) {
+        ctx.textAlign = 'right';
+        ctx.font = '800 48px Rajdhani, sans-serif';
+        ctx.fillStyle = '#FDE68A';
+        ctx.fillText(val, x - 15, y);
+
+        ctx.textAlign = 'left';
+        ctx.font = '600 34px Rajdhani, sans-serif';
+        ctx.fillStyle = '#D1D5DB';
+        ctx.fillText(label, x + 5, y);
+      }
+
+      drawStat('TRF', trf, col1X, row1Y);
+      drawStat('DUR', dur, col1X, row2Y);
+      drawStat('GES', ges, col1X, row3Y);
+
+      drawStat('STM', stm, col2X, row1Y);
+      drawStat('GEM', gem, col2X, row2Y);
+      drawStat('TAK', tak, col2X, row3Y);
+
+      // 5. Draw Perk Banner at Bottom
+      const perk = document.getElementById('card-perk-display').innerText;
+      ctx.textAlign = 'center';
+      ctx.font = '700 32px Rajdhani, sans-serif';
+      ctx.fillStyle = '#F59E0B';
+      ctx.fillText(`⚡ ${perk.toUpperCase()}`, W * 0.5, H * 0.94);
+
+      // Gold Outer Border Line
+      ctx.strokeStyle = '#FBBF24';
+      ctx.lineWidth = 14;
+      ctx.stroke();
+    }
+
+    /* ======================================================== */
+    /* UEBERGABE AN DEN GASTGEBER (Google Apps Script -> Drive) */
+    /* ======================================================== */
+    async function sendCardToHost() {
+      const btn = document.getElementById('btn-send-host');
+
+      if (!GUT_SUBMIT_URL) {
+        showToast('Senden ist noch nicht eingerichtet: Apps-Script-URL in der Datei eintragen (siehe APPS-SCRIPT-ANLEITUNG.md). Bis dahin: PNG herunterladen & manuell schicken.', 'info', 6000);
+        return;
+      }
+
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="animate-spin">⏳</span> <span>Erzeuge High-Res &amp; sende...</span>`;
+      btn.disabled = true;
+
+      try {
+        const dataUrl = await renderHighResPNG();
+
+        const payload = JSON.stringify({
+          file: dataUrl,
+          name: document.getElementById('input-name').value.trim() || 'Gast',
+          nickname: document.getElementById('input-nickname').value.trim(),
+          ovr: document.getElementById('input-ovr').value,
+          pos: document.getElementById('input-pos').value,
+          badge: document.getElementById('input-badge').value,
+          perk: document.getElementById('input-perk').value.trim(),
+          edition: currentEditionId,
+          stats: {
+            trf: document.getElementById('slider-trf').value,
+            dur: document.getElementById('slider-dur').value,
+            ges: document.getElementById('slider-ges').value,
+            stm: document.getElementById('slider-stm').value,
+            gem: document.getElementById('slider-gem').value,
+            tak: document.getElementById('slider-tak').value
+          }
+        });
+
+        let delivered = false;
+        let lastError = null;
+
+        // 1. Versuch: normaler Request (JSON als text/plain - kein CORS-Preflight)
+        try {
+          const res = await fetch(GUT_SUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: payload
+          });
+          const json = await res.json();
+          if (json && json.ok) {
+            delivered = true;
+          } else {
+            lastError = (json && json.error) || 'Unbekannter Serverfehler';
+          }
+        } catch (e) {
+          lastError = e.message;
+        }
+
+        // 2. Versuch: opaker Request (geht auch bei CORS-Problemen, ohne Rueckmeldung)
+        if (!delivered) {
+          try {
+            await fetch(GUT_SUBMIT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: payload,
+              mode: 'no-cors'
+            });
+            delivered = true;
+          } catch (e) {
+            lastError = e.message;
+          }
+        }
+
+        if (delivered) {
+          playSound('victory');
+          showToast('Karte an den Gastgeber gesendet! 📬', 'success');
+        } else {
+          throw new Error(lastError || 'Unbekannter Fehler');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('Senden fehlgeschlagen (' + e.message + ') – nutze bitte "PNG herunterladen".', 'error', 6000);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    /* ======================================================== */
+    /* TOURNAMENT & MINISPIEL LEADERBOARD LOGIC                 */
+    /* ======================================================== */
+    function addCurrentCardToTournament() {
+      const name = document.getElementById('input-name').value.trim() || 'Gast';
+      const nickname = document.getElementById('input-nickname').value.trim();
+      const pos = document.getElementById('input-pos').value;
+      const badge = document.getElementById('input-badge').value;
+      const perk = document.getElementById('input-perk').value.trim() || 'Hütten-Held';
+      const ovr = parseInt(document.getElementById('input-ovr').value) || 85;
+
+      const trf = parseInt(document.getElementById('slider-trf').value);
+      const dur = parseInt(document.getElementById('slider-dur').value);
+      const ges = parseInt(document.getElementById('slider-ges').value);
+      const stm = parseInt(document.getElementById('slider-stm').value);
+      const gem = parseInt(document.getElementById('slider-gem').value);
+      const tak = parseInt(document.getElementById('slider-tak').value);
+
+      // Extract current processed portrait canvas data
+      const portraitCanvas = document.getElementById('portrait-canvas');
+      const photoDataUrl = portraitCanvas.toDataURL('image/png');
+
+      const newPlayer = {
+        id: 'player_' + Date.now(),
+        name,
+        nickname,
+        ovr,
+        pos,
+        badge,
+        editionId: currentEditionId,
+        perk,
+        stats: { trf, dur, ges, stm, gem, tak },
+        score: 0,
+        photoDataUrl
+      };
+
+      tournamentRoster.push(newPlayer);
+      saveTournamentData();
+      renderLeaderboard();
+      playSound('victory');
+      showToast(`${name} zur Minispiel-Tabelle hinzugefügt! 🏆`, 'success');
+
+      setTimeout(() => switchTab('leaderboard'), 400);
+    }
+
+    function renderLeaderboard() {
+      // Sort players by tournament score descending, then OVR
+      tournamentRoster.sort((a, b) => b.score - a.score || b.ovr - a.ovr);
+
+      document.getElementById('player-count-badge').innerText = tournamentRoster.length;
+      document.getElementById('leaderboard-total-count').innerText = `${tournamentRoster.length} Teilnehmer aktiv`;
+
+      // Render Top 3 Podium
+      const podiumContainer = document.getElementById('podium-container');
+      const tvPodiumContainer = document.getElementById('tv-podium-cards');
+      const top3 = tournamentRoster.slice(0, 3);
+
+      const podiumHtml = top3.map((player, idx) => {
+        const medals = ['🥇 1. Platz (Schützenkönig)', '🥈 2. Platz', '🥉 3. Platz'];
+        const isFirst = idx === 0;
+
+        return `
+          <div class="rounded-2xl border p-4 ${
+            isFirst 
+              ? 'border-amber-400 bg-gradient-to-b from-amber-500/15 via-amber-900/10 to-transparent shadow-xl shadow-amber-500/20' 
+              : 'border-slate-800 bg-slate-900/70'
+          } flex items-center gap-4 relative overflow-hidden transition-transform hover:scale-[1.02]">
+            <div class="absolute -right-3 -bottom-3 text-7xl opacity-10 select-none">
+              ${isFirst ? '👑' : idx === 1 ? '🥈' : '🥉'}
+            </div>
+
+            <div class="w-16 h-20 rounded-xl overflow-hidden relative border border-white/20 flex-shrink-0 bg-slate-950">
+              <img src="${player.photoDataUrl}" alt="${player.name}" class="w-full h-full object-cover">
+              <span class="absolute top-1 left-1 text-[10px] font-black px-1 rounded bg-black/80 text-amber-300 font-fut">${player.ovr}</span>
+            </div>
+
+            <div class="flex-grow min-w-0">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400 block">${medals[idx]}</span>
+              <h4 class="text-base font-black text-white truncate font-fut uppercase">${player.name}</h4>
+              <p class="text-xs text-slate-400 truncate">${player.nickname || player.perk}</p>
+              
+              <div class="mt-2 flex items-center gap-2">
+                <span class="text-2xl font-black text-amber-300 font-fut">${player.score}</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Punkte</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      podiumContainer.innerHTML = podiumHtml || '<div class="col-span-3 text-center py-6 text-slate-500">Noch keine Spieler in der Tabelle</div>';
+      if (tvPodiumContainer) tvPodiumContainer.innerHTML = podiumHtml;
+
+      // Render Full Roster Table Rows
+      const rowsContainer = document.getElementById('leaderboard-rows');
+      rowsContainer.innerHTML = tournamentRoster.map((player, index) => {
+        const isTop = index < 3;
+        const rankDisplay = index === 0 ? '👑 1' : index === 1 ? '🥈 2' : index === 2 ? '🥉 3' : `${index + 1}.`;
+
+        return `
+          <div class="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-800/40 transition">
+            
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-8 text-center text-sm font-black ${isTop ? 'text-amber-400' : 'text-slate-500'} font-fut">${rankDisplay}</span>
+              
+              <div class="w-12 h-14 rounded-lg overflow-hidden relative border border-slate-700 bg-slate-950 flex-shrink-0">
+                <img src="${player.photoDataUrl}" alt="${player.name}" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 inset-x-0 text-center bg-black/80 text-[9px] font-bold text-amber-300 font-fut">
+                  ${player.pos}
+                </div>
+              </div>
+
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-white text-sm truncate">${player.name}</h4>
+                  <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-fut">
+                    OVR ${player.ovr}
+                  </span>
+                  <span>${BADGES[player.badge] || '👑'}</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                  <span class="text-amber-400 font-medium">⚡ ${player.perk}</span>
+                  <span>•</span>
+                  <span>TRF: ${player.stats.trf} | DUR: ${player.stats.dur} | GES: ${player.stats.ges}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minigame Quick-Score Buttons -->
+            <div class="flex items-center gap-2 self-end md:self-center flex-wrap">
+              <button onclick="modifyScore('${player.id}', 10, 'score_up')" class="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 rounded text-xs font-bold transition" title="+10 Königsschuss">+10 🎯</button>
+              <button onclick="modifyScore('${player.id}', 5, 'score_up')" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded text-xs font-bold transition" title="+5 Dart/Hufeisen">+5 🎪</button>
+              <button onclick="modifyScore('${player.id}', 3, 'score_up')" class="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 rounded text-xs font-bold transition" title="+3 Beerpong">+3 🍺</button>
+              <button onclick="modifyScore('${player.id}', -3, 'penalty')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded text-xs font-bold transition" title="-3 Nerviger Song">-3 🎵</button>
+              <button onclick="modifyScore('${player.id}', -5, 'penalty')" class="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/30 rounded text-xs font-bold transition" title="-5 Bier verschüttet">-5 🍺</button>
+
+              <div class="w-14 text-center px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg">
+                <span class="text-lg font-black text-amber-300 font-fut">${player.score}</span>
+              </div>
+
+              <button onclick="deletePlayerPrompt('${player.id}')" class="p-1.5 text-slate-500 hover:text-rose-400 transition" title="Löschen">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function modifyScore(playerId, amount, soundType) {
+      const player = tournamentRoster.find(p => p.id === playerId);
+      if (!player) return;
+
+      player.score = Math.max(0, player.score + amount);
+      saveTournamentData();
+      renderLeaderboard();
+      playSound(soundType);
+
+      if (amount > 0) {
+        showToast(`+${amount} Punkte für ${player.name}! 🍻`, 'success');
+      } else {
+        showToast(`${amount} Strafpunkte für ${player.name}! ⚠️`, 'error');
+      }
+    }
+
+    function deletePlayerPrompt(id) {
+      const p = tournamentRoster.find(x => x.id === id);
+      showCustomConfirm(
+        'Spieler entfernen?',
+        `Möchtest du "${p ? p.name : 'diesen Spieler'}" wirklich aus der Turniertabelle entfernen?`,
+        () => {
+          tournamentRoster = tournamentRoster.filter(x => x.id !== id);
+          saveTournamentData();
+          renderLeaderboard();
+          showToast('Spieler entfernt', 'info');
+        }
+      );
+    }
+
+    function confirmResetTournament() {
+      showCustomConfirm(
+        'Turnierpunkte zurücksetzen?',
+        'Alle aktuellen Punktestände werden auf 0 gesetzt. Die Karten bleiben erhalten.',
+        () => {
+          tournamentRoster.forEach(p => p.score = 0);
+          saveTournamentData();
+          renderLeaderboard();
+          showToast('Turnierstände auf 0 zurückgesetzt!', 'info');
+        }
+      );
+    }
+
+    function saveTournamentData() {
+      try {
+        localStorage.setItem('gut_roster_data', JSON.stringify(tournamentRoster));
+      } catch (e) {
+        console.warn("Storage quota exceeded or unavailable:", e);
+      }
+    }
+
+    function loadTournamentData() {
+      try {
+        const stored = localStorage.getItem('gut_roster_data');
+        if (stored) {
+          tournamentRoster = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.warn("Error parsing stored roster:", e);
+      }
+    }
+
+    /* ======================================================== */
+    /* UI NAVIGATION, TV MODE & EVENT LISTENERS                 */
+    /* ======================================================== */
+    function switchTab(tab) {
+      const studioView = document.getElementById('view-studio');
+      const leaderboardView = document.getElementById('view-leaderboard');
+      const btnStudio = document.getElementById('nav-btn-studio');
+      const btnLeaderboard = document.getElementById('nav-btn-leaderboard');
+
+      if (tab === 'studio') {
+        studioView.classList.remove('hidden');
+        leaderboardView.classList.add('hidden');
+        btnStudio.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/25";
+        btnLeaderboard.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60";
+      } else {
+        studioView.classList.add('hidden');
+        leaderboardView.classList.remove('hidden');
+        renderLeaderboard();
+        btnLeaderboard.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/25";
+        btnStudio.className = "px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/60";
+      }
+    }
+
+    function toggleTvMode(show) {
+      const modal = document.getElementById('tv-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        renderLeaderboard();
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function setupCard3DTilt() {
+      const card = document.getElementById('fut-card-render');
+      if (!card) return;
+
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+
+        const rotX = ((y - cy) / cy) * -14;
+        const rotY = ((x - cx) / cx) * 14;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        
+        const sheen = card.querySelector('.holo-sheen');
+        if (sheen) {
+          sheen.style.backgroundPosition = `${x * 1.6}% ${y * 1.6}%`;
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      });
+    }
+
+    function showToast(msg, type = 'info', duration = 3500) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const border = type === 'success' 
+        ? 'border-emerald-500 text-emerald-300' 
+        : type === 'error'
+        ? 'border-rose-500 text-rose-300'
+        : 'border-amber-500 text-amber-300';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl border ${border} bg-slate-900/95 shadow-2xl backdrop-blur-md text-xs font-bold flex items-center gap-2 transform transition-all duration-300 translate-y-3 opacity-0`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚡'}</span> <span>${msg}</span>`;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.remove('translate-y-3', 'opacity-0'), 15);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    let confirmCallback = null;
+    function showCustomConfirm(title, desc, onOk) {
+      document.getElementById('confirm-modal-title').innerText = title;
+      document.getElementById('confirm-modal-desc').innerText = desc;
+      confirmCallback = onOk;
+
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.getElementById('confirm-modal-ok-btn').onclick = () => {
+        if (confirmCallback) confirmCallback();
+        closeConfirmModal();
+      };
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      confirmCallback = null;
+    }
+
+    // App Initialization on DOM Load
+    window.addEventListener('load', () => {
+      loadTournamentData();
+      renderTemplateButtons();
+      
+      // Preset Avatars setup
+      const avatarRow = document.getElementById('preset-avatars-row');
+      avatarRow.innerHTML = DEMO_AVATARS.map(a => `
+        <button type="button" onclick="loadInitialImage('${a.url}')" class="w-8 h-8 rounded-full overflow-hidden border border-slate-700 hover:border-amber-400 transition" title="${a.name}">
+          <img src="${a.url}" alt="${a.name}" class="w-full h-full object-cover">
+        </button>
+      `).join('');
+
+      loadInitialImage(DEMO_AVATARS[0].url);
+      updateCardUI();
+      renderLeaderboard();
+      setupCard3DTilt();
+
+      // Realtime Clock for TV/Beamer
+      setInterval(() => {
+        const d = new Date();
+        const el = document.getElementById('tv-clock');
+        if (el) el.innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }, 1000);
+
+      // ESC key to close TV mode
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') toggleTvMode(false);
+      });
+    });
+  </script>
+</body>
+</html>
