@@ -488,36 +488,36 @@
                 <div class="w-3/4 mx-auto h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent my-1"></div>
               </div>
 
-              <!-- 6 Attributes Grid (FUT Style) -->
-              <div class="absolute top-[69%] left-0 right-0 z-20 px-7 sm:px-9 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs sm:text-sm font-fut">
+              <!-- 6 Attributes Grid (FUT Style: Label first, Value second) -->
+              <div class="absolute top-[69%] left-0 right-0 z-20 px-6 sm:px-8 grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs sm:text-sm font-fut">
                 <!-- Column 1 -->
-                <div class="space-y-0.5">
+                <div class="space-y-0.5 pr-2.5 sm:pr-3 border-r border-white/20">
                   <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span id="card-stat-trf" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TRF</span>
+                    <span id="card-stat-trf" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                   </div>
                   <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span id="card-stat-dur" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">98</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">DUR</span>
+                    <span id="card-stat-dur" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">98</span>
                   </div>
                   <div class="flex items-center justify-between">
-                    <span id="card-stat-ges" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GES</span>
+                    <span id="card-stat-ges" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                   </div>
                 </div>
                 <!-- Column 2 -->
-                <div class="space-y-0.5">
+                <div class="space-y-0.5 pl-2.5 sm:pl-3">
                   <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span id="card-stat-stm" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">97</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">STM</span>
+                    <span id="card-stat-stm" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">97</span>
                   </div>
                   <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span id="card-stat-gem" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GEM</span>
+                    <span id="card-stat-gem" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
                   </div>
                   <div class="flex items-center justify-between">
-                    <span id="card-stat-tak" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">92</span>
                     <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TAK</span>
+                    <span id="card-stat-tak" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">92</span>
                   </div>
                 </div>
               </div>
@@ -1678,16 +1678,26 @@
       const row3Y = H * 0.80;
 
       function drawStat(label, val, x, y) {
+        // Label (Buchstaben) linksbündig
+        ctx.textAlign = 'left';
+        ctx.font = '600 34px Rajdhani, sans-serif';
+        ctx.fillStyle = '#E5E7EB';
+        ctx.fillText(label, x - 85, y);
+
+        // Wert (Zahl) rechtsbündig
         ctx.textAlign = 'right';
         ctx.font = '800 46px Rajdhani, sans-serif';
         ctx.fillStyle = accentColor;
-        ctx.fillText(val, x - 12, y);
-
-        ctx.textAlign = 'left';
-        ctx.font = '600 32px Rajdhani, sans-serif';
-        ctx.fillStyle = '#E5E7EB';
-        ctx.fillText(label, x + 8, y);
+        ctx.fillText(val, x + 85, y);
       }
+
+      // Vertikale Trennlinie zwischen den Stat-Spalten
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(W * 0.5, row1Y - 32);
+      ctx.lineTo(W * 0.5, row3Y + 12);
+      ctx.stroke();
 
       drawStat('TRF', trf, col1X, row1Y);
       drawStat('DUR', dur, col1X, row2Y);

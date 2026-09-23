@@ -86,10 +86,10 @@
       <div class="relative w-full max-w-[400px] h-[520px] bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl p-2 flex items-center justify-center select-none overflow-hidden">
         
         <!-- THE CARD WRAPPER -->
-        <div id="card-wrapper" class="relative w-full h-full select-none overflow-hidden rounded-2xl flex items-center justify-center">
+        <div id="card-wrapper" class="relative select-none overflow-hidden rounded-2xl flex items-center justify-center" style="height: 100%; aspect-ratio: 986 / 1200;">
           
           <!-- Vorlagen-Bild -->
-          <img id="stage-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
+          <img id="stage-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-fill pointer-events-none z-0">
 
           <!-- 1. PORTRAIT LAYER -->
           <div id="layer-portrait" onclick="selectElement('portrait')" class="absolute cursor-pointer transition-transform duration-75 z-10 overflow-hidden flex items-center justify-center" style="top: 36%; left: 60%; width: 62%; height: 50%; transform: translate(-50%, -50%); mask-image: linear-gradient(to bottom, black 65%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);">
@@ -128,35 +128,35 @@
           </div>
 
           <!-- 6. STATS LAYER -->
-          <div id="layer-stats" onclick="selectElement('stats')" class="absolute cursor-pointer transition-transform duration-75 z-20 grid grid-cols-2 gap-x-6 gap-y-0.5 font-fut w-[68%]" style="top: 74%; left: 50%; transform: translate(-50%, -50%);">
+          <div id="layer-stats" onclick="selectElement('stats')" class="absolute cursor-pointer transition-transform duration-75 z-20 grid grid-cols-2 gap-x-2 font-fut w-[68%]" style="top: 74%; left: 50%; transform: translate(-50%, -50%);">
             <!-- Col 1 -->
-            <div class="space-y-0.5">
+            <div class="space-y-0.5 pr-2.5 border-r border-white/20">
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">TRF</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
               </div>
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">98</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">DUR</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">98</span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">GES</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
               </div>
             </div>
             <!-- Col 2 -->
-            <div class="space-y-0.5">
+            <div class="space-y-0.5 pl-2.5">
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">97</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">STM</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">97</span>
               </div>
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">GEM</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="font-extrabold text-amber-300 drop-shadow text-base">92</span>
                 <span class="text-slate-200 font-semibold tracking-wider text-xs">TAK</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">92</span>
               </div>
             </div>
           </div>
@@ -287,13 +287,13 @@
     /* THE 7 EDITIONS CONFIGURATION                             */
     /* ======================================================== */
     const EDITIONS = [
-      { id: 'img_bier', name: '🍺 Bierfest', file: 'vorlagen/karte_bier_gold.png' },
-      { id: 'img_krone', name: '👑 Prunkkrone', file: 'vorlagen/karte_lila_krone.png' },
-      { id: 'img_tracht', name: '🌸 Edelweiß', file: 'vorlagen/karte_blau_tracht.png' },
-      { id: 'img_glitzer', name: '✨ Glitzer', file: 'vorlagen/karte_glitzer_pink.png' },
-      { id: 'img_holz', name: '🪵 Eisenhütte', file: 'vorlagen/karte_holz_eisen.png' },
-      { id: 'img_schuetze', name: '🎯 Schütze', file: 'vorlagen/karte_gruen_gold.png' },
-      { id: 'img_chef', name: '👑 Chef (Ric)', file: 'vorlagen/karte_chef.png' }
+      { id: 'img_bier', name: '🍺 Bierfest', file: 'vorlagen/karte_bier_gold.png', ratio: '986 / 1200' },
+      { id: 'img_krone', name: '👑 Prunkkrone', file: 'vorlagen/karte_lila_krone.png', ratio: '931 / 1200' },
+      { id: 'img_tracht', name: '🌸 Edelweiß', file: 'vorlagen/karte_blau_tracht.png', ratio: '780 / 1200' },
+      { id: 'img_glitzer', name: '✨ Glitzer', file: 'vorlagen/karte_glitzer_pink.png', ratio: '857 / 1200' },
+      { id: 'img_holz', name: '🪵 Eisenhütte', file: 'vorlagen/karte_holz_eisen.png', ratio: '943 / 1200' },
+      { id: 'img_schuetze', name: '🎯 Schütze', file: 'vorlagen/karte_gruen_gold.png', ratio: '954 / 1200' },
+      { id: 'img_chef', name: '👑 Chef (Ric)', file: 'vorlagen/karte_chef.png', ratio: '572 / 716' }
     ];
 
     let currentEditionId = 'img_bier';
@@ -354,6 +354,8 @@
       const ed = EDITIONS.find(e => e.id === id);
       if (ed) {
         document.getElementById('stage-template-img').src = ed.file;
+        const wrapper = document.getElementById('card-wrapper');
+        if (wrapper && ed.ratio) wrapper.style.aspectRatio = ed.ratio;
       }
       if (!configs[id]) {
         configs[id] = JSON.parse(JSON.stringify(BASE_DEFAULT));
