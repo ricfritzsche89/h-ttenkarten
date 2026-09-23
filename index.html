@@ -338,6 +338,29 @@
             </div>
           </div>
 
+          <!-- Section 3.5: Text- & Akzentfarbe -->
+          <div class="mb-6 p-4 bg-slate-950/70 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-inner">
+            <div>
+              <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎨</span> Schrift- & Akzentfarbe
+              </label>
+              <p class="text-[11px] text-slate-400">Passe die Textfarbe für OVR, Stats, Titel & Verzierungen an</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="color" id="input-text-color" value="#FBBF24" oninput="updateUserTextColor(this.value)" class="w-9 h-8 rounded-lg cursor-pointer bg-slate-900 border border-slate-700 p-0.5" title="Beliebige Wunschfarbe wählen">
+              <div class="flex flex-wrap gap-1.5 items-center">
+                <button type="button" onclick="updateUserTextColor('#FBBF24')" class="w-6 h-6 rounded-full bg-[#FBBF24] border border-white/20 hover:scale-110 transition shadow" title="Gold"></button>
+                <button type="button" onclick="updateUserTextColor('#FFFFFF')" class="w-6 h-6 rounded-full bg-[#FFFFFF] border border-white/20 hover:scale-110 transition shadow" title="Weiß"></button>
+                <button type="button" onclick="updateUserTextColor('#FDE68A')" class="w-6 h-6 rounded-full bg-[#FDE68A] border border-white/20 hover:scale-110 transition shadow" title="Hellgold"></button>
+                <button type="button" onclick="updateUserTextColor('#E5E7EB')" class="w-6 h-6 rounded-full bg-[#E5E7EB] border border-white/20 hover:scale-110 transition shadow" title="Silber"></button>
+                <button type="button" onclick="updateUserTextColor('#34D399')" class="w-6 h-6 rounded-full bg-[#34D399] border border-white/20 hover:scale-110 transition shadow" title="Smaragd"></button>
+                <button type="button" onclick="updateUserTextColor('#F472B6')" class="w-6 h-6 rounded-full bg-[#F472B6] border border-white/20 hover:scale-110 transition shadow" title="Pink"></button>
+                <button type="button" onclick="updateUserTextColor('#1E293B')" class="w-6 h-6 rounded-full bg-[#1E293B] border border-white/40 hover:scale-110 transition shadow" title="Dunkel"></button>
+                <button type="button" onclick="resetUserTextColor()" class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Standardfarbe der Vorlage nutzen">Auto</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Section 4: The 6 Official Party Stats (TRF, DUR, GES, STM, GEM, TAK) -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-3">
@@ -1289,6 +1312,23 @@
       updateCardUI();
     }
 
+    let userTextColor = null;
+
+    function updateUserTextColor(color) {
+      userTextColor = color;
+      const picker = document.getElementById('input-text-color');
+      if (picker) picker.value = color;
+      updateCardUI();
+    }
+
+    function resetUserTextColor() {
+      userTextColor = null;
+      const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
+      const picker = document.getElementById('input-text-color');
+      if (picker && edition.accentColor) picker.value = edition.accentColor;
+      updateCardUI();
+    }
+
     function updateCardUI() {
       const name = document.getElementById('input-name').value.trim() || 'GAST';
       const nickname = document.getElementById('input-nickname').value.trim();
@@ -1327,11 +1367,27 @@
       if (innerEl) innerEl.className = 'relative w-full h-full overflow-hidden select-none';
       if (fadeEl) fadeEl.style.display = 'none';
 
-      // Akzentfarbe für OVR & Badges passend zur Edition setzen
-      const ovrEl = document.getElementById('card-ovr-display');
-      if (ovrEl && edition.accentColor) {
-        ovrEl.style.color = edition.accentColor;
+      // Akzent- / Schriftfarbe anwenden (Wunschfarbe oder Vorlagen-Standard)
+      const activeColor = userTextColor || edition.accentColor || '#FDE68A';
+      const colorPicker = document.getElementById('input-text-color');
+      if (colorPicker && !userTextColor && edition.accentColor) {
+        colorPicker.value = edition.accentColor;
       }
+
+      const ovrEl = document.getElementById('card-ovr-display');
+      if (ovrEl) ovrEl.style.color = activeColor;
+      const posEl = document.getElementById('card-pos-display');
+      if (posEl) posEl.style.color = activeColor;
+      const nickEl = document.getElementById('card-nickname-display');
+      if (nickEl) nickEl.style.color = activeColor;
+
+      ['trf', 'dur', 'ges', 'stm', 'gem', 'tak'].forEach(k => {
+        const statEl = document.getElementById(`card-stat-${k}`);
+        if (statEl) statEl.style.color = activeColor;
+      });
+
+      const perkEl = document.getElementById('card-perk-display');
+      if (perkEl) perkEl.style.color = activeColor;
 
       // PNG-Vorlagen (Freisteller-Editionen) anzeigen
       const imageSrc = customTemplateDataUrl || edition.imageUrl || null;
@@ -1577,7 +1633,7 @@
 
     function finishExportDrawing(ctx, W, H) {
       const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
-      const accentColor = edition.accentColor || '#FDE68A';
+      const accentColor = userTextColor || edition.accentColor || '#FDE68A';
 
       // 1. Player-Portraet: frischer High-Res-Freisteller aus dem ORIGINALFOTO
       const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
@@ -1656,7 +1712,7 @@
       }
 
       // Divider Line
-      ctx.strokeStyle = '#F59E0B';
+      ctx.strokeStyle = accentColor;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(W * 0.20, H * 0.655);
@@ -1711,7 +1767,7 @@
       const perk = document.getElementById('card-perk-display').innerText;
       ctx.textAlign = 'center';
       ctx.font = '700 30px Rajdhani, sans-serif';
-      ctx.fillStyle = '#F59E0B';
+      ctx.fillStyle = accentColor;
       ctx.fillText(`⚡ ${perk.toUpperCase()}`, W * 0.5, H * 0.875);
     }
 

@@ -259,6 +259,26 @@
           <input id="slider-fontsize" type="range" min="10" max="60" step="1" value="24" oninput="updateActiveProperty('fontSize', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
         </div>
 
+        <!-- Text Color -->
+        <div id="row-color">
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Textfarbe (Color)</span>
+            <span id="lbl-color" class="text-amber-400 font-bold font-mono">#FBBF24</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input id="picker-color" type="color" value="#FBBF24" oninput="updateActiveProperty('color', this.value)" class="w-10 h-8 rounded-lg cursor-pointer bg-slate-950 border border-slate-700 p-0.5">
+            <div class="flex flex-wrap gap-1.5 items-center">
+              <button type="button" onclick="updateActiveProperty('color', '#FBBF24')" class="w-6 h-6 rounded-full bg-[#FBBF24] border border-white/20 hover:scale-110 transition shadow" title="Gold"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#FFFFFF')" class="w-6 h-6 rounded-full bg-[#FFFFFF] border border-white/20 hover:scale-110 transition shadow" title="Weiß"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#FDE68A')" class="w-6 h-6 rounded-full bg-[#FDE68A] border border-white/20 hover:scale-110 transition shadow" title="Hellgold"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#E5E7EB')" class="w-6 h-6 rounded-full bg-[#E5E7EB] border border-white/20 hover:scale-110 transition shadow" title="Silber"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#34D399')" class="w-6 h-6 rounded-full bg-[#34D399] border border-white/20 hover:scale-110 transition shadow" title="Smaragd"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#F472B6')" class="w-6 h-6 rounded-full bg-[#F472B6] border border-white/20 hover:scale-110 transition shadow" title="Pink"></button>
+              <button type="button" onclick="updateActiveProperty('color', '#1E293B')" class="w-6 h-6 rounded-full bg-[#1E293B] border border-white/40 hover:scale-110 transition shadow" title="Dunkel"></button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Action Row: Reset / Export -->
@@ -301,13 +321,13 @@
 
     /* Standard-Layout-Presets für jedes Element */
     const BASE_DEFAULT = {
-      ovr: { x: 22, y: 19, scale: 100, rot: 0, width: 20, fontSize: 44 },
-      badge: { x: 22, y: 31, scale: 100, rot: 0, width: 15, fontSize: 20 },
-      portrait: { x: 60, y: 36, scale: 100, rot: 0, width: 62, fontSize: 16 },
-      name: { x: 50, y: 61, scale: 100, rot: 0, width: 85, fontSize: 22 },
-      divider: { x: 50, y: 65.5, scale: 100, rot: 0, width: 65, fontSize: 2 },
-      stats: { x: 50, y: 74, scale: 100, rot: 0, width: 68, fontSize: 14 },
-      perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11 }
+      ovr: { x: 22, y: 19, scale: 100, rot: 0, width: 20, fontSize: 44, color: '#FBBF24' },
+      badge: { x: 22, y: 31, scale: 100, rot: 0, width: 15, fontSize: 20, color: '#FBBF24' },
+      portrait: { x: 60, y: 36, scale: 100, rot: 0, width: 62, fontSize: 16, color: '#FFFFFF' },
+      name: { x: 50, y: 61, scale: 100, rot: 0, width: 85, fontSize: 22, color: '#FFFFFF' },
+      divider: { x: 50, y: 65.5, scale: 100, rot: 0, width: 65, fontSize: 2, color: '#FBBF24' },
+      stats: { x: 50, y: 74, scale: 100, rot: 0, width: 68, fontSize: 14, color: '#FBBF24' },
+      perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11, color: '#FBBF24' }
     };
 
     const DEFAULT_CONFIGS = {};
@@ -318,7 +338,7 @@
     // Sicheres Laden
     let configs = DEFAULT_CONFIGS;
     try {
-      const stored = localStorage.getItem('gut_editor_configs_v2');
+      const stored = localStorage.getItem('gut_editor_configs_v3');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === 'object') {
@@ -331,7 +351,7 @@
 
     function saveConfigs() {
       try {
-        localStorage.setItem('gut_editor_configs_v2', JSON.stringify(configs));
+        localStorage.setItem('gut_editor_configs_v3', JSON.stringify(configs));
       } catch (e) {}
       updateJsonOutput();
     }
@@ -411,16 +431,38 @@
 
       document.getElementById('slider-fontsize').value = cur.fontSize;
       document.getElementById('lbl-fontsize').innerText = `${cur.fontSize}px`;
+
+      if (cur.color) {
+        const picker = document.getElementById('picker-color');
+        const lblColor = document.getElementById('lbl-color');
+        if (picker) picker.value = cur.color;
+        if (lblColor) {
+          lblColor.innerText = cur.color.toUpperCase();
+          lblColor.style.color = cur.color;
+        }
+      }
     }
 
     function updateActiveProperty(prop, value) {
       if (!configs[currentEditionId] || !configs[currentEditionId][activeElementKey]) return;
       const cur = configs[currentEditionId][activeElementKey];
-      cur[prop] = parseFloat(value);
       
-      const labelMap = { x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px' };
-      const lbl = document.getElementById(`lbl-${prop.toLowerCase()}`);
-      if (lbl) lbl.innerText = `${value}${labelMap[prop]}`;
+      if (prop === 'color') {
+        cur.color = value;
+        const lbl = document.getElementById('lbl-color');
+        if (lbl) {
+          lbl.innerText = value.toUpperCase();
+          lbl.style.color = value;
+        }
+        const picker = document.getElementById('picker-color');
+        if (picker) picker.value = value;
+      } else {
+        const num = parseFloat(value);
+        cur[prop] = num;
+        const labelMap = { x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px' };
+        const lbl = document.getElementById(`lbl-${prop.toLowerCase()}`);
+        if (lbl) lbl.innerText = `${num}${labelMap[prop]}`;
+      }
 
       applyElementStyle(activeElementKey);
       saveConfigs();
@@ -462,6 +504,40 @@
       if (key === 'perk') {
         const perkBadge = document.getElementById('el-perk-badge');
         if (perkBadge) perkBadge.style.fontSize = `${cur.fontSize}px`;
+      }
+
+      // Farb-Zuweisung
+      if (cur.color) {
+        if (key === 'ovr') {
+          const txtOvr = document.getElementById('txt-ovr');
+          const txtPos = document.getElementById('txt-pos');
+          if (txtOvr) txtOvr.style.color = cur.color;
+          if (txtPos) txtPos.style.color = cur.color;
+        }
+        if (key === 'name') {
+          const txtName = document.getElementById('txt-name');
+          const txtNick = document.getElementById('txt-nickname');
+          if (txtName) txtName.style.color = cur.color;
+          if (txtNick) txtNick.style.color = cur.color;
+        }
+        if (key === 'stats') {
+          layer.querySelectorAll('.font-extrabold').forEach(el => el.style.color = cur.color);
+        }
+        if (key === 'divider') {
+          const line = document.getElementById('el-divider-line');
+          if (line) line.style.background = `linear-gradient(to right, transparent, ${cur.color}, transparent)`;
+        }
+        if (key === 'perk') {
+          const perkBadge = document.getElementById('el-perk-badge');
+          if (perkBadge) {
+            perkBadge.style.color = cur.color;
+            perkBadge.style.borderColor = cur.color;
+          }
+        }
+        if (key === 'badge') {
+          const txtBadge = document.getElementById('txt-badge');
+          if (txtBadge) txtBadge.style.color = cur.color;
+        }
       }
     }
 
