@@ -470,10 +470,10 @@
             <!-- Custom Template Background Image (100% object-fill matching Editor) -->
             <img id="custom-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-fill pointer-events-none z-0">
 
-            <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet -->
+            <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet mit plastischem Tiefenschatten -->
             <div id="layer-portrait" class="absolute z-10 pointer-events-none transition-all duration-75" style="top: 36%; left: 63%; width: 62%; transform: translate(-50%, -50%);">
               <div class="relative w-full aspect-square flex items-center justify-center">
-                <canvas id="card-portrait-mirror" class="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"></canvas>
+                <canvas id="card-portrait-mirror" class="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)] drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]"></canvas>
               </div>
             </div>
 
@@ -529,6 +529,36 @@
 
             <!-- Holo Overlay -->
             <div class="absolute inset-0 holo-glare z-30"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interaktiver Touch-Hinweis & Schnelljustierung für das Foto -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-xl backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🖐️</span>
+            <div>
+              <span class="text-xs font-bold text-slate-200 block">Foto verschieben & skalieren</span>
+              <span class="text-[10px] text-slate-400">Ziehe direkt auf der Karte oder nutze die Buttons</span>
+            </div>
+          </div>
+          <span class="text-[10px] text-amber-400 font-mono font-bold px-2 py-0.5 rounded bg-slate-950 border border-slate-800" id="guest-card-coords">0px | 0px | 100%</span>
+        </div>
+        
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <!-- Pfeiltasten Position -->
+          <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button type="button" onclick="nudgePhoto(-8, 0)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs active:scale-95 transition" title="Nach links">◀</button>
+            <button type="button" onclick="nudgePhoto(8, 0)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs active:scale-95 transition" title="Nach rechts">▶</button>
+            <button type="button" onclick="nudgePhoto(0, -8)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs active:scale-95 transition" title="Nach oben">▲</button>
+            <button type="button" onclick="nudgePhoto(0, 8)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs active:scale-95 transition" title="Nach unten">▼</button>
+          </div>
+          <!-- Zoom Buttons -->
+          <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button type="button" onclick="nudgeZoom(-5)" class="w-8 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs active:scale-95 transition" title="Kleiner">➖</button>
+            <button type="button" onclick="nudgeZoom(5)" class="w-8 h-8 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-black text-xs active:scale-95 transition" title="Größer">➕</button>
+            <button type="button" onclick="resetPhotoPosition()" class="px-2 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] active:scale-95 transition" title="Zentrieren">Reset</button>
           </div>
         </div>
       </div>
@@ -745,7 +775,10 @@
       // 5. Prewarm MediaPipe AI Selfie Segmenter
       initAiSegmenter();
 
-      // 6. Update initial stats and UI
+      // 6. Init interactive card photo drag
+      initGuestCardPhotoDrag();
+
+      // 7. Update initial stats and UI
       updateGuestStats();
       updateGuestCardPreview();
     });
@@ -1109,7 +1142,7 @@
       });
     }
 
-    /* Sub-Millimeter Person Cutout Canvas Pipeline */
+    /* Sub-Millimeter Person Cutout & Studio Feathering Pipeline */
     async function processImageToCanvas(img, canvas, maxDim) {
       if (!img || !img.width || !canvas) return false;
       const ctx = canvas.getContext('2d');
@@ -1140,28 +1173,88 @@
       try {
         const results = await runAiCutout(inCanvas);
         if (results && results.segmentationMask) {
+          // 1. Mask-Canvas vorbereiten für Glättung & Sub-Pixel-Interpolation
+          const maskCanvas = document.createElement('canvas');
+          maskCanvas.width = w;
+          maskCanvas.height = h;
+          const maskCtx = maskCanvas.getContext('2d');
+
+          // Weichzeichnen der 256x256 MediaPipe-Maske für seidenweiche Sub-Pixel-Kanten (keine Treppeneffekte!)
+          maskCtx.filter = 'blur(2.8px)';
+          maskCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+          maskCtx.filter = 'none';
+
+          // 2. Halo-Bereinigung & Kantenoptimierung per Pixel-Schwellenwert
+          try {
+            const mData = maskCtx.getImageData(0, 0, w, h);
+            const d = mData.data;
+            const N4 = w * h * 4;
+            for (let i = 0; i < N4; i += 4) {
+              const a = d[i + 3];
+              if (a < 28) {
+                // Hintergrund-Schleier und Wand-Halos komplett löschen
+                d[i + 3] = 0;
+              } else if (a < 215) {
+                // Seidige Glättung der Randkonturen
+                d[i + 3] = Math.round(((a - 28) / 187) * 255);
+              }
+            }
+            maskCtx.putImageData(mData, 0, 0);
+          } catch(e) {
+            console.warn('Mask cleaning fallback:', e);
+          }
+
+          // 3. Multi-direktionale Vignettierung (Kameraränder auflösen!)
+          maskCtx.save();
+          maskCtx.globalCompositeOperation = 'destination-out';
+
+          // A) LINKER RAND: Sanftes Ausblenden (14% der Bildbreite) - lässt Schultern natürlich zerfließen
+          const edgeFadeX = Math.round(w * 0.14);
+          const gradLeft = maskCtx.createLinearGradient(0, 0, edgeFadeX, 0);
+          gradLeft.addColorStop(0, 'rgba(0, 0, 0, 1)');
+          gradLeft.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)');
+          gradLeft.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          maskCtx.fillStyle = gradLeft;
+          maskCtx.fillRect(0, 0, edgeFadeX, h);
+
+          // B) RECHTER RAND: Sanftes Ausblenden (14% der Bildbreite)
+          const gradRight = maskCtx.createLinearGradient(w - edgeFadeX, 0, w, 0);
+          gradRight.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          gradRight.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)');
+          gradRight.addColorStop(1, 'rgba(0, 0, 0, 1)');
+          maskCtx.fillStyle = gradRight;
+          maskCtx.fillRect(w - edgeFadeX, 0, edgeFadeX, h);
+
+          // C) OBERER RAND: Dezente 4%-Glättung am Bildrand
+          const edgeFadeTop = Math.round(h * 0.04);
+          const gradTop = maskCtx.createLinearGradient(0, 0, 0, edgeFadeTop);
+          gradTop.addColorStop(0, 'rgba(0, 0, 0, 1)');
+          gradTop.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          maskCtx.fillStyle = gradTop;
+          maskCtx.fillRect(0, 0, w, edgeFadeTop);
+
+          // D) UNTERER RAND: Tiefer, organischer Verlauf ab 62% Bildhöhe
+          // Lässt den gesamten Oberkörper nahtlos hinter den FUT-Attributen & Namen verschmelzen!
+          const bottomStartY = Math.round(h * 0.62);
+          const bottomFadeH = h - bottomStartY;
+          const gradBottom = maskCtx.createLinearGradient(0, bottomStartY, 0, h);
+          gradBottom.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          gradBottom.addColorStop(0.35, 'rgba(0, 0, 0, 0.25)');
+          gradBottom.addColorStop(0.7, 'rgba(0, 0, 0, 0.7)');
+          gradBottom.addColorStop(1, 'rgba(0, 0, 0, 1)');
+          maskCtx.fillStyle = gradBottom;
+          maskCtx.fillRect(0, bottomStartY, w, bottomFadeH);
+
+          maskCtx.restore();
+
+          // 4. Ziel-Canvas mit der weichen Maske komponieren
           ctx.save();
           ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(maskCanvas, 0, 0, w, h);
 
-          // 1. Alpha-Maske der freigestellten Person zeichnen
-          ctx.drawImage(results.segmentationMask, 0, 0, w, h);
-
-          // 2. Nur dort die Bildpixel übernehmen, wo der Mensch erkannt wurde
+          // 5. Nur die Bildpixel der Person übernehmen
           ctx.globalCompositeOperation = 'source-in';
           ctx.drawImage(inCanvas, 0, 0, w, h);
-          ctx.restore();
-
-          // 3. Subtiler, natürlicher Verlauf am unteren Rand (untere 8%),
-          // damit der Schnitt am Brustkorb sanft in die Karte fließt
-          const fadeH = Math.round(h * 0.08);
-          const fadeY = h - fadeH;
-          ctx.save();
-          ctx.globalCompositeOperation = 'destination-out';
-          const grad = ctx.createLinearGradient(0, fadeY, 0, h);
-          grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-          grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, fadeY, w, fadeH);
           ctx.restore();
 
           return true;
@@ -1225,6 +1318,103 @@
       const b = document.getElementById('slider-brightness').value;
       mCanvas.style.transform = `scale(${zoom / 100}) translate(${x}px, ${y}px)`;
       mCanvas.style.filter = `brightness(${b}%)`;
+      updateGuestCoordDisplay();
+    }
+
+    function nudgePhoto(dx, dy) {
+      const slX = document.getElementById('slider-x');
+      const slY = document.getElementById('slider-y');
+      if (slX) slX.value = Math.max(-120, Math.min(120, (parseInt(slX.value) || 0) + dx));
+      if (slY) slY.value = Math.max(-120, Math.min(120, (parseInt(slY.value) || 0) + dy));
+      updatePhotoTransform();
+    }
+
+    function nudgeZoom(delta) {
+      const slZ = document.getElementById('slider-zoom');
+      if (slZ) slZ.value = Math.max(50, Math.min(200, (parseInt(slZ.value) || 100) + delta));
+      updatePhotoTransform();
+    }
+
+    function resetPhotoPosition() {
+      const slX = document.getElementById('slider-x');
+      const slY = document.getElementById('slider-y');
+      const slZ = document.getElementById('slider-zoom');
+      if (slX) slX.value = 0;
+      if (slY) slY.value = 0;
+      if (slZ) slZ.value = 100;
+      updatePhotoTransform();
+    }
+
+    function updateGuestCoordDisplay() {
+      const el = document.getElementById('guest-card-coords');
+      if (!el) return;
+      const x = document.getElementById('slider-x')?.value || 0;
+      const y = document.getElementById('slider-y')?.value || 0;
+      const z = document.getElementById('slider-zoom')?.value || 100;
+      el.innerText = `X: ${x}px | Y: ${y}px | ${z}%`;
+    }
+
+    function initGuestCardPhotoDrag() {
+      const targets = [
+        document.getElementById('fut-card-render'),
+        document.getElementById('portrait-canvas')?.parentElement
+      ].filter(Boolean);
+
+      let isDragging = false;
+      let startX = 0, startY = 0;
+      let initX = 0, initY = 0;
+
+      targets.forEach(elem => {
+        elem.style.touchAction = 'none';
+        elem.style.cursor = 'grab';
+
+        elem.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+          isDragging = true;
+          elem.style.cursor = 'grabbing';
+          startX = e.clientX;
+          startY = e.clientY;
+          initX = parseInt(document.getElementById('slider-x')?.value) || 0;
+          initY = parseInt(document.getElementById('slider-y')?.value) || 0;
+          try { elem.setPointerCapture(e.pointerId); } catch(err) {}
+        });
+
+        elem.addEventListener('pointermove', (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          const zoom = (parseInt(document.getElementById('slider-zoom')?.value) || 100) / 100;
+          const dx = (e.clientX - startX) / zoom;
+          const dy = (e.clientY - startY) / zoom;
+
+          let newX = Math.round(initX + dx);
+          let newY = Math.round(initY + dy);
+          newX = Math.max(-120, Math.min(120, newX));
+          newY = Math.max(-120, Math.min(120, newY));
+
+          const slX = document.getElementById('slider-x');
+          const slY = document.getElementById('slider-y');
+          if (slX) slX.value = newX;
+          if (slY) slY.value = newY;
+          updatePhotoTransform();
+        });
+
+        const stopDrag = (e) => {
+          if (isDragging) {
+            isDragging = false;
+            elem.style.cursor = 'grab';
+            try { elem.releasePointerCapture(e.pointerId); } catch(err) {}
+          }
+        };
+
+        elem.addEventListener('pointerup', stopDrag);
+        elem.addEventListener('pointercancel', stopDrag);
+
+        elem.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const delta = e.deltaY < 0 ? 5 : -5;
+          nudgeZoom(delta);
+        }, { passive: false });
+      });
     }
 
     /* Color Slider */
@@ -1450,7 +1640,7 @@
 
       // 2. High-Res Cutout of Portrait
       const hiResCanvas = document.createElement('canvas');
-      processImageToCanvas(rawLoadedImage, hiResCanvas, 1600);
+      await processImageToCanvas(rawLoadedImage, hiResCanvas, 1600);
 
       const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 64, y: 37, width: 62, scale: 100, rot: 0 };
       const pScale = (pCfg.scale || 100) / 100;

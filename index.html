@@ -1495,7 +1495,7 @@
       });
     }
 
-    /* Sub-Millimeter Person Cutout Canvas Pipeline */
+    /* Sub-Millimeter Person Cutout & Studio Feathering Pipeline */
     async function processImageToCanvas(img, canvas, maxDim) {
       if (!img || !img.width || !canvas) return false;
 
@@ -1532,28 +1532,88 @@
       try {
         const results = await runAiCutout(inCanvas);
         if (results && results.segmentationMask) {
+          // 1. Mask-Canvas vorbereiten für Glättung & Sub-Pixel-Interpolation
+          const maskCanvas = document.createElement('canvas');
+          maskCanvas.width = w;
+          maskCanvas.height = h;
+          const maskCtx = maskCanvas.getContext('2d');
+
+          // Weichzeichnen der 256x256 MediaPipe-Maske für seidenweiche Sub-Pixel-Kanten (keine Treppeneffekte!)
+          maskCtx.filter = 'blur(2.8px)';
+          maskCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+          maskCtx.filter = 'none';
+
+          // 2. Halo-Bereinigung & Kantenoptimierung per Pixel-Schwellenwert
+          try {
+            const mData = maskCtx.getImageData(0, 0, w, h);
+            const d = mData.data;
+            const N4 = w * h * 4;
+            for (let i = 0; i < N4; i += 4) {
+              const a = d[i + 3];
+              if (a < 28) {
+                // Hintergrund-Schleier und Wand-Halos komplett löschen
+                d[i + 3] = 0;
+              } else if (a < 215) {
+                // Seidige Glättung der Randkonturen
+                d[i + 3] = Math.round(((a - 28) / 187) * 255);
+              }
+            }
+            maskCtx.putImageData(mData, 0, 0);
+          } catch(e) {
+            console.warn('Mask cleaning fallback:', e);
+          }
+
+          // 3. Multi-direktionale Vignettierung (Kameraränder auflösen!)
+          maskCtx.save();
+          maskCtx.globalCompositeOperation = 'destination-out';
+
+          // A) LINKER RAND: Sanftes Ausblenden (14% der Bildbreite) - lässt Schultern natürlich zerfließen
+          const edgeFadeX = Math.round(w * 0.14);
+          const gradLeft = maskCtx.createLinearGradient(0, 0, edgeFadeX, 0);
+          gradLeft.addColorStop(0, 'rgba(0, 0, 0, 1)');
+          gradLeft.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)');
+          gradLeft.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          maskCtx.fillStyle = gradLeft;
+          maskCtx.fillRect(0, 0, edgeFadeX, h);
+
+          // B) RECHTER RAND: Sanftes Ausblenden (14% der Bildbreite)
+          const gradRight = maskCtx.createLinearGradient(w - edgeFadeX, 0, w, 0);
+          gradRight.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          gradRight.addColorStop(0.5, 'rgba(0, 0, 0, 0.5)');
+          gradRight.addColorStop(1, 'rgba(0, 0, 0, 1)');
+          maskCtx.fillStyle = gradRight;
+          maskCtx.fillRect(w - edgeFadeX, 0, edgeFadeX, h);
+
+          // C) OBERER RAND: Dezente 4%-Glättung am Bildrand
+          const edgeFadeTop = Math.round(h * 0.04);
+          const gradTop = maskCtx.createLinearGradient(0, 0, 0, edgeFadeTop);
+          gradTop.addColorStop(0, 'rgba(0, 0, 0, 1)');
+          gradTop.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          maskCtx.fillStyle = gradTop;
+          maskCtx.fillRect(0, 0, w, edgeFadeTop);
+
+          // D) UNTERER RAND: Tiefer, organischer Verlauf ab 62% Bildhöhe
+          // Lässt den gesamten Oberkörper nahtlos hinter den FUT-Attributen & Namen verschmelzen!
+          const bottomStartY = Math.round(h * 0.62);
+          const bottomFadeH = h - bottomStartY;
+          const gradBottom = maskCtx.createLinearGradient(0, bottomStartY, 0, h);
+          gradBottom.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          gradBottom.addColorStop(0.35, 'rgba(0, 0, 0, 0.25)');
+          gradBottom.addColorStop(0.7, 'rgba(0, 0, 0, 0.7)');
+          gradBottom.addColorStop(1, 'rgba(0, 0, 0, 1)');
+          maskCtx.fillStyle = gradBottom;
+          maskCtx.fillRect(0, bottomStartY, w, bottomFadeH);
+
+          maskCtx.restore();
+
+          // 4. Ziel-Canvas mit der weichen Maske komponieren
           ctx.save();
           ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(maskCanvas, 0, 0, w, h);
 
-          // 1. Alpha-Maske der freigestellten Person zeichnen
-          ctx.drawImage(results.segmentationMask, 0, 0, w, h);
-
-          // 2. Nur dort die Bildpixel übernehmen, wo der Mensch erkannt wurde
+          // 5. Nur die Bildpixel der Person übernehmen
           ctx.globalCompositeOperation = 'source-in';
           ctx.drawImage(inCanvas, 0, 0, w, h);
-          ctx.restore();
-
-          // 3. Subtiler, natürlicher Verlauf am unteren Rand (untere 8%),
-          // damit der Schnitt am Brustkorb sanft in die Karte fließt
-          const fadeH = Math.round(h * 0.08);
-          const fadeY = h - fadeH;
-          ctx.save();
-          ctx.globalCompositeOperation = 'destination-out';
-          const grad = ctx.createLinearGradient(0, fadeY, 0, h);
-          grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-          grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, fadeY, w, fadeH);
           ctx.restore();
 
           return true;
