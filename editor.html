@@ -129,12 +129,23 @@
         <span>⬅️</span>
         <span>Zurück zur Haupt-App</span>
       </a>
-      <button onclick="copyToClipboard()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center gap-1.5">
-        <span>💾</span>
-        <span>Konfig kopieren (JSON)</span>
+      <button onclick="triggerJsonImport()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center gap-1.5" title="Gespeicherte karten_layouts.json laden">
+        <span>📂</span>
+        <span>JSON laden</span>
+      </button>
+      <button onclick="downloadAllJson()" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition flex items-center gap-1.5" title="Alle 7 Vorlagen als eine karten_layouts.json Datei herunterladen">
+        <span>📥</span>
+        <span>Alle 7 als JSON herunterladen</span>
+      </button>
+      <button onclick="copyToClipboard()" class="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center gap-1.5">
+        <span>📋</span>
+        <span>Kopieren</span>
       </button>
     </div>
   </header>
+
+  <!-- Versteckter Datei-Input für JSON-Import -->
+  <input type="file" id="file-import-json" accept=".json" onchange="importJsonFile(event)" class="hidden">
 
   <!-- Main Studio Layout -->
   <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -370,21 +381,43 @@
 
       </div>
 
-      <!-- Action Row: Reset / Export -->
-      <div class="pt-4 border-t border-slate-800 flex flex-wrap gap-2 justify-between">
-        <button onclick="resetCurrentTemplate()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
-          ↺ Diese Vorlage zurücksetzen
+      <!-- Action Row: Reset / Export / Import -->
+      <div class="pt-4 border-t border-slate-800 flex flex-col gap-2.5">
+        <button onclick="downloadAllJson()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2">
+          <span>📥</span>
+          <span>Alle 7 Vorlagen als JSON herunterladen</span>
         </button>
-        <button onclick="copyToClipboard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-          <span>📋</span>
-          <span>Konfiguration in Zwischenablage kopieren</span>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="triggerJsonImport()" class="py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <span>📂</span>
+            <span>JSON importieren</span>
+          </button>
+          <button onclick="copyToClipboard()" class="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5">
+            <span>📋</span>
+            <span>Kopieren</span>
+          </button>
+        </div>
+
+        <button onclick="resetCurrentTemplate()" class="w-full py-2 bg-slate-900/60 hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-slate-800 rounded-xl text-[11px] font-semibold transition">
+          ↺ Nur aktuelle Vorlage zurücksetzen
         </button>
       </div>
 
       <!-- JSON Preview Box -->
       <div>
-        <label class="block text-xs font-bold text-slate-400 mb-1">Generierter Konfigurations-Code:</label>
-        <textarea id="json-output" rows="6" readonly class="w-full p-2.5 bg-slate-950 font-mono text-[11px] text-amber-300/90 border border-slate-800 rounded-xl focus:outline-none"></textarea>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-xs font-bold text-slate-400">Konfigurations-Code:</label>
+          <div class="inline-flex rounded-lg bg-slate-900 border border-slate-800 p-0.5 text-xs">
+            <button id="btn-view-all" onclick="setJsonViewMode('all')" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 shadow">
+              Alle 7 Vorlagen
+            </button>
+            <button id="btn-view-cur" onclick="setJsonViewMode('cur')" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold text-slate-400 hover:text-white">
+              Aktuelle Vorlage
+            </button>
+          </div>
+        </div>
+        <textarea id="json-output" rows="7" readonly class="w-full p-2.5 bg-slate-950 font-mono text-[11px] text-amber-300/90 border border-slate-800 rounded-xl focus:outline-none"></textarea>
       </div>
 
     </div>
@@ -716,17 +749,91 @@
       saveConfigs();
     }
 
+    let jsonViewMode = 'all';
+
+    function setJsonViewMode(mode) {
+      jsonViewMode = mode;
+      const btnAll = document.getElementById('btn-view-all');
+      const btnCur = document.getElementById('btn-view-cur');
+      if (btnAll && btnCur) {
+        if (mode === 'all') {
+          btnAll.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 shadow';
+          btnCur.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-bold text-slate-400 hover:text-white';
+        } else {
+          btnCur.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500 text-slate-950 shadow';
+          btnAll.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-bold text-slate-400 hover:text-white';
+        }
+      }
+      updateJsonOutput();
+    }
+
     function updateJsonOutput() {
       const out = document.getElementById('json-output');
-      if (out && configs[currentEditionId]) {
-        out.value = JSON.stringify(configs[currentEditionId], null, 2);
+      if (!out) return;
+      if (jsonViewMode === 'all') {
+        out.value = JSON.stringify(configs, null, 2);
+      } else {
+        out.value = JSON.stringify(configs[currentEditionId] || {}, null, 2);
       }
     }
 
-    function copyToClipboard() {
+    function downloadAllJson() {
       const json = JSON.stringify(configs, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'karten_layouts.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerJsonImport() {
+      const input = document.getElementById('file-import-json');
+      if (input) input.click();
+    }
+
+    function importJsonFile(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed && typeof parsed === 'object') {
+            const hasEditionKeys = EDITIONS.some(ed => parsed[ed.id]);
+            if (hasEditionKeys) {
+              configs = Object.assign({}, DEFAULT_CONFIGS, parsed);
+            } else if (parsed.ovr && parsed.name) {
+              // Einzelne Karten-Konfiguration
+              configs[currentEditionId] = Object.assign({}, BASE_DEFAULT, parsed);
+            } else {
+              throw new Error('Unbekanntes Konfigurations-Format');
+            }
+            saveConfigs();
+            applyAllStyles();
+            syncSliders();
+            updateJsonOutput();
+            alert('✅ Layout-Konfiguration erfolgreich geladen und sofort angewendet!');
+          } else {
+            alert('❌ Ungültige JSON-Datei!');
+          }
+        } catch (err) {
+          alert('❌ Fehler beim Laden der JSON-Datei: ' + err.message);
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function copyToClipboard() {
+      const dataToCopy = jsonViewMode === 'cur' ? (configs[currentEditionId] || {}) : configs;
+      const label = jsonViewMode === 'cur' ? 'die aktuelle Vorlage' : 'alle 7 Vorlagen';
+      const json = JSON.stringify(dataToCopy, null, 2);
       navigator.clipboard.writeText(json).then(() => {
-        alert('✅ Komplette Layout-Konfiguration für alle Vorlagen in die Zwischenablage kopiert! Schicke sie einfach hier in den Chat.');
+        alert(`✅ Konfiguration für ${label} in die Zwischenablage kopiert!`);
       }).catch(() => {
         const out = document.getElementById('json-output');
         out.select();
