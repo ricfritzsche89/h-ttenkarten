@@ -447,63 +447,45 @@
               <label class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <span>⚡</span> Die 6 Hütten-Attribute (0 - 99)
               </label>
-              <span class="text-xs text-amber-400 font-semibold">GES = Geselligkeit & Networking</span>
+              <span class="text-xs text-amber-400 font-semibold">4 Hütten-Attribute (Voll ausgeschrieben)</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-3.5">
               
-              <!-- TRF -->
+              <!-- DURST -->
               <div>
                 <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">TRF (Treffsicherheit - Schießen & Dart)</span>
-                  <span id="val-trf" class="text-white font-fut text-sm font-bold">99</span>
-                </div>
-                <input id="slider-trf" type="range" min="40" max="99" value="99" oninput="updateSingleStat('trf')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
-              </div>
-
-              <!-- DUR -->
-              <div>
-                <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">DUR (Durst - Stehvermögen am Tresen)</span>
+                  <span class="text-amber-300">🍺 DURST</span>
                   <span id="val-dur" class="text-white font-fut text-sm font-bold">98</span>
                 </div>
                 <input id="slider-dur" type="range" min="40" max="99" value="98" oninput="updateSingleStat('dur')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
               </div>
 
-              <!-- GES (Replaced Grill/Hilfe) -->
+              <!-- STIMMUNG -->
               <div>
                 <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">GES (Geselligkeit - Schnacken & Witze)</span>
-                  <span id="val-ges" class="text-white font-fut text-sm font-bold">99</span>
-                </div>
-                <input id="slider-ges" type="range" min="40" max="99" value="99" oninput="updateSingleStat('ges')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
-              </div>
-
-              <!-- STM -->
-              <div>
-                <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">STM (Stimmung - Tanz & Playlist-Gaudi)</span>
+                  <span class="text-amber-300">🕺 STIMMUNG</span>
                   <span id="val-stm" class="text-white font-fut text-sm font-bold">97</span>
                 </div>
                 <input id="slider-stm" type="range" min="40" max="99" value="97" oninput="updateSingleStat('stm')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
               </div>
 
-              <!-- GEM -->
+              <!-- TREFFER -->
               <div>
                 <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">GEM (Gemütlichkeit - Lagerfeuer-Sitzfleisch)</span>
-                  <span id="val-gem" class="text-white font-fut text-sm font-bold">99</span>
+                  <span class="text-amber-300">🎯 TREFFER</span>
+                  <span id="val-trf" class="text-white font-fut text-sm font-bold">99</span>
                 </div>
-                <input id="slider-gem" type="range" min="40" max="99" value="99" oninput="updateSingleStat('gem')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                <input id="slider-trf" type="range" min="40" max="99" value="99" oninput="updateSingleStat('trf')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
               </div>
 
-              <!-- TAK -->
+              <!-- GESELLIG -->
               <div>
                 <div class="flex justify-between text-xs font-semibold mb-1">
-                  <span class="text-amber-300">TAK (Taktik - Minispiel-Regelauslegung)</span>
-                  <span id="val-tak" class="text-white font-fut text-sm font-bold">92</span>
+                  <span class="text-amber-300">🗣️ GESELLIG</span>
+                  <span id="val-ges" class="text-white font-fut text-sm font-bold">99</span>
                 </div>
-                <input id="slider-tak" type="range" min="40" max="99" value="92" oninput="updateSingleStat('tak')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                <input id="slider-ges" type="range" min="40" max="99" value="99" oninput="updateSingleStat('ges')" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
               </div>
 
             </div>
@@ -563,51 +545,41 @@
               </div>
 
               <!-- Card Middle Section: Name & Nickname -->
-              <div id="layer-name" class="absolute z-20 text-center w-[85%] transition-all duration-75" style="top: 61%; left: 50%; transform: translate(-50%, -50%);">
-                <h3 id="card-name-display" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] text-2xl">
+              <div id="layer-name" class="absolute z-20 text-center w-[88%] transition-all duration-75" style="top: 61%; left: 50%; transform: translate(-50%, -50%);">
+                <h3 id="card-name-display" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)] text-3xl leading-none" style="font-size: 29px;">
                   WERNER (GASTGEBER)
                 </h3>
-                <p id="card-nickname-display" class="font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] text-xs">
+                <p id="card-nickname-display" class="font-bold tracking-widest uppercase text-amber-400 mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] text-[11px]">
                   DER HÜTTEN-PATRON
                 </p>
               </div>
 
               <!-- Divider Line -->
               <div id="layer-divider" class="absolute z-20 flex items-center justify-center w-full transition-all duration-75" style="top: 65.5%; left: 50%; transform: translate(-50%, -50%);">
-                <div id="card-divider-line" class="w-[65%] h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent"></div>
+                <div id="card-divider-line" class="w-[68%] h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent"></div>
               </div>
 
-              <!-- 6 Attributes Grid (FUT Style: Label first, Value second) -->
-              <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-2 font-fut w-[68%] transition-all duration-75" style="top: 74.9%; left: 51.2%; transform: translate(-50%, -50%);">
-                <!-- Column 1 -->
-                <div class="space-y-0.5 pr-2.5 sm:pr-3 border-r border-white/20">
-                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TRF</span>
-                    <span id="card-stat-trf" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
-                  </div>
-                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">DUR</span>
-                    <span id="card-stat-dur" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">98</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GES</span>
-                    <span id="card-stat-ges" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
-                  </div>
+              <!-- 4 Attributes Grid (DURST, STIMMUNG | TREFFER, GESELLIG) -->
+              <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-5 gap-y-1 font-fut w-[74%] transition-all duration-75 text-base sm:text-lg" style="top: 75.5%; left: 50.8%; transform: translate(-50%, -50%); font-size: 18px;">
+                <!-- Zeile 1 Links: DURST -->
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-100 font-bold tracking-wider">DURST</span>
+                  <span id="card-stat-dur" class="font-black text-amber-300 drop-shadow ml-1">98</span>
                 </div>
-                <!-- Column 2 -->
-                <div class="space-y-0.5 pl-2.5 sm:pl-3">
-                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">STM</span>
-                    <span id="card-stat-stm" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">97</span>
-                  </div>
-                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GEM</span>
-                    <span id="card-stat-gem" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TAK</span>
-                    <span id="card-stat-tak" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">92</span>
-                  </div>
+                <!-- Zeile 1 Rechts: TREFFER -->
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-100 font-bold tracking-wider">TREFFER</span>
+                  <span id="card-stat-trf" class="font-black text-amber-300 drop-shadow ml-1">99</span>
+                </div>
+                <!-- Zeile 2 Links: STIMMUNG -->
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-100 font-bold tracking-wider">STIMMUNG</span>
+                  <span id="card-stat-stm" class="font-black text-amber-300 drop-shadow ml-1">97</span>
+                </div>
+                <!-- Zeile 2 Rechts: GESELLIG -->
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-100 font-bold tracking-wider">GESELLIG</span>
+                  <span id="card-stat-ges" class="font-black text-amber-300 drop-shadow ml-1">99</span>
                 </div>
               </div>
 
@@ -1127,7 +1099,7 @@
         pos: 'GK',
         badge: 'crown',
         editionId: 'img_chef',
-        stats: { trf: 99, dur: 98, ges: 99, stm: 97, gem: 99, tak: 92 },
+        stats: { dur: 98, stm: 97, trf: 99, ges: 99 },
         score: 45,
         photoDataUrl: 'assets/avatar_gastgeber.png'
       },
@@ -1139,7 +1111,7 @@
         pos: 'SK',
         badge: 'target',
         editionId: 'img_schuetze',
-        stats: { trf: 96, dur: 92, ges: 90, stm: 88, gem: 94, tak: 85 },
+        stats: { dur: 92, stm: 88, trf: 96, ges: 90 },
         score: 40,
         photoDataUrl: 'assets/avatar_schuetze.png'
       },
@@ -1147,11 +1119,11 @@
         id: 'p_3',
         name: 'DJ Bierschaum',
         nickname: 'ZAPFHAHN-SPRINTER',
-        ovr: 92,
+        ovr: 93,
         pos: 'ZK',
         badge: 'beer',
         editionId: 'img_bier',
-        stats: { trf: 82, dur: 99, ges: 96, stm: 95, gem: 86, tak: 84 },
+        stats: { dur: 99, stm: 95, trf: 82, ges: 96 },
         score: 31,
         photoDataUrl: 'assets/avatar_zapfkoenig.png'
       },
@@ -1159,11 +1131,11 @@
         id: 'p_4',
         name: 'Lisa Wildberry',
         nickname: 'GAUDI-KAISERIN',
-        ovr: 93,
+        ovr: 94,
         pos: 'PK',
         badge: 'crown',
         editionId: 'img_glitzer',
-        stats: { trf: 89, dur: 90, ges: 98, stm: 99, gem: 91, tak: 82 },
+        stats: { dur: 90, stm: 99, trf: 89, ges: 98 },
         score: 28,
         photoDataUrl: 'assets/avatar_koenigin.png'
       }
@@ -1712,15 +1684,13 @@
     }
 
     function recalculateAutoOvr() {
-      const trf = parseInt(document.getElementById('slider-trf').value) || 80;
-      const dur = parseInt(document.getElementById('slider-dur').value) || 80;
-      const ges = parseInt(document.getElementById('slider-ges').value) || 80;
-      const stm = parseInt(document.getElementById('slider-stm').value) || 80;
-      const gem = parseInt(document.getElementById('slider-gem').value) || 80;
-      const tak = parseInt(document.getElementById('slider-tak').value) || 80;
+      const dur = parseInt(document.getElementById('slider-dur')?.value) || 80;
+      const stm = parseInt(document.getElementById('slider-stm')?.value) || 80;
+      const trf = parseInt(document.getElementById('slider-trf')?.value) || 80;
+      const ges = parseInt(document.getElementById('slider-ges')?.value) || 80;
 
-      // Weighted calculation favoring party spirit and accuracy
-      const calculated = Math.round((trf * 1.3 + dur * 1.2 + ges * 1.3 + stm * 1.2 + gem * 0.8 + tak * 0.8) / 6.6);
+      // Durchschnitt der 4 Hauptattribute
+      const calculated = Math.round((dur + stm + trf + ges) / 4);
       const clamped = Math.min(99, Math.max(50, calculated));
 
       document.getElementById('input-ovr').value = clamped;
@@ -1889,7 +1859,7 @@
       const nickEl = document.getElementById('card-nickname-display');
       if (nickEl) nickEl.style.color = activeColor;
 
-      ['trf', 'dur', 'ges', 'stm', 'gem', 'tak'].forEach(k => {
+      ['dur', 'stm', 'trf', 'ges'].forEach(k => {
         const statEl = document.getElementById(`card-stat-${k}`);
         if (statEl) statEl.style.color = activeColor;
       });
@@ -2021,31 +1991,25 @@
       const rBadge = badges[Math.floor(Math.random() * badges.length)];
       const rEdition = editions[Math.floor(Math.random() * editions.length)];
 
-      const rTrf = Math.floor(Math.random() * 25) + 74;
       const rDur = Math.floor(Math.random() * 25) + 74;
-      const rGes = Math.floor(Math.random() * 25) + 74;
       const rStm = Math.floor(Math.random() * 25) + 74;
-      const rGem = Math.floor(Math.random() * 25) + 74;
-      const rTak = Math.floor(Math.random() * 25) + 74;
+      const rTrf = Math.floor(Math.random() * 25) + 74;
+      const rGes = Math.floor(Math.random() * 25) + 74;
 
       document.getElementById('input-name').value = rName;
       document.getElementById('input-nickname').value = rTitle;
       document.getElementById('input-pos').value = rPos;
       document.getElementById('input-badge').value = rBadge;
 
-      document.getElementById('slider-trf').value = rTrf;
       document.getElementById('slider-dur').value = rDur;
-      document.getElementById('slider-ges').value = rGes;
       document.getElementById('slider-stm').value = rStm;
-      document.getElementById('slider-gem').value = rGem;
-      document.getElementById('slider-tak').value = rTak;
+      document.getElementById('slider-trf').value = rTrf;
+      document.getElementById('slider-ges').value = rGes;
 
-      document.getElementById('val-trf').innerText = rTrf;
       document.getElementById('val-dur').innerText = rDur;
-      document.getElementById('val-ges').innerText = rGes;
       document.getElementById('val-stm').innerText = rStm;
-      document.getElementById('val-gem').innerText = rGem;
-      document.getElementById('val-tak').innerText = rTak;
+      document.getElementById('val-trf').innerText = rTrf;
+      document.getElementById('val-ges').innerText = rGes;
 
       selectEdition(rEdition);
       recalculateAutoOvr();
@@ -2227,12 +2191,12 @@
       const name = document.getElementById('card-name-display').innerText;
       const nickname = document.getElementById('card-nickname-display').innerText;
 
-      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, scale: 100, fontSize: 22 };
+      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, scale: 100, fontSize: 29 };
       const nameX = (nameCfg.x / 100) * W;
       const nameY = (nameCfg.y / 100) * H;
       const nameScale = (nameCfg.scale || 100) / 100;
-      const nameFont = Math.round((nameCfg.fontSize || 22) * scaleH * nameScale);
-      const nickFont = Math.round(nameFont * 0.45);
+      const nameFont = Math.round(Math.max(29, nameCfg.fontSize || 29) * scaleH * nameScale);
+      const nickFont = Math.round(nameFont * 0.40);
 
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
       ctx.shadowBlur = Math.round(10 * scaleH);
@@ -2245,13 +2209,13 @@
         ctx.fillStyle = userTextColor || nameCfg.color || accentColor;
         ctx.font = `700 ${nickFont}px Rajdhani, sans-serif`;
         ctx.letterSpacing = `${Math.round(2 * scaleH)}px`;
-        ctx.fillText(nickname.toUpperCase(), nameX, nameY + nickFont * 1.15);
+        ctx.fillText(nickname.toUpperCase(), nameX, nameY + nickFont * 1.2);
       }
 
       // Divider Line
-      const divCfg = (layout && layout.divider) ? layout.divider : { x: 50, y: 65.5, width: 65 };
+      const divCfg = (layout && layout.divider) ? layout.divider : { x: 50, y: 65.5, width: 68 };
       const divY = (divCfg.y / 100) * H;
-      const divHalfW = ((divCfg.width || 65) / 200) * W;
+      const divHalfW = ((divCfg.width || 68) / 200) * W;
       ctx.strokeStyle = userTextColor || divCfg.color || accentColor;
       ctx.lineWidth = Math.max(1, Math.round(2.5 * scaleH));
       ctx.beginPath();
@@ -2259,56 +2223,50 @@
       ctx.lineTo(nameX + divHalfW, divY);
       ctx.stroke();
 
-      // 4. Draw The 6 Stats
-      const trf = document.getElementById('card-stat-trf').innerText;
+      // 4. Draw The 4 Stats in 2 Columns (DURST, STIMMUNG / TREFFER, GESELLIG)
       const dur = document.getElementById('card-stat-dur').innerText;
-      const ges = document.getElementById('card-stat-ges').innerText;
       const stm = document.getElementById('card-stat-stm').innerText;
-      const gem = document.getElementById('card-stat-gem').innerText;
-      const tak = document.getElementById('card-stat-tak').innerText;
+      const trf = document.getElementById('card-stat-trf').innerText;
+      const ges = document.getElementById('card-stat-ges').innerText;
 
-      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 51.2, y: 74.9, scale: 100, fontSize: 14, width: 68 };
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 50.8, y: 75.5, scale: 100, fontSize: 18, width: 74 };
       const statsCenterX = (statsCfg.x / 100) * W;
       const statsCenterY = (statsCfg.y / 100) * H;
       const statsScale = (statsCfg.scale || 100) / 100;
-      const statValFont = Math.round((statsCfg.fontSize || 14) * scaleH * statsScale);
-      const statLblFont = Math.round(statValFont * 0.75);
+      const statValFont = Math.round(Math.max(18, statsCfg.fontSize || 18) * scaleH * statsScale);
+      const statLblFont = Math.round(statValFont * 0.95);
 
-      const statsW = ((statsCfg.width || 68) / 100) * W * statsScale;
-      const colSpacing = statsW * 0.25;
-      const rowSpacing = Math.round(18 * scaleH * statsScale);
-      const col1X = statsCenterX - colSpacing;
-      const col2X = statsCenterX + colSpacing;
-      const row1Y = statsCenterY - rowSpacing;
-      const row2Y = statsCenterY;
-      const row3Y = statsCenterY + rowSpacing;
+      const statsW = ((statsCfg.width || 74) / 100) * W * statsScale;
+      const halfW = statsW / 2;
+      const rowGap = Math.round(22 * scaleH * statsScale);
 
-      function drawStat(label, val, x, y) {
+      const col1Left = statsCenterX - halfW;
+      const col1Right = statsCenterX - statsW * 0.05;
+      const col2Left = statsCenterX + statsW * 0.05;
+      const col2Right = statsCenterX + halfW;
+
+      const row1Y = statsCenterY - rowGap * 0.55;
+      const row2Y = statsCenterY + rowGap * 0.55;
+
+      function drawStat(label, val, leftX, rightX, y) {
         ctx.textAlign = 'left';
-        ctx.font = `600 ${statLblFont}px Rajdhani, sans-serif`;
-        ctx.fillStyle = '#E5E7EB';
-        ctx.fillText(label, x - colSpacing * 0.7, y);
+        ctx.font = `700 ${statLblFont}px Rajdhani, sans-serif`;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(label, leftX, y);
 
         ctx.textAlign = 'right';
-        ctx.font = `800 ${statValFont}px Rajdhani, sans-serif`;
+        ctx.font = `900 ${statValFont}px Rajdhani, sans-serif`;
         ctx.fillStyle = userTextColor || statsCfg.color || accentColor;
-        ctx.fillText(val, x + colSpacing * 0.7, y);
+        ctx.fillText(val, rightX, y);
       }
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleH));
-      ctx.beginPath();
-      ctx.moveTo(statsCenterX, row1Y - rowSpacing * 0.7);
-      ctx.lineTo(statsCenterX, row3Y + rowSpacing * 0.4);
-      ctx.stroke();
+      // Zeile 1: DURST (Links) & TREFFER (Rechts)
+      drawStat('DURST', dur, col1Left, col1Right, row1Y);
+      drawStat('TREFFER', trf, col2Left, col2Right, row1Y);
 
-      drawStat('TRF', trf, col1X, row1Y);
-      drawStat('DUR', dur, col1X, row2Y);
-      drawStat('GES', ges, col1X, row3Y);
-
-      drawStat('STM', stm, col2X, row1Y);
-      drawStat('GEM', gem, col2X, row2Y);
-      drawStat('TAK', tak, col2X, row3Y);
+      // Zeile 2: STIMMUNG (Links) & GESELLIG (Rechts)
+      drawStat('STIMMUNG', stm, col1Left, col1Right, row2Y);
+      drawStat('GESELLIG', ges, col2Left, col2Right, row2Y);
     }
 
     /* ======================================================== */
@@ -2338,12 +2296,10 @@
           badge: document.getElementById('input-badge').value,
           edition: currentEditionId,
           stats: {
-            trf: document.getElementById('slider-trf').value,
             dur: document.getElementById('slider-dur').value,
-            ges: document.getElementById('slider-ges').value,
             stm: document.getElementById('slider-stm').value,
-            gem: document.getElementById('slider-gem').value,
-            tak: document.getElementById('slider-tak').value
+            trf: document.getElementById('slider-trf').value,
+            ges: document.getElementById('slider-ges').value
           }
         });
 
@@ -2410,12 +2366,10 @@
       const perk = document.getElementById('input-perk').value.trim() || 'Hütten-Held';
       const ovr = parseInt(document.getElementById('input-ovr').value) || 85;
 
-      const trf = parseInt(document.getElementById('slider-trf').value);
-      const dur = parseInt(document.getElementById('slider-dur').value);
-      const ges = parseInt(document.getElementById('slider-ges').value);
-      const stm = parseInt(document.getElementById('slider-stm').value);
-      const gem = parseInt(document.getElementById('slider-gem').value);
-      const tak = parseInt(document.getElementById('slider-tak').value);
+      const dur = parseInt(document.getElementById('slider-dur').value) || 80;
+      const stm = parseInt(document.getElementById('slider-stm').value) || 80;
+      const trf = parseInt(document.getElementById('slider-trf').value) || 80;
+      const ges = parseInt(document.getElementById('slider-ges').value) || 80;
 
       // Extract current processed portrait canvas data
       const portraitCanvas = document.getElementById('portrait-canvas');
@@ -2430,7 +2384,7 @@
         badge,
         editionId: currentEditionId,
         perk,
-        stats: { trf, dur, ges, stm, gem, tak },
+        stats: { dur, stm, trf, ges },
         score: 0,
         photoDataUrl
       };
@@ -2522,7 +2476,7 @@
                 <div class="flex items-center gap-2 text-xs text-slate-400">
                   <span class="text-amber-400 font-medium">⚡ ${player.perk}</span>
                   <span>•</span>
-                  <span>TRF: ${player.stats.trf} | DUR: ${player.stats.dur} | GES: ${player.stats.ges}</span>
+                  <span>DUR: ${player.stats.dur} | STM: ${player.stats.stm} | TRF: ${player.stats.trf} | GES: ${player.stats.ges}</span>
                 </div>
               </div>
             </div>

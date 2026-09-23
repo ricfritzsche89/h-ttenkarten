@@ -33,7 +33,7 @@
       "scale": 100,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -47,11 +47,11 @@
     },
     "stats": {
       "x": 51.2,
-      "y": 74.9,
+      "y": 75.5,
       "scale": 100,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -98,7 +98,7 @@
       "scale": 100,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -112,11 +112,11 @@
     },
     "stats": {
       "x": 50,
-      "y": 74,
+      "y": 75.5,
       "scale": 91,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -163,7 +163,7 @@
       "scale": 100,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -177,11 +177,11 @@
     },
     "stats": {
       "x": 51.8,
-      "y": 73.9,
+      "y": 75.5,
       "scale": 100,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -228,7 +228,7 @@
       "scale": 100,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -242,11 +242,11 @@
     },
     "stats": {
       "x": 46.1,
-      "y": 73.3,
+      "y": 75.5,
       "scale": 100,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -293,7 +293,7 @@
       "scale": 100,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -307,11 +307,11 @@
     },
     "stats": {
       "x": 51.6,
-      "y": 74,
+      "y": 75.5,
       "scale": 92,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -358,7 +358,7 @@
       "scale": 91,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -372,11 +372,11 @@
     },
     "stats": {
       "x": 49.3,
-      "y": 71.7,
+      "y": 75.5,
       "scale": 74,
       "rot": 0,
-      "width": 68,
-      "fontSize": 14,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
@@ -423,7 +423,7 @@
       "scale": 98,
       "rot": 0,
       "width": 85,
-      "fontSize": 22,
+      "fontSize": 29,
       "color": "#FFFFFF"
     },
     "divider": {
@@ -437,11 +437,11 @@
     },
     "stats": {
       "x": 50,
-      "y": 74,
+      "y": 75.5,
       "scale": 89,
       "rot": 0,
-      "width": 68,
-      "fontSize": 34,
+      "width": 74,
+      "fontSize": 18,
       "color": "#FBBF24"
     },
     "perk": {
