@@ -88,6 +88,77 @@
     .animate-pulse-glow {
       animation: pulse-glow 3s infinite ease-in-out;
     }
+
+    /* Seamless Hue Rainbow Slider */
+    .hue-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 14px;
+      border-radius: 9999px;
+      background: linear-gradient(to right, 
+        #ff0000 0%, 
+        #ff8000 12.5%, 
+        #ffff00 25%, 
+        #80ff00 37.5%, 
+        #00ff00 50%, 
+        #00ffff 62.5%, 
+        #0000ff 75%, 
+        #ff00ff 87.5%, 
+        #ff0000 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .hue-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+    .hue-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+
+    /* Lightness / White Slider */
+    .lightness-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      border-radius: 9999px;
+      background: linear-gradient(to right, #000000 0%, #fbbf24 50%, #ffffff 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .lightness-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+    .lightness-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -338,26 +409,37 @@
             </div>
           </div>
 
-          <!-- Section 3.5: Text- & Akzentfarbe -->
-          <div class="mb-6 p-4 bg-slate-950/70 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-inner">
-            <div>
-              <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🎨</span> Schrift- & Akzentfarbe
-              </label>
-              <p class="text-[11px] text-slate-400">Passe die Textfarbe für OVR, Stats, Titel & Verzierungen an</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <input type="color" id="input-text-color" value="#FBBF24" oninput="updateUserTextColor(this.value)" class="w-9 h-8 rounded-lg cursor-pointer bg-slate-900 border border-slate-700 p-0.5" title="Beliebige Wunschfarbe wählen">
-              <div class="flex flex-wrap gap-1.5 items-center">
-                <button type="button" onclick="updateUserTextColor('#FBBF24')" class="w-6 h-6 rounded-full bg-[#FBBF24] border border-white/20 hover:scale-110 transition shadow" title="Gold"></button>
-                <button type="button" onclick="updateUserTextColor('#FFFFFF')" class="w-6 h-6 rounded-full bg-[#FFFFFF] border border-white/20 hover:scale-110 transition shadow" title="Weiß"></button>
-                <button type="button" onclick="updateUserTextColor('#FDE68A')" class="w-6 h-6 rounded-full bg-[#FDE68A] border border-white/20 hover:scale-110 transition shadow" title="Hellgold"></button>
-                <button type="button" onclick="updateUserTextColor('#E5E7EB')" class="w-6 h-6 rounded-full bg-[#E5E7EB] border border-white/20 hover:scale-110 transition shadow" title="Silber"></button>
-                <button type="button" onclick="updateUserTextColor('#34D399')" class="w-6 h-6 rounded-full bg-[#34D399] border border-white/20 hover:scale-110 transition shadow" title="Smaragd"></button>
-                <button type="button" onclick="updateUserTextColor('#F472B6')" class="w-6 h-6 rounded-full bg-[#F472B6] border border-white/20 hover:scale-110 transition shadow" title="Pink"></button>
-                <button type="button" onclick="updateUserTextColor('#1E293B')" class="w-6 h-6 rounded-full bg-[#1E293B] border border-white/40 hover:scale-110 transition shadow" title="Dunkel"></button>
-                <button type="button" onclick="resetUserTextColor()" class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Standardfarbe der Vorlage nutzen">Auto</button>
+          <!-- Section 3.5: Nahtloser Farbregler für Schrift & Akzente -->
+          <div class="mb-6 p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-3.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>🌈</span> Nahtloser Farbregler (Alle Farben)
+                </label>
+                <p class="text-[11px] text-slate-400">Ziehe den Schieberegler für jeden beliebigen Farbton</p>
               </div>
+              <div class="flex items-center gap-2">
+                <span id="preview-color-pill" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold border border-white/20 shadow-md transition-colors" style="background-color: #FBBF24; color: #000000;">#FBBF24</span>
+                <button type="button" onclick="resetUserTextColor()" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Standardfarbe der Vorlage nutzen">Auto / Reset</button>
+              </div>
+            </div>
+
+            <!-- 1. Der nahtlose Regenbogen Hue-Slider -->
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-medium">
+                <span>Farbton (Nahtloses Farbspektrum 0° - 360°)</span>
+                <span id="lbl-hue-val" class="text-amber-400 font-mono font-bold">42°</span>
+              </div>
+              <input id="slider-text-hue" type="range" min="0" max="360" value="42" oninput="onHslSliderChange()" class="hue-slider w-full">
+            </div>
+
+            <!-- 2. Helligkeit & Weiß-Grad -->
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-medium">
+                <span>Helligkeit (Dunkel → Bunt leuchtend → Reinweiß)</span>
+                <span id="lbl-light-val" class="text-amber-400 font-mono font-bold">58%</span>
+              </div>
+              <input id="slider-text-light" type="range" min="15" max="100" value="58" oninput="onHslSliderChange()" class="lightness-slider w-full">
             </div>
           </div>
 
@@ -1314,18 +1396,98 @@
 
     let userTextColor = null;
 
-    function updateUserTextColor(color) {
-      userTextColor = color;
-      const picker = document.getElementById('input-text-color');
-      if (picker) picker.value = color;
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = s * Math.min(l, 1 - l) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+
+    function hexToHsl(hex) {
+      let c = (hex || '#FBBF24').replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      let r = ((num >> 16) & 255) / 255;
+      let g = ((num >> 8) & 255) / 255;
+      let b = (num & 255) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h = 0, s = 0, l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h = Math.round(h * 60);
+      }
+      return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function onHslSliderChange() {
+      const hue = parseInt(document.getElementById('slider-text-hue').value) || 0;
+      const light = parseInt(document.getElementById('slider-text-light').value) || 60;
+      
+      let hex;
+      if (light >= 98) {
+        hex = '#FFFFFF';
+      } else {
+        hex = hslToHex(hue, 95, light);
+      }
+      
+      userTextColor = hex;
+
+      const pill = document.getElementById('preview-color-pill');
+      if (pill) {
+        pill.innerText = hex;
+        pill.style.backgroundColor = hex;
+        pill.style.color = light > 60 ? '#000000' : '#FFFFFF';
+      }
+
+      const lightSlider = document.getElementById('slider-text-light');
+      if (lightSlider) {
+        lightSlider.style.background = `linear-gradient(to right, #000000 0%, hsl(${hue}, 95%, 50%) 50%, #ffffff 100%)`;
+      }
+
+      const lblLight = document.getElementById('lbl-light-val');
+      if (lblLight) lblLight.innerText = `${light}%`;
+
+      const lblHue = document.getElementById('lbl-hue-val');
+      if (lblHue) lblHue.innerText = `${hue}°`;
+
       updateCardUI();
+    }
+
+    function syncHslSlidersFromHex(hex) {
+      const hsl = hexToHsl(hex);
+      const hueSlider = document.getElementById('slider-text-hue');
+      const lightSlider = document.getElementById('slider-text-light');
+      if (hueSlider) hueSlider.value = hsl.h;
+      if (lightSlider) {
+        lightSlider.value = hsl.l;
+        lightSlider.style.background = `linear-gradient(to right, #000000 0%, hsl(${hsl.h}, 95%, 50%) 50%, #ffffff 100%)`;
+      }
+      const pill = document.getElementById('preview-color-pill');
+      if (pill) {
+        pill.innerText = hex.toUpperCase();
+        pill.style.backgroundColor = hex;
+        pill.style.color = hsl.l > 60 ? '#000000' : '#FFFFFF';
+      }
+      const lblHue = document.getElementById('lbl-hue-val');
+      if (lblHue) lblHue.innerText = `${hsl.h}°`;
+      const lblLight = document.getElementById('lbl-light-val');
+      if (lblLight) lblLight.innerText = `${hsl.l}%`;
     }
 
     function resetUserTextColor() {
       userTextColor = null;
       const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
-      const picker = document.getElementById('input-text-color');
-      if (picker && edition.accentColor) picker.value = edition.accentColor;
+      syncHslSlidersFromHex(edition.accentColor || '#FDE68A');
       updateCardUI();
     }
 
@@ -1369,9 +1531,8 @@
 
       // Akzent- / Schriftfarbe anwenden (Wunschfarbe oder Vorlagen-Standard)
       const activeColor = userTextColor || edition.accentColor || '#FDE68A';
-      const colorPicker = document.getElementById('input-text-color');
-      if (colorPicker && !userTextColor && edition.accentColor) {
-        colorPicker.value = edition.accentColor;
+      if (!userTextColor && edition.accentColor) {
+        syncHslSlidersFromHex(edition.accentColor);
       }
 
       const ovrEl = document.getElementById('card-ovr-display');

@@ -34,6 +34,77 @@
       outline: 2px dashed #F59E0B !important;
       outline-offset: 4px;
     }
+
+    /* Seamless Rainbow Hue Slider */
+    .hue-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 14px;
+      border-radius: 9999px;
+      background: linear-gradient(to right, 
+        #ff0000 0%, 
+        #ff8000 12.5%, 
+        #ffff00 25%, 
+        #80ff00 37.5%, 
+        #00ff00 50%, 
+        #00ffff 62.5%, 
+        #0000ff 75%, 
+        #ff00ff 87.5%, 
+        #ff0000 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .hue-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+    .hue-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+
+    /* Lightness / White Slider */
+    .lightness-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      border-radius: 9999px;
+      background: linear-gradient(to right, #000000 0%, #fbbf24 50%, #ffffff 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .lightness-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
+    .lightness-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow: 0 0 8px rgba(0,0,0,0.85);
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -259,23 +330,31 @@
           <input id="slider-fontsize" type="range" min="10" max="60" step="1" value="24" oninput="updateActiveProperty('fontSize', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
         </div>
 
-        <!-- Text Color -->
-        <div id="row-color">
-          <div class="flex justify-between text-slate-300 mb-1">
-            <span>Textfarbe (Color)</span>
-            <span id="lbl-color" class="text-amber-400 font-bold font-mono">#FBBF24</span>
+        <!-- Seamless Text Color Sliders -->
+        <div id="row-color" class="pt-3 border-t border-slate-800/80 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+              <span>🌈</span> Nahtlose Textfarbe (Farbspektrum)
+            </span>
+            <span id="lbl-color" class="px-2 py-0.5 rounded text-xs font-mono font-bold border border-white/20 shadow" style="background-color: #FBBF24; color: #000000;">#FBBF24</span>
           </div>
-          <div class="flex items-center gap-2">
-            <input id="picker-color" type="color" value="#FBBF24" oninput="updateActiveProperty('color', this.value)" class="w-10 h-8 rounded-lg cursor-pointer bg-slate-950 border border-slate-700 p-0.5">
-            <div class="flex flex-wrap gap-1.5 items-center">
-              <button type="button" onclick="updateActiveProperty('color', '#FBBF24')" class="w-6 h-6 rounded-full bg-[#FBBF24] border border-white/20 hover:scale-110 transition shadow" title="Gold"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#FFFFFF')" class="w-6 h-6 rounded-full bg-[#FFFFFF] border border-white/20 hover:scale-110 transition shadow" title="Weiß"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#FDE68A')" class="w-6 h-6 rounded-full bg-[#FDE68A] border border-white/20 hover:scale-110 transition shadow" title="Hellgold"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#E5E7EB')" class="w-6 h-6 rounded-full bg-[#E5E7EB] border border-white/20 hover:scale-110 transition shadow" title="Silber"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#34D399')" class="w-6 h-6 rounded-full bg-[#34D399] border border-white/20 hover:scale-110 transition shadow" title="Smaragd"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#F472B6')" class="w-6 h-6 rounded-full bg-[#F472B6] border border-white/20 hover:scale-110 transition shadow" title="Pink"></button>
-              <button type="button" onclick="updateActiveProperty('color', '#1E293B')" class="w-6 h-6 rounded-full bg-[#1E293B] border border-white/40 hover:scale-110 transition shadow" title="Dunkel"></button>
+
+          <!-- Hue Slider -->
+          <div>
+            <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Farbton (Hue 0° - 360°)</span>
+              <span id="lbl-editor-hue" class="text-amber-400 font-mono font-bold">42°</span>
             </div>
+            <input id="slider-editor-hue" type="range" min="0" max="360" value="42" oninput="onEditorHslChange()" class="hue-slider w-full">
+          </div>
+
+          <!-- Lightness Slider -->
+          <div>
+            <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>Helligkeit (Dunkel → Bunt → Weiß)</span>
+              <span id="lbl-editor-light" class="text-amber-400 font-mono font-bold">58%</span>
+            </div>
+            <input id="slider-editor-light" type="range" min="15" max="100" value="58" oninput="onEditorHslChange()" class="lightness-slider w-full">
           </div>
         </div>
 
@@ -432,37 +511,109 @@
       document.getElementById('slider-fontsize').value = cur.fontSize;
       document.getElementById('lbl-fontsize').innerText = `${cur.fontSize}px`;
 
-      if (cur.color) {
-        const picker = document.getElementById('picker-color');
-        const lblColor = document.getElementById('lbl-color');
-        if (picker) picker.value = cur.color;
-        if (lblColor) {
-          lblColor.innerText = cur.color.toUpperCase();
-          lblColor.style.color = cur.color;
+      syncHslControlsFromHex(cur.color || '#FBBF24');
+    }
+
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = s * Math.min(l, 1 - l) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+    }
+
+    function hexToHsl(hex) {
+      let c = (hex || '#FBBF24').replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      let r = ((num >> 16) & 255) / 255;
+      let g = ((num >> 8) & 255) / 255;
+      let b = (num & 255) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h = 0, s = 0, l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
         }
+        h = Math.round(h * 60);
       }
+      return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function onEditorHslChange() {
+      if (!configs[currentEditionId] || !configs[currentEditionId][activeElementKey]) return;
+      const cur = configs[currentEditionId][activeElementKey];
+      const hue = parseInt(document.getElementById('slider-editor-hue').value) || 0;
+      const light = parseInt(document.getElementById('slider-editor-light').value) || 58;
+
+      let hex;
+      if (light >= 98) {
+        hex = '#FFFFFF';
+      } else {
+        hex = hslToHex(hue, 95, light);
+      }
+
+      cur.color = hex;
+
+      const lbl = document.getElementById('lbl-color');
+      if (lbl) {
+        lbl.innerText = hex;
+        lbl.style.backgroundColor = hex;
+        lbl.style.color = light > 60 ? '#000000' : '#FFFFFF';
+      }
+
+      const lightSlider = document.getElementById('slider-editor-light');
+      if (lightSlider) {
+        lightSlider.style.background = `linear-gradient(to right, #000000 0%, hsl(${hue}, 95%, 50%) 50%, #ffffff 100%)`;
+      }
+
+      const lblHue = document.getElementById('lbl-editor-hue');
+      if (lblHue) lblHue.innerText = `${hue}°`;
+
+      const lblLight = document.getElementById('lbl-editor-light');
+      if (lblLight) lblLight.innerText = `${light}%`;
+
+      applyElementStyle(activeElementKey);
+      saveConfigs();
+    }
+
+    function syncHslControlsFromHex(hex) {
+      const hsl = hexToHsl(hex || '#FBBF24');
+      const hueSlider = document.getElementById('slider-editor-hue');
+      const lightSlider = document.getElementById('slider-editor-light');
+      if (hueSlider) hueSlider.value = hsl.h;
+      if (lightSlider) {
+        lightSlider.value = hsl.l;
+        lightSlider.style.background = `linear-gradient(to right, #000000 0%, hsl(${hsl.h}, 95%, 50%) 50%, #ffffff 100%)`;
+      }
+      const lbl = document.getElementById('lbl-color');
+      if (lbl) {
+        lbl.innerText = (hex || '#FBBF24').toUpperCase();
+        lbl.style.backgroundColor = hex || '#FBBF24';
+        lbl.style.color = hsl.l > 60 ? '#000000' : '#FFFFFF';
+      }
+      const lblHue = document.getElementById('lbl-editor-hue');
+      if (lblHue) lblHue.innerText = `${hsl.h}°`;
+      const lblLight = document.getElementById('lbl-editor-light');
+      if (lblLight) lblLight.innerText = `${hsl.l}%`;
     }
 
     function updateActiveProperty(prop, value) {
       if (!configs[currentEditionId] || !configs[currentEditionId][activeElementKey]) return;
       const cur = configs[currentEditionId][activeElementKey];
       
-      if (prop === 'color') {
-        cur.color = value;
-        const lbl = document.getElementById('lbl-color');
-        if (lbl) {
-          lbl.innerText = value.toUpperCase();
-          lbl.style.color = value;
-        }
-        const picker = document.getElementById('picker-color');
-        if (picker) picker.value = value;
-      } else {
-        const num = parseFloat(value);
-        cur[prop] = num;
-        const labelMap = { x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px' };
-        const lbl = document.getElementById(`lbl-${prop.toLowerCase()}`);
-        if (lbl) lbl.innerText = `${num}${labelMap[prop]}`;
-      }
+      const num = parseFloat(value);
+      cur[prop] = num;
+      const labelMap = { x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px' };
+      const lbl = document.getElementById(`lbl-${prop.toLowerCase()}`);
+      if (lbl) lbl.innerText = `${num}${labelMap[prop]}`;
 
       applyElementStyle(activeElementKey);
       saveConfigs();
