@@ -538,19 +538,19 @@
       <div class="w-full lg:col-span-5 order-1 lg:order-2 lg:sticky lg:top-24 space-y-4 flex flex-col items-center">
         
         <!-- Card Tilt Container -->
-        <div class="card-perspective w-full max-w-[320px] sm:max-w-[340px] select-none mx-auto">
+        <div class="card-perspective w-full max-w-[340px] select-none mx-auto flex items-center justify-center">
           
-          <!-- MASTER FUT CARD CONTAINER -->
-          <div id="fut-card-render" class="fut-card-shield card-tilt relative w-full h-[480px] sm:h-[510px] select-none transition-all duration-300 drop-shadow-2xl">
+          <!-- MASTER FUT CARD CONTAINER (Proportioniert sich exakt nach Vorlagen-Seitenverhältnis wie im Editor) -->
+          <div id="fut-card-render" class="fut-card-shield card-tilt relative w-full select-none transition-all duration-300 drop-shadow-2xl" style="aspect-ratio: 986 / 1200;">
             
             <!-- Card Border / Theme Frame Layer -->
             <div id="card-border-layer" class="absolute inset-0 pointer-events-none"></div>
 
             <!-- Inner Card Shield -->
-            <div id="card-inner-layer" class="relative w-full h-full overflow-hidden select-none">
+            <div id="card-inner-layer" class="relative w-full h-full overflow-hidden select-none rounded-2xl">
               
-              <!-- Custom Uploaded Template Background Image (liegt vollflächig drin) -->
-              <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
+              <!-- Custom Uploaded Template Background Image (liegt vollflächig drin, genau wie im Editor: object-fill) -->
+              <img id="custom-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-fill pointer-events-none z-0">
 
               <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
               <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0"></div>
@@ -1013,6 +1013,11 @@
         cardWrapper.style.aspectRatio = edInfo.ratio;
       }
 
+      // Referenz-Kartenhöhe im Editor ist ca. 504px
+      const refH = 504;
+      const curH = (cardWrapper && cardWrapper.clientHeight > 100) ? cardWrapper.clientHeight : 420;
+      const fontScale = curH / refH;
+
       // 1. Portrait Frame
       const elPortrait = document.getElementById('photo-frame-wrapper');
       if (elPortrait && layout.portrait) {
@@ -1030,8 +1035,8 @@
         elOvr.style.transform = `translate(-50%, -50%) scale(${layout.ovr.scale / 100}) rotate(${layout.ovr.rot}deg)`;
         const txtOvr = document.getElementById('card-ovr-display');
         const txtPos = document.getElementById('card-pos-display');
-        if (txtOvr) txtOvr.style.fontSize = `${layout.ovr.fontSize}px`;
-        if (txtPos) txtPos.style.fontSize = `${Math.round(layout.ovr.fontSize * 0.38)}px`;
+        if (txtOvr) txtOvr.style.fontSize = `${Math.round(layout.ovr.fontSize * fontScale)}px`;
+        if (txtPos) txtPos.style.fontSize = `${Math.round(layout.ovr.fontSize * 0.38 * fontScale)}px`;
       }
 
       // 3. Badge & Flag
@@ -1051,8 +1056,8 @@
         elName.style.transform = `translate(-50%, -50%) scale(${layout.name.scale / 100}) rotate(${layout.name.rot}deg)`;
         const txtName = document.getElementById('card-name-display');
         const txtNick = document.getElementById('card-nickname-display');
-        if (txtName) txtName.style.fontSize = `${layout.name.fontSize}px`;
-        if (txtNick) txtNick.style.fontSize = `${Math.round(layout.name.fontSize * 0.45)}px`;
+        if (txtName) txtName.style.fontSize = `${Math.round(layout.name.fontSize * fontScale)}px`;
+        if (txtNick) txtNick.style.fontSize = `${Math.round(layout.name.fontSize * 0.45 * fontScale)}px`;
       }
 
       // 5. Divider
@@ -1072,7 +1077,7 @@
         elStats.style.top = `${layout.stats.y}%`;
         elStats.style.width = `${layout.stats.width}%`;
         elStats.style.transform = `translate(-50%, -50%) scale(${layout.stats.scale / 100}) rotate(${layout.stats.rot}deg)`;
-        elStats.style.fontSize = `${layout.stats.fontSize}px`;
+        elStats.style.fontSize = `${Math.round(layout.stats.fontSize * fontScale)}px`;
       }
 
       // 7. Perk
@@ -1082,7 +1087,7 @@
         elPerk.style.top = `${layout.perk.y}%`;
         elPerk.style.transform = `translate(-50%, -50%) scale(${layout.perk.scale / 100}) rotate(${layout.perk.rot}deg)`;
         const perkBadge = document.getElementById('card-perk-badge');
-        if (perkBadge) perkBadge.style.fontSize = `${layout.perk.fontSize}px`;
+        if (perkBadge) perkBadge.style.fontSize = `${Math.round(layout.perk.fontSize * fontScale)}px`;
       }
     }
 
@@ -1908,28 +1913,27 @@
       });
     }
 
-    /* Rendert die komplette Karte in maximaler Aufloesung (1800x2700)
-       und liefert die PNG als Data-URL. Basis fuer Download UND Versand. */
+    /* Rendert die komplette Karte in maximaler Aufloesung (Basis 2700px Hoehe)
+       exakt nach dem Seitenverhaeltnis der Vorlage wie im Editor (kein Letterbox-Beschnitt!) */
     async function renderHighResPNG() {
       const canvas = document.getElementById('export-canvas');
       const ctx = canvas.getContext('2d');
-      const W = 1200;      // Layout-Koordinatenraum (wie bisher)
-      const H = 1800;
-      const SCALE = 1.5;   // Ziel-Aufloesung: 1800 x 2700
+      const customImg = await loadCustomTemplateImage();
 
-      canvas.width = W * SCALE;
-      canvas.height = H * SCALE;
-      ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+      // Hohe Druckaufloesung exakt nach Vorlagen-Seitenverhaeltnis
+      const H = 2700;
+      const ratio = customImg ? (customImg.width / customImg.height) : (986 / 1200);
+      const W = Math.round(H * ratio);
+
+      canvas.width = W;
+      canvas.height = H;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, W, H);
 
       ctx.save();
-      // Vorlage ohne künstlichen Schild-Beschnitt vollflächig und zentriert zeichnen
-      const customImg = await loadCustomTemplateImage();
       if (customImg) {
-        const fit = Math.min(W / customImg.width, H / customImg.height);
-        const dw = customImg.width * fit;
-        const dh = customImg.height * fit;
-        ctx.drawImage(customImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+        // Exakt wie im Editor: Vollflächig (object-fill) ohne künstliche Ränder
+        ctx.drawImage(customImg, 0, 0, W, H);
       } else {
         ctx.fillStyle = '#05050A';
         ctx.fillRect(0, 0, W, H);
@@ -1944,7 +1948,7 @@
     async function exportCardToHighResPNG() {
       const btn = document.getElementById('btn-export-png');
       const originalText = btn.innerHTML;
-      btn.innerHTML = `<span class="animate-spin">⏳</span> <span>Rendere Ultra-HD PNG (1800x2700)...</span>`;
+      btn.innerHTML = `<span class="animate-spin">⏳</span> <span>Rendere Ultra-HD PNG...</span>`;
       btn.disabled = true;
 
       try {
@@ -1955,7 +1959,7 @@
         link.href = dataUrl;
         link.click();
         playSound('score_up');
-        showToast('1800x2700 HD-Karte erfolgreich heruntergeladen! 📥', 'success');
+        showToast('HD-Karte erfolgreich heruntergeladen! 📥', 'success');
       } catch (e) {
         console.error(e);
         showToast('Export fehlgeschlagen: ' + e.message, 'error');
@@ -1970,19 +1974,22 @@
       const accentColor = userTextColor || edition.accentColor || '#FDE68A';
       const layout = KARTEN_LAYOUTS[currentEditionId] || KARTEN_LAYOUTS['img_bier'];
 
+      // Referenz-Kartenhöhe im Editor ist 504px. Maßstabsfaktor für hochauflösenden Canvas:
+      const scaleH = H / 504;
+
       // 1. Player-Portraet: frischer High-Res-Freisteller aus dem ORIGINALFOTO
       const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
-      const posX = (parseInt(document.getElementById('slider-x').value) || 0) * 3 * zoom;
-      const posY = (parseInt(document.getElementById('slider-y').value) || 0) * 3 * zoom;
+      const posX = ((parseInt(document.getElementById('slider-x').value) || 0) / 100) * W;
+      const posY = ((parseInt(document.getElementById('slider-y').value) || 0) / 100) * H;
       const brightness = parseInt(document.getElementById('slider-brightness').value) || 100;
 
       const hiResCanvas = document.createElement('canvas');
       const hasPhoto = processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
 
-      const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 60, y: 36, scale: 100 };
+      const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 60, y: 36, scale: 100, width: 62 };
       if (hasPhoto && hiResCanvas.width) {
-        const pw = 800 * zoom * (pCfg.scale / 100);
-        const ph = 800 * zoom * (pCfg.scale / 100);
+        const pw = ((pCfg.width || 62) / 100) * W * zoom * (pCfg.scale / 100);
+        const ph = pw;
         const px = (pCfg.x / 100) * W - pw / 2 + posX;
         const py = (pCfg.y / 100) * H - ph / 2 + posY;
 
@@ -2001,14 +2008,14 @@
       const ovrX = (ovrCfg.x / 100) * W;
       const ovrY = (ovrCfg.y / 100) * H;
       const ovrScale = (ovrCfg.scale || 100) / 100;
-      const ovrFont = Math.round((ovrCfg.fontSize || 51) * 2.8 * ovrScale);
+      const ovrFont = Math.round((ovrCfg.fontSize || 51) * scaleH * ovrScale);
       const posFont = Math.round(ovrFont * 0.38);
 
       ctx.fillStyle = userTextColor || ovrCfg.color || accentColor;
       ctx.font = `900 ${ovrFont}px Rajdhani, sans-serif`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = Math.round(8 * scaleH);
       ctx.fillText(ovr, ovrX, ovrY);
 
       ctx.font = `700 ${posFont}px Rajdhani, sans-serif`;
@@ -2021,11 +2028,13 @@
       const badgeY = (badgeCfg.y / 100) * H;
       const badgeScale = (badgeCfg.scale || 100) / 100;
 
-      const flagW = 54 * badgeScale, flagH = 34 * badgeScale;
+      const flagW = Math.round(28 * scaleH * badgeScale);
+      const flagH = Math.round(16 * scaleH * badgeScale);
       const flagX = badgeX - flagW / 2;
-      const flagY = badgeY - flagH - 10 * badgeScale;
+      const flagY = badgeY - flagH - Math.round(8 * scaleH * badgeScale);
+
       ctx.save();
-      ctx.shadowBlur = 4;
+      ctx.shadowBlur = Math.round(4 * scaleH);
       ctx.fillStyle = '#000000';
       ctx.fillRect(flagX, flagY, flagW, flagH / 3);
       ctx.fillStyle = '#DC2626';
@@ -2033,13 +2042,14 @@
       ctx.fillStyle = '#FBBF24';
       ctx.fillRect(flagX, flagY + (2 * flagH) / 3, flagW, flagH / 3);
       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleH));
       ctx.strokeRect(flagX, flagY, flagW, flagH);
       ctx.restore();
 
-      ctx.font = `${Math.round(60 * badgeScale)}px sans-serif`;
+      const badgeIconFont = Math.round(22 * scaleH * badgeScale);
+      ctx.font = `${badgeIconFont}px sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(badgeIcon, badgeX, badgeY + 15 * badgeScale);
+      ctx.fillText(badgeIcon, badgeX, badgeY + Math.round(15 * scaleH * badgeScale));
 
       // 3. Draw Player Name & Nickname
       const name = document.getElementById('card-name-display').innerText;
@@ -2049,11 +2059,11 @@
       const nameX = (nameCfg.x / 100) * W;
       const nameY = (nameCfg.y / 100) * H;
       const nameScale = (nameCfg.scale || 100) / 100;
-      const nameFont = Math.round((nameCfg.fontSize || 22) * 3.0 * nameScale);
+      const nameFont = Math.round((nameCfg.fontSize || 22) * scaleH * nameScale);
       const nickFont = Math.round(nameFont * 0.45);
 
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = Math.round(10 * scaleH);
       ctx.fillStyle = nameCfg.color || '#FFFFFF';
       ctx.font = `800 ${nameFont}px Rajdhani, sans-serif`;
       ctx.textAlign = 'center';
@@ -2062,7 +2072,7 @@
       if (nickname) {
         ctx.fillStyle = userTextColor || nameCfg.color || accentColor;
         ctx.font = `700 ${nickFont}px Rajdhani, sans-serif`;
-        ctx.letterSpacing = '3px';
+        ctx.letterSpacing = `${Math.round(2 * scaleH)}px`;
         ctx.fillText(nickname.toUpperCase(), nameX, nameY + nickFont * 1.15);
       }
 
@@ -2071,7 +2081,7 @@
       const divY = (divCfg.y / 100) * H;
       const divHalfW = ((divCfg.width || 65) / 200) * W;
       ctx.strokeStyle = userTextColor || divCfg.color || accentColor;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = Math.max(1, Math.round(2.5 * scaleH));
       ctx.beginPath();
       ctx.moveTo(nameX - divHalfW, divY);
       ctx.lineTo(nameX + divHalfW, divY);
@@ -2085,15 +2095,16 @@
       const gem = document.getElementById('card-stat-gem').innerText;
       const tak = document.getElementById('card-stat-tak').innerText;
 
-      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 51.2, y: 74.9, scale: 100, fontSize: 14 };
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 51.2, y: 74.9, scale: 100, fontSize: 14, width: 68 };
       const statsCenterX = (statsCfg.x / 100) * W;
       const statsCenterY = (statsCfg.y / 100) * H;
       const statsScale = (statsCfg.scale || 100) / 100;
-      const statValFont = Math.round((statsCfg.fontSize || 14) * 3.3 * statsScale);
-      const statLblFont = Math.round(statValFont * 0.72);
+      const statValFont = Math.round((statsCfg.fontSize || 14) * scaleH * statsScale);
+      const statLblFont = Math.round(statValFont * 0.75);
 
-      const colSpacing = 280 * statsScale;
-      const rowSpacing = 95 * statsScale;
+      const statsW = ((statsCfg.width || 68) / 100) * W * statsScale;
+      const colSpacing = statsW * 0.25;
+      const rowSpacing = Math.round(18 * scaleH * statsScale);
       const col1X = statsCenterX - colSpacing;
       const col2X = statsCenterX + colSpacing;
       const row1Y = statsCenterY - rowSpacing;
@@ -2104,19 +2115,19 @@
         ctx.textAlign = 'left';
         ctx.font = `600 ${statLblFont}px Rajdhani, sans-serif`;
         ctx.fillStyle = '#E5E7EB';
-        ctx.fillText(label, x - 100 * statsScale, y);
+        ctx.fillText(label, x - colSpacing * 0.7, y);
 
         ctx.textAlign = 'right';
         ctx.font = `800 ${statValFont}px Rajdhani, sans-serif`;
         ctx.fillStyle = userTextColor || statsCfg.color || accentColor;
-        ctx.fillText(val, x + 100 * statsScale, y);
+        ctx.fillText(val, x + colSpacing * 0.7, y);
       }
 
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleH));
       ctx.beginPath();
-      ctx.moveTo(statsCenterX, row1Y - 32 * statsScale);
-      ctx.lineTo(statsCenterX, row3Y + 12 * statsScale);
+      ctx.moveTo(statsCenterX, row1Y - rowSpacing * 0.7);
+      ctx.lineTo(statsCenterX, row3Y + rowSpacing * 0.4);
       ctx.stroke();
 
       drawStat('TRF', trf, col1X, row1Y);
@@ -2133,7 +2144,7 @@
       const perkX = (perkCfg.x / 100) * W;
       const perkY = (perkCfg.y / 100) * H;
       const perkScale = (perkCfg.scale || 100) / 100;
-      const perkFont = Math.round((perkCfg.fontSize || 11) * 2.8 * perkScale);
+      const perkFont = Math.round((perkCfg.fontSize || 11) * scaleH * perkScale);
 
       ctx.textAlign = 'center';
       ctx.font = `700 ${perkFont}px Rajdhani, sans-serif`;
