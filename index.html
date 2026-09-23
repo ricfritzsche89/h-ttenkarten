@@ -40,13 +40,13 @@
   </script>
 
   <style>
-    /* Classic FUT Card Geometry */
+    /* Classic FUT Card Geometry - Vorlagen haben ihre eigene Kontur */
     .fut-card-shield {
-      clip-path: polygon(50% 0%, 94% 6.5%, 100% 28%, 100% 86%, 50% 100%, 0% 86%, 0% 28%, 6% 6.5%);
+      border-radius: 1.25rem;
     }
 
     .fut-card-inner {
-      clip-path: polygon(50% 0.5%, 93.5% 6.8%, 99.5% 28%, 99.5% 85.5%, 50% 99.2%, 0.5% 85.5%, 0.5% 28%, 6.5% 6.8%);
+      border-radius: 1.25rem;
     }
 
     /* 3D Dynamic Card Tilt */
@@ -159,10 +159,10 @@
     <!-- ======================================================== -->
     <!-- VIEW 1: KARTEN-STUDIO                                    -->
     <!-- ======================================================== -->
-    <div id="view-studio" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div id="view-studio" class="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
       
-      <!-- Left Column: Controls & Studio Settings -->
-      <div class="lg:col-span-7 space-y-6">
+      <!-- Editor Column (Links auf Desktop, Unten auf Mobile) -->
+      <div class="w-full lg:col-span-7 order-2 lg:order-1 space-y-6">
         
         <!-- Editor Box -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl backdrop-blur-md">
@@ -427,151 +427,134 @@
 
       </div>
 
-      <!-- Right Column: Interactive 3D Card Preview & PNG Export -->
-      <div class="lg:col-span-5 sticky top-24 space-y-5">
+      <!-- Right Column on Desktop, First on Mobile: Interactive 3D Card Preview & Action Buttons -->
+      <div class="w-full lg:col-span-5 order-1 lg:order-2 lg:sticky lg:top-24 space-y-4 flex flex-col items-center">
         
-        <div class="flex flex-col items-center">
+        <!-- Card Tilt Container -->
+        <div class="card-perspective w-full max-w-[320px] sm:max-w-[340px] select-none mx-auto">
           
-          <!-- Card Tilt Container -->
-          <div class="card-perspective w-full max-w-[340px] select-none">
+          <!-- MASTER FUT CARD CONTAINER -->
+          <div id="fut-card-render" class="fut-card-shield card-tilt relative w-full h-[480px] sm:h-[510px] select-none transition-all duration-300 drop-shadow-2xl">
             
-            <!-- MASTER FUT CARD CONTAINER -->
-            <div id="fut-card-render" class="fut-card-shield card-tilt relative w-full h-[520px] p-2.5 shadow-2xl transition-all duration-300">
+            <!-- Card Border / Theme Frame Layer -->
+            <div id="card-border-layer" class="absolute inset-0 pointer-events-none"></div>
+
+            <!-- Inner Card Shield -->
+            <div id="card-inner-layer" class="relative w-full h-full overflow-hidden select-none">
               
-              <!-- Card Border / Theme Frame Layer -->
-              <div id="card-border-layer" class="absolute inset-0 bg-gradient-to-b from-amber-300 via-amber-600 to-amber-900 pointer-events-none"></div>
+              <!-- Custom Uploaded Template Background Image (liegt vollflächig drin) -->
+              <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
 
-              <!-- Inner Card Shield -->
-              <div id="card-inner-layer" class="fut-card-inner relative w-full h-full bg-slate-950 overflow-hidden flex flex-col justify-between">
-                
-                <!-- Custom Uploaded Template Background Image (if active) -->
-                <img id="custom-template-img" src="" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain hidden pointer-events-none z-0">
+              <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
+              <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0"></div>
 
-                <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
-                <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0">
-                  <!-- Injected via JS based on current theme -->
+              <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet ohne schwarzen Kasten -->
+              <div id="photo-frame-wrapper" class="absolute top-[8%] right-[4%] w-[68%] h-[53%] pointer-events-none z-10 overflow-hidden flex items-center justify-center" style="mask-image: linear-gradient(to bottom, black 65%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 98%);">
+                <div id="photo-container" class="w-full h-full relative">
+                  <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
                 </div>
-
-                <!-- Top Card Header: OVR, Position, Nation Flag, Crest -->
-                <div class="relative z-10 pt-4 px-4 flex justify-between items-start">
-                  
-                  <!-- Left Badges Stack -->
-                  <div class="flex flex-col items-center leading-none text-center">
-                    <span id="card-ovr-display" class="font-fut font-extrabold text-5xl tracking-tighter drop-shadow-md text-amber-300">99</span>
-                    <span id="card-pos-display" class="font-fut font-bold text-lg tracking-wider text-amber-100 mt-0.5">GK</span>
-                    
-                    <div class="w-7 h-0.5 bg-amber-400/70 my-1"></div>
-                    
-                    <!-- Flag -->
-                    <div class="w-6 h-4 rounded-sm shadow-sm overflow-hidden border border-white/20 my-0.5">
-                      <div class="w-full h-1/3 bg-black"></div>
-                      <div class="w-full h-1/3 bg-red-600"></div>
-                      <div class="w-full h-1/3 bg-amber-400"></div>
-                    </div>
-
-                    <!-- Selected Crest Icon -->
-                    <div id="card-badge-display" class="w-7 h-7 mt-1 flex items-center justify-center text-xl drop-shadow">
-                      👑
-                    </div>
-                  </div>
-
-                  <!-- Right / Center Player Image Canvas with Bottom Blend -->
-                  <div class="absolute -right-2 top-1 w-64 h-64 overflow-hidden pointer-events-none">
-                    
-                    <!-- Canvas for Processed / Cutout Photo -->
-                    <div id="photo-container" class="w-full h-full relative">
-                      <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
-                    </div>
-
-                    <!-- Bottom gradient fade into card body -->
-                    <div id="photo-bottom-fade" class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none"></div>
-                  </div>
-
-                </div>
-
-                <!-- Card Bottom Section: Name, Nickname & The 6 Stats -->
-                <div class="relative z-20 px-3 pb-3 mt-auto">
-                  
-                  <!-- Player Full Name Banner -->
-                  <div class="text-center">
-                    <h3 id="card-name-display" class="font-fut font-extrabold text-2xl tracking-wider uppercase text-white truncate drop-shadow-md">
-                      WERNER (GASTGEBER)
-                    </h3>
-                    <p id="card-nickname-display" class="text-[10px] font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow">
-                      DER HÜTTEN-PATRON
-                    </p>
-                  </div>
-
-                  <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent my-1.5"></div>
-
-                  <!-- 6 Attributes Grid (FUT Style with GES) -->
-                  <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 px-3 text-sm font-fut">
-                    <!-- Column 1 -->
-                    <div class="space-y-0.5">
-                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                        <span id="card-stat-trf" class="font-extrabold text-amber-300 text-base">99</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">TRF</span>
-                      </div>
-                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                        <span id="card-stat-dur" class="font-extrabold text-amber-300 text-base">98</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">DUR</span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span id="card-stat-ges" class="font-extrabold text-amber-300 text-base">99</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">GES</span>
-                      </div>
-                    </div>
-                    <!-- Column 2 -->
-                    <div class="space-y-0.5">
-                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                        <span id="card-stat-stm" class="font-extrabold text-amber-300 text-base">97</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">STM</span>
-                      </div>
-                      <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                        <span id="card-stat-gem" class="font-extrabold text-amber-300 text-base">99</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">GEM</span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span id="card-stat-tak" class="font-extrabold text-amber-300 text-base">92</span>
-                        <span class="text-slate-300 font-semibold text-xs tracking-wider">TAK</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- PlayStyle Badge Ribbon at Bottom -->
-                  <div class="mt-2 pt-1 border-t border-white/10 flex items-center justify-center gap-1.5 text-[11px] font-bold">
-                    <span class="text-amber-400">⚡</span>
-                    <span id="card-perk-display" class="text-white uppercase tracking-wider font-fut text-xs truncate">Zangen-Doppelklick+</span>
-                  </div>
-
-                </div>
-
-                <!-- Holographic Light reflection layer -->
-                <div class="holo-sheen absolute inset-0 opacity-40"></div>
-
               </div>
+
+              <!-- Top Card Header: OVR, Position, Nation Flag, Crest -->
+              <div class="absolute top-[8%] left-[7%] z-20 flex flex-col items-center leading-none text-center">
+                <span id="card-ovr-display" class="font-fut font-extrabold text-4xl sm:text-5xl tracking-tighter drop-shadow-md text-amber-300">99</span>
+                <span id="card-pos-display" class="font-fut font-bold text-base sm:text-lg tracking-wider text-amber-100 mt-0.5">GK</span>
+                
+                <div class="w-6 h-0.5 bg-amber-400/70 my-1"></div>
+                
+                <!-- Flag -->
+                <div class="w-6 h-4 rounded-sm shadow-sm overflow-hidden border border-white/20 my-0.5">
+                  <div class="w-full h-1/3 bg-black"></div>
+                  <div class="w-full h-1/3 bg-red-600"></div>
+                  <div class="w-full h-1/3 bg-amber-400"></div>
+                </div>
+
+                <!-- Selected Crest Icon -->
+                <div id="card-badge-display" class="w-7 h-7 mt-0.5 flex items-center justify-center text-xl drop-shadow">
+                  👑
+                </div>
+              </div>
+
+              <!-- Card Middle Section: Name & Nickname -->
+              <div class="absolute top-[59%] left-0 right-0 z-20 px-4 text-center">
+                <h3 id="card-name-display" class="font-fut font-extrabold text-xl sm:text-2xl tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+                  WERNER (GASTGEBER)
+                </h3>
+                <p id="card-nickname-display" class="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                  DER HÜTTEN-PATRON
+                </p>
+                <div class="w-3/4 mx-auto h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent my-1"></div>
+              </div>
+
+              <!-- 6 Attributes Grid (FUT Style) -->
+              <div class="absolute top-[69%] left-0 right-0 z-20 px-7 sm:px-9 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs sm:text-sm font-fut">
+                <!-- Column 1 -->
+                <div class="space-y-0.5">
+                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                    <span id="card-stat-trf" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TRF</span>
+                  </div>
+                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                    <span id="card-stat-dur" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">98</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">DUR</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span id="card-stat-ges" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GES</span>
+                  </div>
+                </div>
+                <!-- Column 2 -->
+                <div class="space-y-0.5">
+                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                    <span id="card-stat-stm" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">97</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">STM</span>
+                  </div>
+                  <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                    <span id="card-stat-gem" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">99</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">GEM</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span id="card-stat-tak" class="font-extrabold text-amber-300 text-sm sm:text-base drop-shadow">92</span>
+                    <span class="text-slate-200 font-semibold text-[10px] sm:text-xs tracking-wider">TAK</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PlayStyle Badge Ribbon at Bottom -->
+              <div class="absolute bottom-[4.5%] left-0 right-0 z-20 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-bold">
+                <span class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] sm:text-xs truncate drop-shadow flex items-center gap-1">
+                  <span>⚡</span>
+                  <span id="card-perk-display">Zangen-Doppelklick+</span>
+                </span>
+              </div>
+
+              <!-- Holographic Light reflection layer -->
+              <div class="holo-sheen absolute inset-0 opacity-40 pointer-events-none z-30"></div>
+
             </div>
-
           </div>
 
-          <!-- Bottom Action Buttons for Card -->
-          <div class="w-full max-w-[340px] mt-4 space-y-2">
-            <button onclick="addCurrentCardToTournament()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wide uppercase shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition transform active:scale-95">
-              <span>🏆</span>
-              <span>In Turniertabelle übernehmen</span>
-            </button>
-            
-            <button id="btn-send-host" onclick="sendCardToHost()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-sm tracking-wide uppercase shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition transform active:scale-95">
-              <span>📬</span>
-              <span>Karte an den Gastgeber senden</span>
-            </button>
+        </div>
 
-            <button id="btn-export-png" onclick="exportCardToHighResPNG()" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>High-Res PNG herunterladen (1800x2700)</span>
-            </button>
-          </div>
+        <!-- Bottom Action Buttons for Card -->
+        <div class="w-full max-w-[320px] sm:max-w-[340px] mt-2 space-y-2.5">
+          <!-- PRIMARY ACTION FOR GUESTS: An den Gastgeber senden -->
+          <button id="btn-send-host" onclick="sendCardToHost()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm sm:text-base tracking-wider uppercase shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2.5 transition transform active:scale-95 animate-pulse-glow">
+            <span class="text-xl">📬</span>
+            <span>Karte an Ric senden</span>
+          </button>
 
+          <!-- SECONDARY ACTION: Download auf Smartphone -->
+          <button id="btn-export-png" onclick="exportCardToHighResPNG()" class="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-400/50 text-slate-200 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 transition active:scale-95">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Kopie auf Smartphone speichern (HD-PNG)</span>
+          </button>
+
+          <!-- OPTIONAL: Für Turniertabelle -->
+          <button onclick="addCurrentCardToTournament()" class="w-full py-2 px-3 rounded-lg text-slate-400 hover:text-amber-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition">
+            <span>🏆</span>
+            <span>Als Spieler in die Minispiel-Tabelle eintragen</span>
+          </button>
         </div>
 
       </div>
@@ -718,6 +701,35 @@
     </div>
   </div>
 
+  <!-- Success Modal for Guests (Mobile-friendly celebration) -->
+  <div id="success-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center space-y-4">
+      <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto text-3xl shadow-lg shadow-emerald-500/20">
+        📬
+      </div>
+      <div>
+        <h3 class="text-xl sm:text-2xl font-black text-white tracking-wide uppercase font-fut">
+          Karte erfolgreich gesendet!
+        </h3>
+        <p id="success-modal-name" class="text-amber-400 font-bold text-sm mt-1">
+          Danke für deine Einreichung!
+        </p>
+      </div>
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        Deine persönliche Grillhütte Ultimate Team Karte ist sicher im Google Drive von Ric angekommen. Wir freuen uns auf ein legendäres Hüttenfest! 🥩🍻
+      </p>
+      <div class="pt-3 flex flex-col gap-2.5">
+        <button onclick="exportCardToHighResPNG()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95">
+          <span>📥</span>
+          <span>Als Bild auf mein Smartphone speichern</span>
+        </button>
+        <button onclick="closeSuccessModal()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition active:scale-95">
+          Super, alles klar! 👍
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Offscreen Canvas for High-Resolution PNG Exports -->
   <canvas id="export-canvas" width="1800" height="2700" class="hidden"></canvas>
 
@@ -844,7 +856,7 @@
         ovr: 99,
         pos: 'GK',
         badge: 'crown',
-        editionId: 'grandmaster',
+        editionId: 'img_chef',
         perk: 'Zangen-Doppelklick+',
         stats: { trf: 99, dur: 98, ges: 99, stm: 97, gem: 99, tak: 92 },
         score: 45,
@@ -857,7 +869,7 @@
         ovr: 94,
         pos: 'SK',
         badge: 'target',
-        editionId: 'schuetze',
+        editionId: 'img_schuetze',
         perk: 'Zielwasser Plus',
         stats: { trf: 96, dur: 92, ges: 90, stm: 88, gem: 94, tak: 85 },
         score: 40,
@@ -870,7 +882,7 @@
         ovr: 92,
         pos: 'ZK',
         badge: 'beer',
-        editionId: 'beer',
+        editionId: 'img_bier',
         perk: 'Zapfhahn-Sprint',
         stats: { trf: 82, dur: 99, ges: 96, stm: 95, gem: 86, tak: 84 },
         score: 31,
@@ -883,7 +895,7 @@
         ovr: 93,
         pos: 'PK',
         badge: 'crown',
-        editionId: 'wildberry',
+        editionId: 'img_glitzer',
         perk: 'Wildberry-Charme',
         stats: { trf: 89, dur: 90, ges: 98, stm: 99, gem: 91, tak: 82 },
         score: 28,
@@ -1308,17 +1320,18 @@
       const innerEl = document.getElementById('card-inner-layer');
       const fadeEl = document.getElementById('photo-bottom-fade');
 
-      // PNG-Vorlagen: die Vorlage definiert die Karte (schwarze Basis statt
-      // Amber-Rahmen, Asset komplett sichtbar - wie object-contain in der Vorschau)
-      borderEl.className = edition.imageUrl
-        ? 'absolute inset-0 bg-black pointer-events-none'
-        : `absolute inset-0 bg-gradient-to-b ${edition.borderGradient} pointer-events-none`;
-      innerEl.className = `fut-card-inner relative w-full h-full ${edition.innerBg} overflow-hidden flex flex-col justify-between`;
+      // Saubere transparente Basis: Die Vorlage bringt ihren eigenen Schmuckrahmen mit
+      if (borderEl) borderEl.className = 'absolute inset-0 pointer-events-none';
+      if (innerEl) innerEl.className = 'relative w-full h-full overflow-hidden select-none';
+      if (fadeEl) fadeEl.style.display = 'none';
 
-      // Update bottom fade to blend with innerBg
-      fadeEl.className = `absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none`;
+      // Akzentfarbe für OVR & Badges passend zur Edition setzen
+      const ovrEl = document.getElementById('card-ovr-display');
+      if (ovrEl && edition.accentColor) {
+        ovrEl.style.color = edition.accentColor;
+      }
 
-      // PNG-Vorlagen (Freisteller-Editionen) statt prozeduralem Hintergrund anzeigen
+      // PNG-Vorlagen (Freisteller-Editionen) anzeigen
       const imageSrc = customTemplateDataUrl || edition.imageUrl || null;
       const templateImg = document.getElementById('custom-template-img');
       if (imageSrc && templateImg.getAttribute('src') !== imageSrc) {
@@ -1518,22 +1531,15 @@
       ctx.clearRect(0, 0, W, H);
 
       ctx.save();
-      createShieldPath(ctx, W, H);
-      ctx.clip();
-
+      // Vorlage ohne künstlichen Schild-Beschnitt vollflächig und zentriert zeichnen
       const customImg = await loadCustomTemplateImage();
       if (customImg) {
-        // Wie in der Vorschau: schwarze Kartenbasis, Vorlage KOMPLETT und
-        // unverzerrt mittig (object-contain) - Rahmen bleiben erhalten.
-        ctx.fillStyle = '#000005';
-        ctx.fillRect(0, 0, W, H);
         const fit = Math.min(W / customImg.width, H / customImg.height);
         const dw = customImg.width * fit;
         const dh = customImg.height * fit;
         ctx.drawImage(customImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
       } else {
-        // Fallback (Vorlage nicht ladbar): neutrale schwarze Kartenbasis
-        ctx.fillStyle = '#000005';
+        ctx.fillStyle = '#05050A';
         ctx.fillRect(0, 0, W, H);
       }
 
@@ -1568,8 +1574,10 @@
     }
 
     function finishExportDrawing(ctx, W, H) {
+      const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
+      const accentColor = edition.accentColor || '#FDE68A';
+
       // 1. Player-Portraet: frischer High-Res-Freisteller aus dem ORIGINALFOTO
-      // (die Vorschau liegt bewusst klein - fuer den Export wird neu freigestellt)
       const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
       const posX = (parseInt(document.getElementById('slider-x').value) || 0) * 3 * zoom;
       const posY = (parseInt(document.getElementById('slider-y').value) || 0) * 3 * zoom;
@@ -1579,63 +1587,78 @@
       const hasPhoto = processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
 
       if (hasPhoto && hiResCanvas.width) {
-        const pw = 750 * zoom;
-        const ph = 750 * zoom;
-        const px = W * 0.5 - pw * 0.45 + posX;
-        const py = H * 0.12 + posY;
+        const pw = 780 * zoom;
+        const ph = 780 * zoom;
+        const px = W * 0.32 + posX;
+        const py = H * 0.08 + posY;
 
         ctx.save();
         ctx.filter = `brightness(${brightness}%)`;
         ctx.drawImage(hiResCanvas, px, py, pw, ph);
         ctx.restore();
-
-        // Bottom blend gradient over photo
-        const fadeGrad = ctx.createLinearGradient(0, H * 0.45, 0, H * 0.62);
-        fadeGrad.addColorStop(0, 'rgba(5, 5, 10, 0)');
-        fadeGrad.addColorStop(1, 'rgba(5, 5, 10, 0.95)');
-        ctx.fillStyle = fadeGrad;
-        ctx.fillRect(0, H * 0.4, W, H * 0.3);
       }
 
-      // 2. Draw Top Information (OVR, Position, Badge)
+      // 2. Draw Top Information (OVR, Position, Badge, Flag)
       const ovr = document.getElementById('card-ovr-display').innerText;
       const pos = document.getElementById('card-pos-display').innerText;
       const badgeIcon = document.getElementById('card-badge-display').innerText;
 
-      ctx.fillStyle = '#FDE68A';
-      ctx.font = '900 145px Rajdhani, sans-serif';
+      const ovrX = W * 0.17;
+      ctx.fillStyle = accentColor;
+      ctx.font = '900 135px Rajdhani, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(ovr, 210, 260);
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(ovr, ovrX, H * 0.155);
 
-      ctx.font = '700 60px Rajdhani, sans-serif';
+      ctx.font = '700 52px Rajdhani, sans-serif';
       ctx.fillStyle = '#F3F4F6';
-      ctx.fillText(pos, 210, 330);
+      ctx.fillText(pos, ovrX, H * 0.195);
 
-      ctx.font = '65px sans-serif';
-      ctx.fillText(badgeIcon, 210, 430);
+      // Flagge zeichnen
+      const flagW = 54, flagH = 34;
+      const flagX = ovrX - flagW / 2;
+      const flagY = H * 0.215;
+      ctx.save();
+      ctx.shadowBlur = 4;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(flagX, flagY, flagW, flagH / 3);
+      ctx.fillStyle = '#DC2626';
+      ctx.fillRect(flagX, flagY + flagH / 3, flagW, flagH / 3);
+      ctx.fillStyle = '#FBBF24';
+      ctx.fillRect(flagX, flagY + (2 * flagH) / 3, flagW, flagH / 3);
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(flagX, flagY, flagW, flagH);
+      ctx.restore();
+
+      ctx.font = '60px sans-serif';
+      ctx.fillText(badgeIcon, ovrX, H * 0.275);
 
       // 3. Draw Player Name & Nickname
       const name = document.getElementById('card-name-display').innerText;
       const nickname = document.getElementById('card-nickname-display').innerText;
 
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur = 12;
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '800 68px Rajdhani, sans-serif';
+      ctx.font = '800 66px Rajdhani, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(name.toUpperCase(), W * 0.5, H * 0.68);
+      ctx.fillText(name.toUpperCase(), W * 0.5, H * 0.61);
 
       if (nickname) {
-        ctx.fillStyle = '#FBBF24';
-        ctx.font = '700 30px Rajdhani, sans-serif';
-        ctx.letterSpacing = '4px';
-        ctx.fillText(nickname.toUpperCase(), W * 0.5, H * 0.71);
+        ctx.fillStyle = accentColor;
+        ctx.font = '700 28px Rajdhani, sans-serif';
+        ctx.letterSpacing = '3px';
+        ctx.fillText(nickname.toUpperCase(), W * 0.5, H * 0.635);
       }
 
       // Divider Line
       ctx.strokeStyle = '#F59E0B';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(W * 0.15, H * 0.735);
-      ctx.lineTo(W * 0.85, H * 0.735);
+      ctx.moveTo(W * 0.20, H * 0.655);
+      ctx.lineTo(W * 0.80, H * 0.655);
       ctx.stroke();
 
       // 4. Draw The 6 Stats
@@ -1646,22 +1669,22 @@
       const gem = document.getElementById('card-stat-gem').innerText;
       const tak = document.getElementById('card-stat-tak').innerText;
 
-      const col1X = W * 0.32;
-      const col2X = W * 0.68;
-      const row1Y = H * 0.785;
-      const row2Y = H * 0.835;
-      const row3Y = H * 0.885;
+      const col1X = W * 0.33;
+      const col2X = W * 0.67;
+      const row1Y = H * 0.71;
+      const row2Y = H * 0.755;
+      const row3Y = H * 0.80;
 
       function drawStat(label, val, x, y) {
         ctx.textAlign = 'right';
-        ctx.font = '800 48px Rajdhani, sans-serif';
-        ctx.fillStyle = '#FDE68A';
-        ctx.fillText(val, x - 15, y);
+        ctx.font = '800 46px Rajdhani, sans-serif';
+        ctx.fillStyle = accentColor;
+        ctx.fillText(val, x - 12, y);
 
         ctx.textAlign = 'left';
-        ctx.font = '600 34px Rajdhani, sans-serif';
-        ctx.fillStyle = '#D1D5DB';
-        ctx.fillText(label, x + 5, y);
+        ctx.font = '600 32px Rajdhani, sans-serif';
+        ctx.fillStyle = '#E5E7EB';
+        ctx.fillText(label, x + 8, y);
       }
 
       drawStat('TRF', trf, col1X, row1Y);
@@ -1675,14 +1698,9 @@
       // 5. Draw Perk Banner at Bottom
       const perk = document.getElementById('card-perk-display').innerText;
       ctx.textAlign = 'center';
-      ctx.font = '700 32px Rajdhani, sans-serif';
+      ctx.font = '700 30px Rajdhani, sans-serif';
       ctx.fillStyle = '#F59E0B';
-      ctx.fillText(`⚡ ${perk.toUpperCase()}`, W * 0.5, H * 0.94);
-
-      // Gold Outer Border Line
-      ctx.strokeStyle = '#FBBF24';
-      ctx.lineWidth = 14;
-      ctx.stroke();
+      ctx.fillText(`⚡ ${perk.toUpperCase()}`, W * 0.5, H * 0.875);
     }
 
     /* ======================================================== */
@@ -1759,6 +1777,8 @@
 
         if (delivered) {
           playSound('victory');
+          const guestName = document.getElementById('input-name').value.trim() || 'Gast';
+          openSuccessModal(guestName);
           showToast('Karte an den Gastgeber gesendet! 📬', 'success');
         } else {
           throw new Error(lastError || 'Unbekannter Fehler');
@@ -2089,6 +2109,24 @@
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       confirmCallback = null;
+    }
+
+    function openSuccessModal(guestName) {
+      const nameEl = document.getElementById('success-modal-name');
+      if (nameEl) nameEl.innerText = `Hey ${guestName}, deine Karte ist bei Ric!`;
+      const modal = document.getElementById('success-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById('success-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
     }
 
     // App Initialization on DOM Load
