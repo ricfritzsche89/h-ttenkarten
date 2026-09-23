@@ -453,5 +453,330 @@
       "fontSize": 11,
       "color": "#FBBF24"
     }
+  },
+  "img_feuer": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#F97316"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#F97316"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#F97316"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#F97316"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#F97316"
+    }
+  },
+  "img_frost": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#38BDF8"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#38BDF8"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#38BDF8"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#38BDF8"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#38BDF8"
+    }
+  },
+  "img_pechvogel": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#FACC15"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FACC15"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FACC15"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FACC15"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FACC15"
+    }
+  },
+  "img_neon": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#22D3EE"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#22D3EE"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#22D3EE"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#22D3EE"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#22D3EE"
+    }
+  },
+  "img_veteran": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
   }
 }
