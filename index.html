@@ -7,6 +7,10 @@
   
   <!-- Tailwind CSS & Web Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google MediaPipe Selfie Segmentation AI (Sub-Millimeter Person Cutout) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
@@ -1422,10 +1426,77 @@
       showToast(isBgRemovalActive ? 'KI-Freisteller aktiviert' : 'Original-Hintergrund beibehalten', 'info');
     }
 
-    /* Smart Color Distance & Edge Keying Engine */
-    /* Arbeitet auf beliebigem Ziel-Canvas: Vorschau klein (schnell),
-       fuer den Export wird dasselbe Bild hochaufloesend neu freigestellt. */
-    function processImageToCanvas(img, canvas, maxDim) {
+    /* ======================================================== */
+    /* GOOGLE MEDIAPIPE AI SEGMENTATION ENGINE (SUB-MILLIMETER) */
+    /* ======================================================== */
+    let aiSegmenter = null;
+    let isAiSegmenterReady = false;
+    let aiSegmentationResolver = null;
+
+    function initAiSegmenter() {
+      if (typeof SelfieSegmentation === 'undefined') {
+        console.warn('MediaPipe SelfieSegmentation noch nicht im globalen Scope');
+        return;
+      }
+      if (aiSegmenter) return;
+      try {
+        aiSegmenter = new SelfieSegmentation({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+        });
+        aiSegmenter.setOptions({
+          modelSelection: 0, // 0 = general portrait model (höchste Präzision für Personen & Selfies)
+          selfieMode: false
+        });
+        aiSegmenter.onResults((results) => {
+          if (aiSegmentationResolver) {
+            const cb = aiSegmentationResolver;
+            aiSegmentationResolver = null;
+            cb(results);
+          }
+        });
+        isAiSegmenterReady = true;
+        console.log('✨ MediaPipe Selfie-Segmentation KI im Editor bereit');
+      } catch (err) {
+        console.error('Initialisierung MediaPipe fehlgeschlagen:', err);
+      }
+    }
+
+    async function runAiCutout(inputCanvas) {
+      if (!aiSegmenter && typeof SelfieSegmentation !== 'undefined') {
+        initAiSegmenter();
+      }
+      if (!aiSegmenter) return null;
+
+      return new Promise((resolve) => {
+        aiSegmentationResolver = resolve;
+        const timeout = setTimeout(() => {
+          if (aiSegmentationResolver === resolve) {
+            aiSegmentationResolver = null;
+            console.warn('AI Segmentation Timeout (5s)');
+            resolve(null);
+          }
+        }, 5000);
+
+        try {
+          aiSegmenter.send({ image: inputCanvas }).catch(err => {
+            clearTimeout(timeout);
+            if (aiSegmentationResolver === resolve) {
+              aiSegmentationResolver = null;
+              console.error('AI send error:', err);
+              resolve(null);
+            }
+          });
+        } catch (e) {
+          clearTimeout(timeout);
+          aiSegmentationResolver = null;
+          console.error('AI send exception:', e);
+          resolve(null);
+        }
+      });
+    }
+
+    /* Sub-Millimeter Person Cutout Canvas Pipeline */
+    async function processImageToCanvas(img, canvas, maxDim) {
       if (!img || !img.width || !canvas) return false;
 
       const ctx = canvas.getContext('2d');
@@ -1443,7 +1514,7 @@
       canvas.width = w;
       canvas.height = h;
 
-      // Draw original onto processing canvas
+      // Ursprungsbild zeichnen
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
@@ -1451,142 +1522,58 @@
         return true; // Demo-Avatare oder deaktivierter Freisteller
       }
 
+      // Für KI-Verarbeitung: Canvas mit Eingangs-Bilddaten
+      const inCanvas = document.createElement('canvas');
+      inCanvas.width = w;
+      inCanvas.height = h;
+      const inCtx = inCanvas.getContext('2d');
+      inCtx.drawImage(img, 0, 0, w, h);
+
       try {
-        const imgData = ctx.getImageData(0, 0, w, h);
-        const data = imgData.data;
+        const results = await runAiCutout(inCanvas);
+        if (results && results.segmentationMask) {
+          ctx.save();
+          ctx.clearRect(0, 0, w, h);
 
-        const tolerance = parseInt(document.getElementById('slider-tolerance')?.value) || 20;
-        const feather = parseInt(document.getElementById('slider-feather')?.value) || 12;
+          // 1. Alpha-Maske der freigestellten Person zeichnen
+          ctx.drawImage(results.segmentationMask, 0, 0, w, h);
 
-        const N = w * h;
+          // 2. Nur dort die Bildpixel übernehmen, wo der Mensch erkannt wurde
+          ctx.globalCompositeOperation = 'source-in';
+          ctx.drawImage(inCanvas, 0, 0, w, h);
+          ctx.restore();
 
-        // Geschützte Zone: Gesicht & Kopfmitte (niemals vom Freisteller angreifen)
-        const isProtectedZone = (px, py) => {
-          const cx = w * 0.5;
-          const cy = h * 0.45;
-          const rx = w * 0.28;
-          const ry = h * 0.40;
-          const dx = (px - cx) / rx;
-          const dy = (py - cy) / ry;
-          return (dx * dx + dy * dy) <= 1.0;
-        };
+          // 3. Subtiler, natürlicher Verlauf am unteren Rand (untere 8%),
+          // damit der Schnitt am Brustkorb sanft in die Karte fließt
+          const fadeH = Math.round(h * 0.08);
+          const fadeY = h - fadeH;
+          ctx.save();
+          ctx.globalCompositeOperation = 'destination-out';
+          const grad = ctx.createLinearGradient(0, fadeY, 0, h);
+          grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, fadeY, w, fadeH);
+          ctx.restore();
 
-        // Hautfarben-Erkennung
-        const isSkin = (r, g, b) =>
-          r > 95 && g > 40 && b > 20 &&
-          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
-          Math.abs(r - g) > 15 && r > g && r > b;
-
-        // Hintergrund-Farbe an den oberen Ecken abtasten (vermeidet Haare in der Bildmitte)
-        let sR = 0, sG = 0, sB = 0, sc = 0;
-        for (let x = 0; x < Math.floor(w * 0.2); x++) {
-          const i = x * 4;
-          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
-        }
-        for (let x = Math.floor(w * 0.8); x < w; x++) {
-          const i = x * 4;
-          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
-        }
-        if (sc > 0) { sR /= sc; sG /= sc; sB /= sc; }
-
-        const seedTol = (tolerance / 100) * 320;
-        const localTol = 15 + tolerance * 0.6;
-
-        const distSeed = (p) => {
-          const i = p * 4;
-          const dr = data[i] - sR, dg = data[i + 1] - sG, db = data[i + 2] - sB;
-          return Math.sqrt(dr * dr + dg * dg + db * db);
-        };
-
-        const bgMask = new Uint8Array(N);
-        const queue = new Int32Array(N);
-        let qHead = 0, qTail = 0;
-        const push = (p) => { if (!bgMask[p]) { bgMask[p] = 1; queue[qTail++] = p; } };
-
-        // Seeds: Nur am äußeren Rand und außerhalb der Schutzzone
-        for (let x = 0; x < w; x++) {
-          if (!isProtectedZone(x, 0) && distSeed(x) < seedTol) push(x);
-        }
-        const sideLimit = Math.floor(h * 0.6);
-        for (let y = 1; y < sideLimit; y++) {
-          const l = y * w, r = y * w + (w - 1);
-          if (!isProtectedZone(0, y) && distSeed(l) < seedTol) push(l);
-          if (!isProtectedZone(w - 1, y) && distSeed(r) < seedTol) push(r);
-        }
-
-        const canGrow = (nx, ny, np, pr, pg, pb) => {
-          if (bgMask[np]) return false;
-          if (isProtectedZone(nx, ny)) return false; // Gesicht & Körper sind heilig
-          const j = np * 4;
-          const r1 = data[j], g1 = data[j + 1], b1 = data[j + 2], a1 = data[j + 3];
-          if (a1 < 10) return false;
-          if (isSkin(r1, g1, b1)) return false; // Hautfarben niemals als Hintergrund löschen
-          const dr = r1 - pr, dg = g1 - pg, db = b1 - pb;
-          if (Math.sqrt(dr * dr + dg * dg + db * db) >= localTol) return false;
-          const gr = r1 - sR, gg = g1 - sG, gb = b1 - sB;
-          if (gr * gr + gg * gg + gb * gb >= seedTol * seedTol) return false;
           return true;
-        };
-
-        // Breitensuche
-        while (qHead < qTail) {
-          const p = queue[qHead++];
-          const x = p % w, y = (p / w) | 0;
-          const i = p * 4;
-          const pr = data[i], pg = data[i + 1], pb = data[i + 2];
-          if (x > 0 && canGrow(x - 1, y, p - 1, pr, pg, pb)) push(p - 1);
-          if (x < w - 1 && canGrow(x + 1, y, p + 1, pr, pg, pb)) push(p + 1);
-          if (y > 0 && canGrow(x, y - 1, p - w, pr, pg, pb)) push(p - w);
-          if (y < h - 1 && canGrow(x, y + 1, p + w, pr, pg, pb)) push(p + w);
         }
-
-        // Feather-Glättung
-        const passes = Math.max(0, Math.min(3, Math.round(feather / 10)));
-        const mask = new Float32Array(N);
-        for (let p = 0; p < N; p++) mask[p] = bgMask[p];
-        for (let s = 0; s < passes; s++) {
-          const tmp = new Float32Array(N);
-          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-            const p = y * w + x;
-            tmp[p] = ((x > 0 ? mask[p - 1] : mask[p]) + mask[p] + (x < w - 1 ? mask[p + 1] : mask[p])) / 3;
-          }
-          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-            const p = y * w + x;
-            mask[p] = ((y > 0 ? tmp[p - w] : tmp[p]) + tmp[p] + (y < h - 1 ? tmp[p + w] : tmp[p])) / 3;
-          }
-        }
-
-        // Sanfter Verlauf am unteren Bildrand (erst ab 88% Höhe, schont Hals & Schultern)
-        const bottomThreshold = h * 0.88;
-        for (let p = 0; p < N; p++) {
-          const i = p * 4;
-          let a = data[i + 3];
-          a = Math.round(a * (1 - Math.min(1, mask[p])));
-          const py = (p / w) | 0;
-          if (py > bottomThreshold) {
-            const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
-            a = Math.round(a * Math.max(0, fadeRatio));
-          }
-          data[i + 3] = a;
-        }
-
-        ctx.putImageData(imgData, 0, 0);
       } catch (err) {
-        console.error('Freisteller fehlgeschlagen:', err);
-        return false;
+        console.error('Fehler bei KI-Segmentierung:', err);
       }
+
       return true;
     }
 
     /* Vorschau-Verarbeitung inkl. Regler-Beschriftungen */
-    function applyPortraitProcessing() {
+    async function applyPortraitProcessing() {
       const tolerance = parseInt(document.getElementById('slider-tolerance')?.value) || 20;
       const feather = parseInt(document.getElementById('slider-feather')?.value) || 12;
       const lblTol = document.getElementById('lbl-tolerance');
       const lblFea = document.getElementById('lbl-feather');
       if (lblTol) lblTol.innerText = `${tolerance}%`;
       if (lblFea) lblFea.innerText = `${feather}px`;
-      processImageToCanvas(rawLoadedImage, document.getElementById('portrait-canvas'), PHOTO_PREVIEW_MAX);
+      await processImageToCanvas(rawLoadedImage, document.getElementById('portrait-canvas'), PHOTO_PREVIEW_MAX);
     }
 
     function updatePhotoTransform() {
@@ -2064,7 +2051,7 @@
         ctx.fillRect(0, 0, W, H);
       }
 
-      finishExportDrawing(ctx, W, H);
+      await finishExportDrawing(ctx, W, H);
       ctx.restore();
 
       return canvas.toDataURL('image/png');
@@ -2094,7 +2081,7 @@
       }
     }
 
-    function finishExportDrawing(ctx, W, H) {
+    async function finishExportDrawing(ctx, W, H) {
       const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
       const accentColor = userTextColor || edition.accentColor || '#FDE68A';
       const layout = KARTEN_LAYOUTS[currentEditionId] || KARTEN_LAYOUTS['img_bier'];
@@ -2109,7 +2096,7 @@
       const brightness = parseInt(document.getElementById('slider-brightness').value) || 100;
 
       const hiResCanvas = document.createElement('canvas');
-      const hasPhoto = processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
+      const hasPhoto = await processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
 
       const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 60, y: 36, scale: 100, width: 62 };
       if (hasPhoto && hiResCanvas.width) {
@@ -2760,6 +2747,7 @@
       loadTournamentData();
       renderTemplateButtons();
       initCardPhotoDrag();
+      initAiSegmenter();
       
       // Preset Avatars setup
       const avatarRow = document.getElementById('preset-avatars-row');
