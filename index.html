@@ -801,10 +801,10 @@
 
     /* Demo Avatars with varied backgrounds for cutout testing */
     const DEMO_AVATARS = [
-      { name: 'Gastgeber', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80' },
-      { name: 'Schütze', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80' },
-      { name: 'Zapfkönig', url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=500&auto=format&fit=crop&q=80' },
-      { name: 'Königin', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80' }
+      { name: 'Gastgeber', url: 'assets/avatar_gastgeber.png' },
+      { name: 'Schütze', url: 'assets/avatar_schuetze.png' },
+      { name: 'Zapfkönig', url: 'assets/avatar_zapfkoenig.png' },
+      { name: 'Königin', url: 'assets/avatar_koenigin.png' }
     ];
 
     /* Badges icon dictionary */
@@ -822,6 +822,7 @@
     let currentEditionId = 'img_krone';
     let customTemplateDataUrl = null;
     let rawLoadedImage = new Image();
+    let photoIsPreCut = false; // Demo-Avatare kommen fertig freigestellt aus assets/
     let isBgRemovalActive = true;
     let audioEnabled = true;
 
@@ -958,11 +959,33 @@
     /* SMART CANVAS BACKGROUND REMOVAL & EDGE CUTOUT ENGINE     */
     /* ======================================================== */
     function loadInitialImage(url) {
-      rawLoadedImage.crossOrigin = 'anonymous';
-      rawLoadedImage.onload = () => {
-        applyPortraitProcessing();
-      };
-      rawLoadedImage.src = url;
+      photoIsPreCut = url.indexOf('assets/avatar_') === 0;
+      // CORS-sicher als Data-URL laden: ein gecachter Un-CORS-Request wuerde
+      // getImageData() mit SecurityError scheitern lassen (Foto bliebe roh).
+      fetch(url)
+        .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.blob(); })
+        .then(blob => new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result);
+          r.onerror = reject;
+          r.readAsDataURL(blob);
+        }))
+        .then(dataUrl => {
+          const im = new Image();
+          im.onload = () => {
+            rawLoadedImage = im;
+            applyPortraitProcessing();
+            updatePhotoTransform();
+          };
+          im.onerror = () => showToast('Demo-Foto konnte nicht geladen werden.', 'error');
+          im.src = dataUrl;
+        })
+        .catch(() => {
+          // Fallback: direkter Load mit CORS-Attribut
+          rawLoadedImage.crossOrigin = 'anonymous';
+          rawLoadedImage.onload = () => applyPortraitProcessing();
+          rawLoadedImage.src = url;
+        });
     }
 
     function handleUserPhotoUpload(event) {
@@ -971,6 +994,7 @@
 
       const reader = new FileReader();
       reader.onload = (e) => {
+        photoIsPreCut = false;
         rawLoadedImage = new Image();
         rawLoadedImage.onload = () => {
           // Reset alignment sliders
@@ -1018,70 +1042,124 @@
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      if (!isBgRemovalActive) {
-        return true; // Retain original if user toggled off
+      if (photoIsPreCut || !isBgRemovalActive) {
+        return true; // Demo-Avatare sind bereits offline freigestellt
       }
 
-      const imgData = ctx.getImageData(0, 0, w, h);
-      const data = imgData.data;
+      try {
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
 
-      // Sample Corner Colors to deduce ambient background
-      const corners = [
-        [0, 0],
-        [w - 1, 0],
-        [0, Math.floor(h * 0.15)],
-        [w - 1, Math.floor(h * 0.15)],
-      ];
+        const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
+        const feather = parseInt(document.getElementById('slider-feather').value) || 12;
 
-      let bgR = 0, bgG = 0, bgB = 0;
-      corners.forEach(([cx, cy]) => {
-        const idx = (cy * w + cx) * 4;
-        bgR += data[idx];
-        bgG += data[idx + 1];
-        bgB += data[idx + 2];
-      });
-      bgR /= corners.length;
-      bgG /= corners.length;
-      bgB /= corners.length;
+        /* NEU: Freisteller per Rand-Flood-Fill.
+           Nur zusammenhaengende Flaechen, die am Bildrand ansetzen, werden
+           entfernt - und nur wenn sie lokal zur Nachbarfarbe passen.
+           Gesichter, Haut und Motive im Bildueberleben dadurch garantiert.
+           Der alte Eckenfarben-Vergleich hat dagegen gerade Gesichter
+           aufgefressen (Demo "Koenigin": nur 0,9% uebrig) und komplexe
+           Hintergruende als hartes Rechteck stehen gelassen. */
+        const N = w * h;
 
-      const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
-      const feather = parseInt(document.getElementById('slider-feather').value) || 12;
+        // Hintergrund-Modell: Mittel der oberen Bildkante
+        let sR = 0, sG = 0, sB = 0;
+        for (let x = 0; x < w; x++) {
+          const i = x * 4;
+          sR += data[i]; sG += data[i + 1]; sB += data[i + 2];
+        }
+        sR /= w; sG /= w; sB /= w;
 
-      const threshold = (tolerance / 100) * 441; // Max RGB euclidean distance = sqrt(3 * 255^2) approx 441.6
-      const featherRange = (feather / 30) * 70 + 5;
+        const seedTol = (tolerance / 100) * 441; // Randpixel aehnlich dem Hintergrund-Modell
+        const localTol = 20 + tolerance * 0.75;  // lokale Wachstumsgrenze (Nachbar-zu-Nachbar)
 
-      // Loop through pixels and calculate Euclidean color distance with feathering
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+        const distSeed = (p) => {
+          const i = p * 4;
+          const dr = data[i] - sR, dg = data[i + 1] - sG, db = data[i + 2] - sB;
+          return Math.sqrt(dr * dr + dg * dg + db * db);
+        };
 
-        // Euclidean color distance from inferred corner background
-        const dist = Math.sqrt(
-          (r - bgR) * (r - bgR) +
-          (g - bgG) * (g - bgG) +
-          (b - bgB) * (b - bgB)
-        );
+        const bgMask = new Uint8Array(N);
+        const queue = new Int32Array(N);
+        let qHead = 0, qTail = 0;
+        const push = (p) => { if (!bgMask[p]) { bgMask[p] = 1; queue[qTail++] = p; } };
 
-        if (dist < threshold) {
-          // Inside background threshold -> erase
-          data[i + 3] = 0;
-        } else if (dist < threshold + featherRange) {
-          // Feathered soft edge transition
-          const alphaFactor = (dist - threshold) / featherRange;
-          data[i + 3] = Math.min(data[i + 3], Math.round(data[i + 3] * alphaFactor));
+        // Seeds: obere Kante + obere Seitenhaelften
+        for (let x = 0; x < w; x++) if (distSeed(x) < seedTol) push(x);
+        const sideLimit = Math.floor(h * 0.6);
+        for (let y = 1; y < sideLimit; y++) {
+          const l = y * w, r = y * w + (w - 1);
+          if (distSeed(l) < seedTol) push(l);
+          if (distSeed(r) < seedTol) push(r);
         }
 
-        // Bottom Edge Soft Fade: Gently dissolve the bottom 25% of the portrait
-        const py = Math.floor((i / 4) / w);
+        // Hautfaerbung: Gesichter duerfen niemals von der Sucht gefressen werden
+        const isSkin = (r, g, b) =>
+          r > 95 && g > 40 && b > 20 &&
+          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+          Math.abs(r - g) > 15 && r > g && r > b;
+
+        const canGrow = (np, pr, pg, pb) => {
+          if (bgMask[np]) return false;
+          const j = np * 4;
+          const r1 = data[j], g1 = data[j + 1], b1 = data[j + 2];
+          // lokal: aehnlich zum Nachbarpixel (glatte Flaechen wachsen weiter)
+          const dr = r1 - pr, dg = g1 - pg, db = b1 - pb;
+          if (Math.sqrt(dr * dr + dg * dg + db * db) >= localTol) return false;
+          // global: muss auch zur Hintergrundfarbe der oberen Kante passen
+          const gr = r1 - sR, gg = g1 - sG, gb = b1 - sB;
+          if (gr * gr + gg * gg + gb * gb >= seedTol * seedTol) return false;
+          if (isSkin(r1, g1, b1)) return false;
+          return true;
+        };
+
+        // Breitensuche: Hintergrund w&auml;chst entlang lokaler Farbverwandtschaft
+        while (qHead < qTail) {
+          const p = queue[qHead++];
+          const x = p % w, y = (p / w) | 0;
+          const i = p * 4;
+          const pr = data[i], pg = data[i + 1], pb = data[i + 2];
+          if (x > 0 && canGrow(p - 1, pr, pg, pb)) push(p - 1);
+          if (x < w - 1 && canGrow(p + 1, pr, pg, pb)) push(p + 1);
+          if (y > 0 && canGrow(p - w, pr, pg, pb)) push(p - w);
+          if (y < h - 1 && canGrow(p + w, pr, pg, pb)) push(p + w);
+        }
+
+        // Feather-Regler: Maske glaetten -> weiche Kante statt Pixelsaeg
+        const passes = Math.max(0, Math.min(3, Math.round(feather / 10)));
+        const mask = new Float32Array(N);
+        for (let p = 0; p < N; p++) mask[p] = bgMask[p];
+        for (let s = 0; s < passes; s++) {
+          const tmp = new Float32Array(N);
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            const p = y * w + x;
+            tmp[p] = ((x > 0 ? mask[p - 1] : mask[p]) + mask[p] + (x < w - 1 ? mask[p + 1] : mask[p])) / 3;
+          }
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            const p = y * w + x;
+            mask[p] = ((y > 0 ? tmp[p - w] : tmp[p]) + tmp[p] + (y < h - 1 ? tmp[p + w] : tmp[p])) / 3;
+          }
+        }
+
+        // Alpha anwenden + Bottom-Fade wie bisher (unteres Viertel blendet in die Karte)
         const bottomThreshold = h * 0.75;
-        if (py > bottomThreshold) {
-          const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
-          data[i + 3] = Math.round(data[i + 3] * Math.max(0, fadeRatio));
+        for (let p = 0; p < N; p++) {
+          const i = p * 4;
+          let a = data[i + 3];
+          a = Math.round(a * (1 - Math.min(1, mask[p])));
+          const py = (p / w) | 0;
+          if (py > bottomThreshold) {
+            const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
+            a = Math.round(a * Math.max(0, fadeRatio));
+          }
+          data[i + 3] = a;
         }
-      }
 
-      ctx.putImageData(imgData, 0, 0);
+        ctx.putImageData(imgData, 0, 0);
+      } catch (err) {
+        console.error('Freisteller fehlgeschlagen:', err);
+        return false;
+      }
       return true;
     }
 
