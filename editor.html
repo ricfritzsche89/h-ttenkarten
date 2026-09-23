@@ -351,10 +351,10 @@
           <!-- Lightness Slider -->
           <div>
             <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-              <span>Helligkeit (Dunkel → Bunt → Weiß)</span>
+              <span>Helligkeit (Komplett Schwarz 0% → Bunt 50% → Reinweiß 100%)</span>
               <span id="lbl-editor-light" class="text-amber-400 font-mono font-bold">58%</span>
             </div>
-            <input id="slider-editor-light" type="range" min="15" max="100" value="58" oninput="onEditorHslChange()" class="lightness-slider w-full">
+            <input id="slider-editor-light" type="range" min="0" max="100" value="58" oninput="onEditorHslChange()" class="lightness-slider w-full">
           </div>
         </div>
 
@@ -554,7 +554,9 @@
       const light = parseInt(document.getElementById('slider-editor-light').value) || 58;
 
       let hex;
-      if (light >= 98) {
+      if (light <= 2) {
+        hex = '#000000';
+      } else if (light >= 98) {
         hex = '#FFFFFF';
       } else {
         hex = hslToHex(hue, 95, light);

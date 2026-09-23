@@ -436,10 +436,10 @@
             <!-- 2. Helligkeit & Weiß-Grad -->
             <div>
               <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-medium">
-                <span>Helligkeit (Dunkel → Bunt leuchtend → Reinweiß)</span>
+                <span>Helligkeit (Komplett Schwarz 0% → Bunt 50% → Reinweiß 100%)</span>
                 <span id="lbl-light-val" class="text-amber-400 font-mono font-bold">58%</span>
               </div>
-              <input id="slider-text-light" type="range" min="15" max="100" value="58" oninput="onHslSliderChange()" class="lightness-slider w-full">
+              <input id="slider-text-light" type="range" min="0" max="100" value="58" oninput="onHslSliderChange()" class="lightness-slider w-full">
             </div>
           </div>
 
@@ -1434,7 +1434,9 @@
       const light = parseInt(document.getElementById('slider-text-light').value) || 60;
       
       let hex;
-      if (light >= 98) {
+      if (light <= 2) {
+        hex = '#000000';
+      } else if (light >= 98) {
         hex = '#FFFFFF';
       } else {
         hex = hslToHex(hue, 95, light);
