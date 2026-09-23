@@ -555,10 +555,10 @@
               <!-- Procedural Thematic Background Layer (SVGs / Gradients / Textures) -->
               <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0"></div>
 
-              <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet ohne schwarzen Kasten -->
-              <div id="photo-frame-wrapper" class="absolute top-[8%] right-[4%] w-[68%] h-[53%] pointer-events-none z-10 overflow-hidden flex items-center justify-center" style="mask-image: linear-gradient(to bottom, black 65%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 98%);">
-                <div id="photo-container" class="w-full h-full relative">
-                  <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
+              <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet & per Drag and Drop verschiebbar -->
+              <div id="photo-frame-wrapper" class="absolute top-[8%] right-[4%] w-[68%] h-[53%] pointer-events-auto cursor-grab active:cursor-grabbing z-10 overflow-hidden flex items-center justify-center select-none" style="touch-action: none; mask-image: linear-gradient(to bottom, black 65%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 98%);">
+                <div id="photo-container" class="w-full h-full relative pointer-events-none">
+                  <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center pointer-events-none" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
                 </div>
               </div>
 
@@ -641,6 +641,12 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Direct Interaction Hint -->
+        <div class="w-full max-w-[320px] sm:max-w-[340px] mt-1.5 flex items-center justify-center gap-1.5 text-[11px] text-amber-300/85 bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-1.5 text-center shadow-md">
+          <span>🖐️</span>
+          <span><strong>Tipp:</strong> Foto direkt auf der Karte anfassen &amp; verschieben (Mausrad = Zoomen)!</span>
         </div>
 
         <!-- Bottom Action Buttons for Card -->
@@ -2360,10 +2366,77 @@
       }
     }
 
+    /* ======================================================== */
+    /* DIRECT PHOTO DRAG & DROP & WHEEL ZOOM ON CARD PREVIEW    */
+    /* ======================================================== */
+    function initCardPhotoDrag() {
+      const frame = document.getElementById('photo-frame-wrapper');
+      if (!frame) return;
+
+      let isPhotoDragging = false;
+      let startPointer = { x: 0, y: 0 };
+      let startPos = { x: 0, y: 0 };
+
+      frame.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isPhotoDragging = true;
+        try { frame.setPointerCapture(e.pointerId); } catch(err) {}
+        frame.style.cursor = 'grabbing';
+
+        startPointer = { x: e.clientX, y: e.clientY };
+        startPos = {
+          x: parseInt(document.getElementById('slider-x').value) || 0,
+          y: parseInt(document.getElementById('slider-y').value) || 0
+        };
+      });
+
+      frame.addEventListener('pointermove', (e) => {
+        if (!isPhotoDragging) return;
+        e.preventDefault();
+
+        const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
+        const dx = (e.clientX - startPointer.x) / zoom;
+        const dy = (e.clientY - startPointer.y) / zoom;
+
+        let newX = Math.round(startPos.x + dx);
+        let newY = Math.round(startPos.y + dy);
+
+        newX = Math.max(-120, Math.min(120, newX));
+        newY = Math.max(-100, Math.min(100, newY));
+
+        document.getElementById('slider-x').value = newX;
+        document.getElementById('slider-y').value = newY;
+        updatePhotoTransform();
+      });
+
+      const stopPhotoDrag = (e) => {
+        if (isPhotoDragging) {
+          isPhotoDragging = false;
+          frame.style.cursor = 'grab';
+          try { frame.releasePointerCapture(e.pointerId); } catch(err) {}
+        }
+      };
+
+      frame.addEventListener('pointerup', stopPhotoDrag);
+      frame.addEventListener('pointercancel', stopPhotoDrag);
+
+      // Mausrad direkt auf der Karte zum Zoomen
+      frame.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const sliderZoom = document.getElementById('slider-zoom');
+        const curZoom = parseInt(sliderZoom.value) || 100;
+        const delta = e.deltaY < 0 ? 5 : -5;
+        sliderZoom.value = Math.max(50, Math.min(200, curZoom + delta));
+        updatePhotoTransform();
+      }, { passive: false });
+    }
+
     // App Initialization on DOM Load
     window.addEventListener('load', () => {
       loadTournamentData();
       renderTemplateButtons();
+      initCardPhotoDrag();
       
       // Preset Avatars setup
       const avatarRow = document.getElementById('preset-avatars-row');

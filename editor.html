@@ -245,8 +245,18 @@
       </div>
 
       <!-- Quick Helpers -->
-      <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
-        <span>💡 Klicke ein Element auf der Karte an, um es auszuwählen und anzupassen.</span>
+      <div class="mt-3 flex flex-col gap-1.5 text-xs text-slate-300 bg-slate-900/80 border border-slate-800 rounded-2xl p-3 w-full max-w-[400px] shadow-lg">
+        <div class="flex items-center gap-2 font-bold text-amber-400">
+          <span>🖐️</span>
+          <span>Einfaches Drag &amp; Drop aktiv!</span>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          Klicke oder tippe ein beliebiges Element an und <strong>ziehe es direkt mit der Maus oder dem Finger</strong> an die gewünschte Stelle.
+        </p>
+        <div class="flex items-center gap-1.5 text-[11px] text-amber-300/80">
+          <span>🖱️</span>
+          <span>Tipp: <strong>Mausrad</strong> über dem Element vergrößert / verkleinert es sofort!</span>
+        </div>
       </div>
 
     </div>
@@ -725,10 +735,94 @@
       });
     }
 
+    // DIRECT DRAG & DROP ENGINE
+    let isDragging = false;
+    let dragElementKey = null;
+    let dragStartPointer = { x: 0, y: 0 };
+    let dragStartElementPos = { x: 0, y: 0 };
+
+    function initDraggableLayers() {
+      const layerKeys = ['ovr', 'badge', 'portrait', 'name', 'divider', 'stats', 'perk'];
+      const wrapper = document.getElementById('card-wrapper');
+      if (!wrapper) return;
+
+      layerKeys.forEach(key => {
+        const el = document.getElementById(`layer-${key}`);
+        if (!el) return;
+
+        el.style.touchAction = 'none';
+        el.style.cursor = 'grab';
+
+        el.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          selectElement(key);
+
+          isDragging = true;
+          dragElementKey = key;
+          try { el.setPointerCapture(e.pointerId); } catch(err) {}
+          el.style.cursor = 'grabbing';
+
+          const cur = configs[currentEditionId][key];
+          dragStartElementPos = { x: cur.x, y: cur.y };
+          dragStartPointer = { x: e.clientX, y: e.clientY };
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          if (!isDragging || dragElementKey !== key) return;
+          e.preventDefault();
+
+          const rect = wrapper.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+
+          const deltaX = ((e.clientX - dragStartPointer.x) / rect.width) * 100;
+          const deltaY = ((e.clientY - dragStartPointer.y) / rect.height) * 100;
+
+          let newX = Math.round((dragStartElementPos.x + deltaX) * 10) / 10;
+          let newY = Math.round((dragStartElementPos.y + deltaY) * 10) / 10;
+
+          newX = Math.max(0, Math.min(100, newX));
+          newY = Math.max(0, Math.min(100, newY));
+
+          configs[currentEditionId][key].x = newX;
+          configs[currentEditionId][key].y = newY;
+
+          applyElementStyle(key);
+          syncSliders();
+          saveConfigs();
+        });
+
+        const stopDrag = (e) => {
+          if (isDragging && dragElementKey === key) {
+            isDragging = false;
+            dragElementKey = null;
+            el.style.cursor = 'grab';
+            try { el.releasePointerCapture(e.pointerId); } catch(err) {}
+          }
+        };
+
+        el.addEventListener('pointerup', stopDrag);
+        el.addEventListener('pointercancel', stopDrag);
+
+        // Mausrad zum schnellen Skalieren
+        el.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          selectElement(key);
+          const cur = configs[currentEditionId][key];
+          const delta = e.deltaY < 0 ? 3 : -3;
+          cur.scale = Math.max(30, Math.min(250, cur.scale + delta));
+          applyElementStyle(key);
+          syncSliders();
+          saveConfigs();
+        }, { passive: false });
+      });
+    }
+
     // SOFORTIGE INITIALISIERUNG
     function startup() {
       setEdition('img_bier');
       selectElement('ovr');
+      initDraggableLayers();
     }
     startup();
   </script>
