@@ -304,9 +304,9 @@
               <div>
                 <div class="flex justify-between text-slate-400 mb-1">
                   <span>Freistell-Toleranz</span>
-                  <span id="lbl-tolerance" class="text-amber-400 font-bold">42%</span>
+                  <span id="lbl-tolerance" class="text-amber-400 font-bold">20%</span>
                 </div>
-                <input id="slider-tolerance" type="range" min="5" max="90" value="42" oninput="applyPortraitProcessing()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                <input id="slider-tolerance" type="range" min="5" max="80" value="20" oninput="applyPortraitProcessing()" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
               </div>
 
               <div>
@@ -1448,35 +1448,49 @@
       ctx.drawImage(img, 0, 0, w, h);
 
       if (photoIsPreCut || !isBgRemovalActive) {
-        return true; // Demo-Avatare sind bereits offline freigestellt
+        return true; // Demo-Avatare oder deaktivierter Freisteller
       }
 
       try {
         const imgData = ctx.getImageData(0, 0, w, h);
         const data = imgData.data;
 
-        const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
-        const feather = parseInt(document.getElementById('slider-feather').value) || 12;
+        const tolerance = parseInt(document.getElementById('slider-tolerance')?.value) || 20;
+        const feather = parseInt(document.getElementById('slider-feather')?.value) || 12;
 
-        /* NEU: Freisteller per Rand-Flood-Fill.
-           Nur zusammenhaengende Flaechen, die am Bildrand ansetzen, werden
-           entfernt - und nur wenn sie lokal zur Nachbarfarbe passen.
-           Gesichter, Haut und Motive im Bildueberleben dadurch garantiert.
-           Der alte Eckenfarben-Vergleich hat dagegen gerade Gesichter
-           aufgefressen (Demo "Koenigin": nur 0,9% uebrig) und komplexe
-           Hintergruende als hartes Rechteck stehen gelassen. */
         const N = w * h;
 
-        // Hintergrund-Modell: Mittel der oberen Bildkante
-        let sR = 0, sG = 0, sB = 0;
-        for (let x = 0; x < w; x++) {
-          const i = x * 4;
-          sR += data[i]; sG += data[i + 1]; sB += data[i + 2];
-        }
-        sR /= w; sG /= w; sB /= w;
+        // Geschützte Zone: Gesicht & Kopfmitte (niemals vom Freisteller angreifen)
+        const isProtectedZone = (px, py) => {
+          const cx = w * 0.5;
+          const cy = h * 0.45;
+          const rx = w * 0.28;
+          const ry = h * 0.40;
+          const dx = (px - cx) / rx;
+          const dy = (py - cy) / ry;
+          return (dx * dx + dy * dy) <= 1.0;
+        };
 
-        const seedTol = (tolerance / 100) * 441; // Randpixel aehnlich dem Hintergrund-Modell
-        const localTol = 20 + tolerance * 0.75;  // lokale Wachstumsgrenze (Nachbar-zu-Nachbar)
+        // Hautfarben-Erkennung
+        const isSkin = (r, g, b) =>
+          r > 95 && g > 40 && b > 20 &&
+          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+          Math.abs(r - g) > 15 && r > g && r > b;
+
+        // Hintergrund-Farbe an den oberen Ecken abtasten (vermeidet Haare in der Bildmitte)
+        let sR = 0, sG = 0, sB = 0, sc = 0;
+        for (let x = 0; x < Math.floor(w * 0.2); x++) {
+          const i = x * 4;
+          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
+        }
+        for (let x = Math.floor(w * 0.8); x < w; x++) {
+          const i = x * 4;
+          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
+        }
+        if (sc > 0) { sR /= sc; sG /= sc; sB /= sc; }
+
+        const seedTol = (tolerance / 100) * 320;
+        const localTol = 15 + tolerance * 0.6;
 
         const distSeed = (p) => {
           const i = p * 4;
@@ -1489,48 +1503,44 @@
         let qHead = 0, qTail = 0;
         const push = (p) => { if (!bgMask[p]) { bgMask[p] = 1; queue[qTail++] = p; } };
 
-        // Seeds: obere Kante + obere Seitenhaelften
-        for (let x = 0; x < w; x++) if (distSeed(x) < seedTol) push(x);
+        // Seeds: Nur am äußeren Rand und außerhalb der Schutzzone
+        for (let x = 0; x < w; x++) {
+          if (!isProtectedZone(x, 0) && distSeed(x) < seedTol) push(x);
+        }
         const sideLimit = Math.floor(h * 0.6);
         for (let y = 1; y < sideLimit; y++) {
           const l = y * w, r = y * w + (w - 1);
-          if (distSeed(l) < seedTol) push(l);
-          if (distSeed(r) < seedTol) push(r);
+          if (!isProtectedZone(0, y) && distSeed(l) < seedTol) push(l);
+          if (!isProtectedZone(w - 1, y) && distSeed(r) < seedTol) push(r);
         }
 
-        // Hautfaerbung: Gesichter duerfen niemals von der Sucht gefressen werden
-        const isSkin = (r, g, b) =>
-          r > 95 && g > 40 && b > 20 &&
-          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
-          Math.abs(r - g) > 15 && r > g && r > b;
-
-        const canGrow = (np, pr, pg, pb) => {
+        const canGrow = (nx, ny, np, pr, pg, pb) => {
           if (bgMask[np]) return false;
+          if (isProtectedZone(nx, ny)) return false; // Gesicht & Körper sind heilig
           const j = np * 4;
-          const r1 = data[j], g1 = data[j + 1], b1 = data[j + 2];
-          // lokal: aehnlich zum Nachbarpixel (glatte Flaechen wachsen weiter)
+          const r1 = data[j], g1 = data[j + 1], b1 = data[j + 2], a1 = data[j + 3];
+          if (a1 < 10) return false;
+          if (isSkin(r1, g1, b1)) return false; // Hautfarben niemals als Hintergrund löschen
           const dr = r1 - pr, dg = g1 - pg, db = b1 - pb;
           if (Math.sqrt(dr * dr + dg * dg + db * db) >= localTol) return false;
-          // global: muss auch zur Hintergrundfarbe der oberen Kante passen
           const gr = r1 - sR, gg = g1 - sG, gb = b1 - sB;
           if (gr * gr + gg * gg + gb * gb >= seedTol * seedTol) return false;
-          if (isSkin(r1, g1, b1)) return false;
           return true;
         };
 
-        // Breitensuche: Hintergrund w&auml;chst entlang lokaler Farbverwandtschaft
+        // Breitensuche
         while (qHead < qTail) {
           const p = queue[qHead++];
           const x = p % w, y = (p / w) | 0;
           const i = p * 4;
           const pr = data[i], pg = data[i + 1], pb = data[i + 2];
-          if (x > 0 && canGrow(p - 1, pr, pg, pb)) push(p - 1);
-          if (x < w - 1 && canGrow(p + 1, pr, pg, pb)) push(p + 1);
-          if (y > 0 && canGrow(p - w, pr, pg, pb)) push(p - w);
-          if (y < h - 1 && canGrow(p + w, pr, pg, pb)) push(p + w);
+          if (x > 0 && canGrow(x - 1, y, p - 1, pr, pg, pb)) push(p - 1);
+          if (x < w - 1 && canGrow(x + 1, y, p + 1, pr, pg, pb)) push(p + 1);
+          if (y > 0 && canGrow(x, y - 1, p - w, pr, pg, pb)) push(p - w);
+          if (y < h - 1 && canGrow(x, y + 1, p + w, pr, pg, pb)) push(p + w);
         }
 
-        // Feather-Regler: Maske glaetten -> weiche Kante statt Pixelsaeg
+        // Feather-Glättung
         const passes = Math.max(0, Math.min(3, Math.round(feather / 10)));
         const mask = new Float32Array(N);
         for (let p = 0; p < N; p++) mask[p] = bgMask[p];
@@ -1546,8 +1556,8 @@
           }
         }
 
-        // Alpha anwenden + Bottom-Fade wie bisher (unteres Viertel blendet in die Karte)
-        const bottomThreshold = h * 0.75;
+        // Sanfter Verlauf am unteren Bildrand (erst ab 88% Höhe, schont Hals & Schultern)
+        const bottomThreshold = h * 0.88;
         for (let p = 0; p < N; p++) {
           const i = p * 4;
           let a = data[i + 3];
@@ -1570,10 +1580,12 @@
 
     /* Vorschau-Verarbeitung inkl. Regler-Beschriftungen */
     function applyPortraitProcessing() {
-      const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
-      const feather = parseInt(document.getElementById('slider-feather').value) || 12;
-      document.getElementById('lbl-tolerance').innerText = `${tolerance}%`;
-      document.getElementById('lbl-feather').innerText = `${feather}px`;
+      const tolerance = parseInt(document.getElementById('slider-tolerance')?.value) || 20;
+      const feather = parseInt(document.getElementById('slider-feather')?.value) || 12;
+      const lblTol = document.getElementById('lbl-tolerance');
+      const lblFea = document.getElementById('lbl-feather');
+      if (lblTol) lblTol.innerText = `${tolerance}%`;
+      if (lblFea) lblFea.innerText = `${feather}px`;
       processImageToCanvas(rawLoadedImage, document.getElementById('portrait-canvas'), PHOTO_PREVIEW_MAX);
     }
 

@@ -360,9 +360,9 @@
             <div>
               <div class="flex justify-between text-xs text-slate-400 mb-1">
                 <span>Freistell-Toleranz</span>
-                <span id="lbl-tolerance" class="text-amber-400 font-bold">42%</span>
+                <span id="lbl-tolerance" class="text-amber-400 font-bold">20%</span>
               </div>
-              <input id="slider-tolerance" type="range" min="5" max="85" value="42" oninput="applyPortraitProcessing()" class="w-full">
+              <input id="slider-tolerance" type="range" min="5" max="80" value="20" oninput="applyPortraitProcessing()" class="w-full">
             </div>
             <div>
               <div class="flex justify-between text-xs text-slate-400 mb-1">
@@ -707,6 +707,7 @@
     let userTextColor = null;
     let rawLoadedImage = new Image();
     let isBgRemovalActive = true;
+    let photoIsPreCut = true;
     let loadedCardLayouts = null;
 
     /* Live Selfie State */
@@ -959,6 +960,7 @@
       const dataUrl = snapCanvas.toDataURL('image/png');
       closeSelfieCamera();
 
+      photoIsPreCut = false;
       rawLoadedImage = new Image();
       rawLoadedImage.onload = () => {
         document.getElementById('slider-zoom').value = 100;
@@ -978,6 +980,7 @@
 
       const reader = new FileReader();
       reader.onload = (e) => {
+        photoIsPreCut = false;
         rawLoadedImage = new Image();
         rawLoadedImage.onload = () => {
           document.getElementById('slider-zoom').value = 100;
@@ -993,6 +996,7 @@
     }
 
     function loadInitialPhoto(url) {
+      photoIsPreCut = url.indexOf('assets/avatar_') === 0;
       fetch(url)
         .then(res => res.blob())
         .then(blob => new Promise((resolve) => {
@@ -1024,7 +1028,7 @@
       showToast(isBgRemovalActive ? 'KI-Freisteller aktiv' : 'Original-Hintergrund beibehalten', 'info');
     }
 
-    /* Local Smart Flood-Fill Background Removal */
+    /* Local Smart Flood-Fill Background Removal with Face Protection */
     function processImageToCanvas(img, canvas, maxDim) {
       if (!img || !img.width || !canvas) return false;
       const ctx = canvas.getContext('2d');
@@ -1043,23 +1047,45 @@
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
 
-      if (!isBgRemovalActive) return true;
+      if (photoIsPreCut || !isBgRemovalActive) return true;
 
       try {
         const imgData = ctx.getImageData(0, 0, w, h);
         const data = imgData.data;
-        const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
+        const tolerance = parseInt(document.getElementById('slider-tolerance')?.value) || 20;
         const N = w * h;
 
-        let sR = 0, sG = 0, sB = 0;
-        for (let x = 0; x < w; x++) {
-          const i = x * 4;
-          sR += data[i]; sG += data[i + 1]; sB += data[i + 2];
-        }
-        sR /= w; sG /= w; sB /= w;
+        // Geschützte Zone: Gesicht & Kopfmitte (niemals vom Freisteller angreifen)
+        const isProtectedZone = (px, py) => {
+          const cx = w * 0.5;
+          const cy = h * 0.45;
+          const rx = w * 0.28;
+          const ry = h * 0.40;
+          const dx = (px - cx) / rx;
+          const dy = (py - cy) / ry;
+          return (dx * dx + dy * dy) <= 1.0;
+        };
 
-        const seedTol = (tolerance / 100) * 441;
-        const localTol = 20 + tolerance * 0.75;
+        // Hautfarben-Erkennung
+        const isSkin = (r, g, b) =>
+          r > 95 && g > 40 && b > 20 &&
+          Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+          Math.abs(r - g) > 15 && r > g && r > b;
+
+        // Hintergrund an den Ecken abtasten
+        let sR = 0, sG = 0, sB = 0, sc = 0;
+        for (let x = 0; x < Math.floor(w * 0.2); x++) {
+          const i = x * 4;
+          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
+        }
+        for (let x = Math.floor(w * 0.8); x < w; x++) {
+          const i = x * 4;
+          if (data[i + 3] > 10) { sR += data[i]; sG += data[i + 1]; sB += data[i + 2]; sc++; }
+        }
+        if (sc > 0) { sR /= sc; sG /= sc; sB /= sc; }
+
+        const seedTol = (tolerance / 100) * 320;
+        const localTol = 15 + tolerance * 0.6;
 
         const distSeed = (p) => {
           const i = p * 4;
@@ -1072,19 +1098,28 @@
         let qHead = 0, qTail = 0;
         const push = (p) => { if (!bgMask[p]) { bgMask[p] = 1; queue[qTail++] = p; } };
 
-        for (let x = 0; x < w; x++) if (distSeed(x) < seedTol) push(x);
+        for (let x = 0; x < w; x++) {
+          if (!isProtectedZone(x, 0) && distSeed(x) < seedTol) push(x);
+        }
         const sideLimit = Math.floor(h * 0.6);
         for (let y = 1; y < sideLimit; y++) {
           const l = y * w, r = y * w + (w - 1);
-          if (distSeed(l) < seedTol) push(l);
-          if (distSeed(r) < seedTol) push(r);
+          if (!isProtectedZone(0, y) && distSeed(l) < seedTol) push(l);
+          if (!isProtectedZone(w - 1, y) && distSeed(r) < seedTol) push(r);
         }
 
-        const canGrow = (p, pr, pg, pb) => {
-          if (bgMask[p]) return false;
-          const i = p * 4;
-          const dr = data[i] - pr, dg = data[i + 1] - pg, db = data[i + 2] - pb;
-          return Math.sqrt(dr * dr + dg * dg + db * db) < localTol;
+        const canGrow = (nx, ny, np, pr, pg, pb) => {
+          if (bgMask[np]) return false;
+          if (isProtectedZone(nx, ny)) return false;
+          const j = np * 4;
+          const r1 = data[j], g1 = data[j + 1], b1 = data[j + 2], a1 = data[j + 3];
+          if (a1 < 10) return false;
+          if (isSkin(r1, g1, b1)) return false;
+          const dr = r1 - pr, dg = g1 - pg, db = b1 - pb;
+          if (Math.sqrt(dr * dr + dg * dg + db * db) >= localTol) return false;
+          const gr = r1 - sR, gg = g1 - sG, gb = b1 - sB;
+          if (gr * gr + gg * gg + gb * gb >= seedTol * seedTol) return false;
+          return true;
         };
 
         while (qHead < qTail) {
@@ -1093,17 +1128,33 @@
           const i = p * 4;
           const pr = data[i], pg = data[i + 1], pb = data[i + 2];
 
-          if (x > 0 && canGrow(p - 1, pr, pg, pb)) push(p - 1);
-          if (x < w - 1 && canGrow(p + 1, pr, pg, pb)) push(p + 1);
-          if (y > 0 && canGrow(p - w, pr, pg, pb)) push(p - w);
-          if (y < h - 1 && canGrow(p + w, pr, pg, pb)) push(p + w);
+          if (x > 0 && canGrow(x - 1, y, p - 1, pr, pg, pb)) push(p - 1);
+          if (x < w - 1 && canGrow(x + 1, y, p + 1, pr, pg, pb)) push(p + 1);
+          if (y > 0 && canGrow(x, y - 1, p - w, pr, pg, pb)) push(p - w);
+          if (y < h - 1 && canGrow(x, y + 1, p + w, pr, pg, pb)) push(p + w);
         }
 
-        const bottomThreshold = h * 0.75;
+        // Weiche Kanten
+        const mask = new Float32Array(N);
+        for (let p = 0; p < N; p++) mask[p] = bgMask[p];
+        for (let s = 0; s < 2; s++) {
+          const tmp = new Float32Array(N);
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            const p = y * w + x;
+            tmp[p] = ((x > 0 ? mask[p - 1] : mask[p]) + mask[p] + (x < w - 1 ? mask[p + 1] : mask[p])) / 3;
+          }
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            const p = y * w + x;
+            mask[p] = ((y > 0 ? tmp[p - w] : tmp[p]) + tmp[p] + (y < h - 1 ? tmp[p + w] : tmp[p])) / 3;
+          }
+        }
+
+        // Sanfter Verlauf ab 88% Höhe
+        const bottomThreshold = h * 0.88;
         for (let p = 0; p < N; p++) {
           const i = p * 4;
           let a = data[i + 3];
-          a = Math.round(a * (1 - Math.min(1, bgMask[p])));
+          a = Math.round(a * (1 - Math.min(1, mask[p])));
           const py = (p / w) | 0;
           if (py > bottomThreshold) {
             const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
@@ -1121,8 +1172,9 @@
     }
 
     function applyPortraitProcessing() {
-      const tol = document.getElementById('slider-tolerance').value;
-      document.getElementById('lbl-tolerance').innerText = `${tol}%`;
+      const tol = document.getElementById('slider-tolerance')?.value || 20;
+      const lblTol = document.getElementById('lbl-tolerance');
+      if (lblTol) lblTol.innerText = `${tol}%`;
       const pCanvas = document.getElementById('portrait-canvas');
       processImageToCanvas(rawLoadedImage, pCanvas, 600);
       syncPortraitToMirror();
