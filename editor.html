@@ -27,12 +27,11 @@
   </script>
 
   <style>
-    /* Range input styling */
     input[type=range] {
       accent-color: #F59E0B;
     }
-    .selected-outline {
-      outline: 2px dashed #F59E0B;
+    .selected-layer {
+      outline: 2px dashed #F59E0B !important;
       outline-offset: 4px;
     }
   </style>
@@ -59,7 +58,7 @@
         <span>⬅️</span>
         <span>Zurück zur Haupt-App</span>
       </a>
-      <button onclick="exportConfigJson()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center gap-1.5">
+      <button onclick="copyToClipboard()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center gap-1.5">
         <span>💾</span>
         <span>Konfig kopieren (JSON)</span>
       </button>
@@ -72,93 +71,99 @@
     <!-- LEFT: Interactive Preview Canvas & Overlay -->
     <div class="lg:col-span-6 flex flex-col items-center">
       
-      <!-- Template Selector Badges -->
-      <div class="w-full mb-3 flex flex-wrap gap-1.5 justify-center" id="template-buttons">
-        <!-- Rendered via JS -->
+      <!-- Template Selector Badges (Statisch im HTML, sofort klickbar!) -->
+      <div class="w-full mb-4 flex flex-wrap gap-2 justify-center" id="template-buttons">
+        <button id="btn-ed-img_bier" onclick="setEdition('img_bier')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md">🍺 Bierfest</button>
+        <button id="btn-ed-img_krone" onclick="setEdition('img_krone')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">👑 Prunkkrone</button>
+        <button id="btn-ed-img_tracht" onclick="setEdition('img_tracht')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🌸 Edelweiß</button>
+        <button id="btn-ed-img_glitzer" onclick="setEdition('img_glitzer')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">✨ Glitzer</button>
+        <button id="btn-ed-img_holz" onclick="setEdition('img_holz')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🪵 Eisenhütte</button>
+        <button id="btn-ed-img_schuetze" onclick="setEdition('img_schuetze')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🎯 Schütze</button>
+        <button id="btn-ed-img_chef" onclick="setEdition('img_chef')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">👑 Chef (Ric)</button>
       </div>
 
-      <!-- Card Stage Container -->
-      <div class="relative w-full max-w-[420px] aspect-[1/1.28] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 flex items-center justify-center select-none overflow-hidden">
+      <!-- Card Stage Container: GARANTIERTE HÖHE 540px -->
+      <div class="relative w-full max-w-[400px] h-[520px] bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl p-2 flex items-center justify-center select-none overflow-hidden">
         
         <!-- THE CARD WRAPPER -->
-        <div id="card-wrapper" class="relative w-full h-full select-none overflow-hidden flex items-center justify-center">
+        <div id="card-wrapper" class="relative w-full h-full select-none overflow-hidden rounded-2xl flex items-center justify-center">
           
           <!-- Vorlagen-Bild -->
           <img id="stage-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
 
           <!-- 1. PORTRAIT LAYER -->
-          <div id="layer-portrait" onclick="selectElement('portrait')" class="absolute cursor-pointer transition-all duration-75 z-10 overflow-hidden flex items-center justify-center">
+          <div id="layer-portrait" onclick="selectElement('portrait')" class="absolute cursor-pointer transition-transform duration-75 z-10 overflow-hidden flex items-center justify-center" style="top: 36%; left: 60%; width: 62%; height: 50%; transform: translate(-50%, -50%); mask-image: linear-gradient(to bottom, black 65%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);">
             <img id="portrait-img" src="assets/avatar_gastgeber.png" alt="Avatar" class="w-full h-full object-contain pointer-events-none">
           </div>
 
           <!-- 2. OVR & POSITION LAYER -->
-          <div id="layer-ovr" onclick="selectElement('ovr')" class="absolute cursor-pointer transition-all duration-75 z-20 flex flex-col items-center leading-none text-center">
-            <span id="txt-ovr" class="font-fut font-extrabold tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-amber-300">99</span>
-            <span id="txt-pos" class="font-fut font-bold tracking-wider text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">GK</span>
+          <div id="layer-ovr" onclick="selectElement('ovr')" class="absolute cursor-pointer transition-transform duration-75 z-20 flex flex-col items-center leading-none text-center" style="top: 19%; left: 22%; transform: translate(-50%, -50%);">
+            <span id="txt-ovr" class="font-fut font-extrabold tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] text-amber-300 text-5xl">99</span>
+            <span id="txt-pos" class="font-fut font-bold tracking-wider text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] text-lg">GK</span>
           </div>
 
           <!-- 3. FLAG & BADGE LAYER -->
-          <div id="layer-badge" onclick="selectElement('badge')" class="absolute cursor-pointer transition-all duration-75 z-20 flex flex-col items-center">
-            <div id="el-flag" class="rounded-sm shadow overflow-hidden border border-white/30 my-0.5">
+          <div id="layer-badge" onclick="selectElement('badge')" class="absolute cursor-pointer transition-transform duration-75 z-20 flex flex-col items-center" style="top: 31%; left: 22%; transform: translate(-50%, -50%);">
+            <div id="el-flag" class="w-7 h-4 rounded-sm shadow overflow-hidden border border-white/30 my-0.5">
               <div class="w-full h-1/3 bg-black"></div>
               <div class="w-full h-1/3 bg-red-600"></div>
               <div class="w-full h-1/3 bg-amber-400"></div>
             </div>
-            <div id="txt-badge" class="mt-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">👑</div>
+            <div id="txt-badge" class="mt-0.5 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">👑</div>
           </div>
 
           <!-- 4. NAME & NICKNAME LAYER -->
-          <div id="layer-name" onclick="selectElement('name')" class="absolute cursor-pointer transition-all duration-75 z-20 text-center w-full px-2">
-            <h3 id="txt-name" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+          <div id="layer-name" onclick="selectElement('name')" class="absolute cursor-pointer transition-transform duration-75 z-20 text-center w-[85%]" style="top: 61%; left: 50%; transform: translate(-50%, -50%);">
+            <h3 id="txt-name" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] text-2xl">
               WERNER (GASTGEBER)
             </h3>
-            <p id="txt-nickname" class="font-bold tracking-widest uppercase text-amber-400 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            <p id="txt-nickname" class="font-bold tracking-widest uppercase text-amber-400 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] text-xs -mt-0.5">
               DER HÜTTEN-PATRON
             </p>
           </div>
 
           <!-- 5. DIVIDER LINE -->
-          <div id="layer-divider" onclick="selectElement('divider')" class="absolute cursor-pointer transition-all duration-75 z-20 flex items-center justify-center">
-            <div id="el-divider-line" class="h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+          <div id="layer-divider" onclick="selectElement('divider')" class="absolute cursor-pointer transition-transform duration-75 z-20 flex items-center justify-center w-full" style="top: 65.5%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="el-divider-line" class="w-[65%] h-[1.5px] bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
           </div>
 
           <!-- 6. STATS LAYER -->
-          <div id="layer-stats" onclick="selectElement('stats')" class="absolute cursor-pointer transition-all duration-75 z-20 grid grid-cols-2 font-fut">
+          <div id="layer-stats" onclick="selectElement('stats')" class="absolute cursor-pointer transition-transform duration-75 z-20 grid grid-cols-2 gap-x-6 gap-y-0.5 font-fut w-[68%]" style="top: 74%; left: 50%; transform: translate(-50%, -50%);">
             <!-- Col 1 -->
             <div class="space-y-0.5">
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">TRF</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">TRF</span>
               </div>
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow">98</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">DUR</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">98</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">DUR</span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">GES</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">GES</span>
               </div>
             </div>
             <!-- Col 2 -->
             <div class="space-y-0.5">
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow">97</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">STM</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">97</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">STM</span>
               </div>
               <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
-                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">GEM</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">GEM</span>
               </div>
               <div class="flex items-center justify-between">
-                <span class="font-extrabold text-amber-300 drop-shadow">92</span>
-                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">TAK</span>
+                <span class="font-extrabold text-amber-300 drop-shadow text-base">92</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-xs">TAK</span>
               </div>
             </div>
           </div>
 
           <!-- 7. PLAYSTYLE PERK LAYER -->
-          <div id="layer-perk" onclick="selectElement('perk')" class="absolute cursor-pointer transition-all duration-75 z-20 flex items-center justify-center">
-            <span id="el-perk-badge" class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] truncate drop-shadow flex items-center gap-1">
+          <div id="layer-perk" onclick="selectElement('perk')" class="absolute cursor-pointer transition-transform duration-75 z-20 flex items-center justify-center" style="top: 88%; left: 50%; transform: translate(-50%, -50%);">
+            <span id="el-perk-badge" class="px-3 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-xs truncate drop-shadow flex items-center gap-1">
               <span>⚡</span>
               <span>ZANGEN-DOPPELKLICK+</span>
             </span>
@@ -170,7 +175,7 @@
 
       <!-- Quick Helpers -->
       <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
-        <span>💡 Klicke ein Element auf der Karte an, um es direkt zu steuern.</span>
+        <span>💡 Klicke ein Element auf der Karte an, um es auszuwählen und anzupassen.</span>
       </div>
 
     </div>
@@ -204,18 +209,18 @@
         <div>
           <div class="flex justify-between text-slate-300 mb-1">
             <span>Horizontale Position (X)</span>
-            <span id="lbl-x" class="text-amber-400 font-bold">18%</span>
+            <span id="lbl-x" class="text-amber-400 font-bold">22%</span>
           </div>
-          <input id="slider-x" type="range" min="0" max="100" step="0.5" value="18" oninput="updateActiveProperty('x', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          <input id="slider-x" type="range" min="0" max="100" step="0.5" value="22" oninput="updateActiveProperty('x', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
         </div>
 
         <!-- Y Position -->
         <div>
           <div class="flex justify-between text-slate-300 mb-1">
             <span>Vertikale Position (Y)</span>
-            <span id="lbl-y" class="text-amber-400 font-bold">16%</span>
+            <span id="lbl-y" class="text-amber-400 font-bold">19%</span>
           </div>
-          <input id="slider-y" type="range" min="0" max="100" step="0.5" value="16" oninput="updateActiveProperty('y', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          <input id="slider-y" type="range" min="0" max="100" step="0.5" value="19" oninput="updateActiveProperty('y', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
         </div>
 
         <!-- Scale / Zoom -->
@@ -240,9 +245,9 @@
         <div>
           <div class="flex justify-between text-slate-300 mb-1">
             <span>Breite / Weite</span>
-            <span id="lbl-width" class="text-amber-400 font-bold">70%</span>
+            <span id="lbl-width" class="text-amber-400 font-bold">68%</span>
           </div>
-          <input id="slider-width" type="range" min="10" max="100" step="1" value="70" oninput="updateActiveProperty('width', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          <input id="slider-width" type="range" min="10" max="100" step="1" value="68" oninput="updateActiveProperty('width', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
         </div>
 
         <!-- Font Size Modifier -->
@@ -279,7 +284,7 @@
 
   <script>
     /* ======================================================== */
-    /* THE 7 EDITIONS                                           */
+    /* THE 7 EDITIONS CONFIGURATION                             */
     /* ======================================================== */
     const EDITIONS = [
       { id: 'img_bier', name: '🍺 Bierfest', file: 'vorlagen/karte_bier_gold.png' },
@@ -295,60 +300,73 @@
     let activeElementKey = 'ovr';
 
     /* Standard-Layout-Presets für jedes Element */
-    const DEFAULT_CONFIGS = {
-      img_bier: {
-        ovr: { x: 20, y: 19, scale: 100, rot: 0, width: 20, fontSize: 36 },
-        badge: { x: 20, y: 28, scale: 100, rot: 0, width: 15, fontSize: 20 },
-        portrait: { x: 62, y: 35, scale: 105, rot: 0, width: 62, fontSize: 16 },
-        name: { x: 50, y: 61, scale: 100, rot: 0, width: 90, fontSize: 22 },
-        divider: { x: 50, y: 65.5, scale: 100, rot: 0, width: 65, fontSize: 2 },
-        stats: { x: 50, y: 74, scale: 100, rot: 0, width: 68, fontSize: 13 },
-        perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11 }
-      }
+    const BASE_DEFAULT = {
+      ovr: { x: 22, y: 19, scale: 100, rot: 0, width: 20, fontSize: 44 },
+      badge: { x: 22, y: 31, scale: 100, rot: 0, width: 15, fontSize: 20 },
+      portrait: { x: 60, y: 36, scale: 100, rot: 0, width: 62, fontSize: 16 },
+      name: { x: 50, y: 61, scale: 100, rot: 0, width: 85, fontSize: 22 },
+      divider: { x: 50, y: 65.5, scale: 100, rot: 0, width: 65, fontSize: 2 },
+      stats: { x: 50, y: 74, scale: 100, rot: 0, width: 68, fontSize: 14 },
+      perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11 }
     };
 
-    // Für die anderen Vorlagen als Kopie initialisieren
+    const DEFAULT_CONFIGS = {};
     EDITIONS.forEach(e => {
-      if (!DEFAULT_CONFIGS[e.id]) {
-        DEFAULT_CONFIGS[e.id] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS.img_bier));
-      }
+      DEFAULT_CONFIGS[e.id] = JSON.parse(JSON.stringify(BASE_DEFAULT));
     });
 
-    // Aus LocalStorage laden oder Default nehmen
-    let configs = JSON.parse(localStorage.getItem('gut_editor_configs') || 'null') || DEFAULT_CONFIGS;
+    // Sicheres Laden
+    let configs = DEFAULT_CONFIGS;
+    try {
+      const stored = localStorage.getItem('gut_editor_configs_v2');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          configs = Object.assign({}, DEFAULT_CONFIGS, parsed);
+        }
+      }
+    } catch (err) {
+      console.warn('LocalStorage Reset:', err);
+    }
 
     function saveConfigs() {
-      localStorage.setItem('gut_editor_configs', JSON.stringify(configs));
+      try {
+        localStorage.setItem('gut_editor_configs_v2', JSON.stringify(configs));
+      } catch (e) {}
       updateJsonOutput();
     }
 
-    /* Template Buttons rendern */
-    function renderTemplateButtons() {
-      const container = document.getElementById('template-buttons');
-      container.innerHTML = EDITIONS.map(ed => `
-        <button onclick="setEdition('${ed.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-          currentEditionId === ed.id 
-            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25' 
-            : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
-        }">
-          ${ed.name}
-        </button>
-      `).join('');
+    function updateButtonStyles() {
+      EDITIONS.forEach(ed => {
+        const btn = document.getElementById(`btn-ed-${ed.id}`);
+        if (!btn) return;
+        if (ed.id === currentEditionId) {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25 transition';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition';
+        }
+      });
     }
 
     function setEdition(id) {
       currentEditionId = id;
-      renderTemplateButtons();
+      updateButtonStyles();
       const ed = EDITIONS.find(e => e.id === id);
-      document.getElementById('stage-template-img').src = ed.file;
+      if (ed) {
+        document.getElementById('stage-template-img').src = ed.file;
+      }
+      if (!configs[id]) {
+        configs[id] = JSON.parse(JSON.stringify(BASE_DEFAULT));
+      }
       applyAllStyles();
       syncSliders();
+      updateJsonOutput();
     }
 
-    /* Element auswählen */
     function selectElement(key) {
       activeElementKey = key;
-      document.getElementById('element-dropdown').value = key;
+      const dropdown = document.getElementById('element-dropdown');
+      if (dropdown) dropdown.value = key;
       
       const titles = {
         ovr: '🔢 1. OVR & Position',
@@ -359,19 +377,21 @@
         stats: '📊 6. Stats-Block (6 Attribute)',
         perk: '⚡ 7. PlayStyle+ Perk'
       };
-      document.getElementById('inspector-title').innerText = titles[key];
+      const titleEl = document.getElementById('inspector-title');
+      if (titleEl) titleEl.innerText = titles[key] || key;
 
-      // Markierungsrahmen aktualisieren
-      document.querySelectorAll('#card-wrapper > div').forEach(el => el.classList.remove('selected-outline'));
+      // Markierungsrahmen
+      document.querySelectorAll('#card-wrapper > div').forEach(el => el.classList.remove('selected-layer'));
       const activeLayer = document.getElementById(`layer-${key}`);
-      if (activeLayer) activeLayer.classList.add('selected-outline');
+      if (activeLayer) activeLayer.classList.add('selected-layer');
 
       syncSliders();
     }
 
-    /* Schieberegler mit aktuellen Daten füllen */
     function syncSliders() {
+      if (!configs[currentEditionId] || !configs[currentEditionId][activeElementKey]) return;
       const cur = configs[currentEditionId][activeElementKey];
+
       document.getElementById('slider-x').value = cur.x;
       document.getElementById('lbl-x').innerText = `${cur.x}%`;
 
@@ -391,32 +411,29 @@
       document.getElementById('lbl-fontsize').innerText = `${cur.fontSize}px`;
     }
 
-    /* Slider-Änderung anwenden */
     function updateActiveProperty(prop, value) {
+      if (!configs[currentEditionId] || !configs[currentEditionId][activeElementKey]) return;
       const cur = configs[currentEditionId][activeElementKey];
       cur[prop] = parseFloat(value);
       
-      const labelMap = {
-        x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px'
-      };
-      document.getElementById(`lbl-${prop.toLowerCase()}`).innerText = `${value}${labelMap[prop]}`;
+      const labelMap = { x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px' };
+      const lbl = document.getElementById(`lbl-${prop.toLowerCase()}`);
+      if (lbl) lbl.innerText = `${value}${labelMap[prop]}`;
 
       applyElementStyle(activeElementKey);
       saveConfigs();
     }
 
-    /* CSS-Styles auf DOM anwenden */
     function applyElementStyle(key) {
+      if (!configs[currentEditionId] || !configs[currentEditionId][key]) return;
       const cur = configs[currentEditionId][key];
       const layer = document.getElementById(`layer-${key}`);
       if (!layer) return;
 
-      // Positionierung absolut in %
       layer.style.left = `${cur.x}%`;
       layer.style.top = `${cur.y}%`;
       layer.style.transform = `translate(-50%, -50%) scale(${cur.scale / 100}) rotate(${cur.rot}deg)`;
 
-      // Breitenanpassung
       if (key === 'stats' || key === 'name' || key === 'perk') {
         layer.style.width = `${cur.width}%`;
       }
@@ -425,56 +442,64 @@
         if (line) line.style.width = `${cur.width}%`;
       }
 
-      // Font-Größen
       if (key === 'ovr') {
-        document.getElementById('txt-ovr').style.fontSize = `${cur.fontSize}px`;
-        document.getElementById('txt-pos').style.fontSize = `${Math.round(cur.fontSize * 0.42)}px`;
+        const txtOvr = document.getElementById('txt-ovr');
+        const txtPos = document.getElementById('txt-pos');
+        if (txtOvr) txtOvr.style.fontSize = `${cur.fontSize}px`;
+        if (txtPos) txtPos.style.fontSize = `${Math.round(cur.fontSize * 0.38)}px`;
       }
       if (key === 'name') {
-        document.getElementById('txt-name').style.fontSize = `${cur.fontSize}px`;
-        document.getElementById('txt-nickname').style.fontSize = `${Math.round(cur.fontSize * 0.45)}px`;
+        const txtName = document.getElementById('txt-name');
+        const txtNick = document.getElementById('txt-nickname');
+        if (txtName) txtName.style.fontSize = `${cur.fontSize}px`;
+        if (txtNick) txtNick.style.fontSize = `${Math.round(cur.fontSize * 0.45)}px`;
       }
       if (key === 'stats') {
         layer.style.fontSize = `${cur.fontSize}px`;
       }
       if (key === 'perk') {
-        document.getElementById('el-perk-badge').style.fontSize = `${cur.fontSize}px`;
+        const perkBadge = document.getElementById('el-perk-badge');
+        if (perkBadge) perkBadge.style.fontSize = `${cur.fontSize}px`;
       }
     }
 
     function applyAllStyles() {
+      if (!configs[currentEditionId]) return;
       Object.keys(configs[currentEditionId]).forEach(key => applyElementStyle(key));
     }
 
     function resetCurrentTemplate() {
-      configs[currentEditionId] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS.img_bier));
+      configs[currentEditionId] = JSON.parse(JSON.stringify(BASE_DEFAULT));
       applyAllStyles();
       syncSliders();
       saveConfigs();
     }
 
     function updateJsonOutput() {
-      document.getElementById('json-output').value = JSON.stringify(configs[currentEditionId], null, 2);
+      const out = document.getElementById('json-output');
+      if (out && configs[currentEditionId]) {
+        out.value = JSON.stringify(configs[currentEditionId], null, 2);
+      }
     }
 
     function copyToClipboard() {
       const json = JSON.stringify(configs, null, 2);
       navigator.clipboard.writeText(json).then(() => {
         alert('✅ Komplette Layout-Konfiguration für alle Vorlagen in die Zwischenablage kopiert! Schicke sie einfach hier in den Chat.');
+      }).catch(() => {
+        const out = document.getElementById('json-output');
+        out.select();
+        document.execCommand('copy');
+        alert('✅ Konfiguration kopiert!');
       });
     }
 
-    function exportConfigJson() {
-      copyToClipboard();
-    }
-
-    // Init on Load
-    window.addEventListener('load', () => {
-      renderTemplateButtons();
+    // SOFORTIGE INITIALISIERUNG
+    function startup() {
       setEdition('img_bier');
       selectElement('ovr');
-      updateJsonOutput();
-    });
+    }
+    startup();
   </script>
 
 </body>
