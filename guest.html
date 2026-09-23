@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GUT 26 – Dein Hüttenkarten Setup-Assistent</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2222%22 font-size=%2222%22>🥩</text></svg>">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Teko (FUT Card Numbers), Rajdhani & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,700&family=Rajdhani:wght@500;600;700;800&family=Teko:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            fut: ['Teko', 'sans-serif'],
+            display: ['Rajdhani', 'sans-serif']
+          },
+          colors: {
+            amber: { 450: '#FBB024' },
+            gold: {
+              300: '#FDE68A',
+              400: '#FCD34D',
+              500: '#F59E0B',
+              600: '#D97706',
+              700: '#B45309'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Prevent accidental pulling/rubber-banding on mobile while retaining smooth scroll */
+    html, body {
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+    }
+
+    /* 3D Card Perspectives & Glow */
+    .card-perspective {
+      perspective: 1200px;
+    }
+    .fut-card-shield {
+      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.85));
+      transition: transform 0.15s ease-out;
+    }
+
+    /* Smooth Slider Styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #1e293b;
+      border-radius: 9999px;
+      height: 7px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: #f59e0b;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+      border: 2px solid #ffffff;
+      transition: transform 0.1s;
+    }
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(1.2);
+    }
+
+    /* Rainbow Hue Slider */
+    .hue-slider {
+      background: linear-gradient(to right, 
+        hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%), 
+        hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%)) !important;
+    }
+    .lightness-slider {
+      background: linear-gradient(to right, #000000, #f59e0b, #ffffff) !important;
+    }
+
+    /* Holographic sheen layer */
+    .holo-glare {
+      background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 65%, rgba(255,215,0,0.18) 100%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
+
+  <!-- Background Ambience -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[140px]"></div>
+    <div class="absolute -bottom-32 left-1/4 w-[450px] h-[450px] bg-emerald-500/5 rounded-full blur-[140px]"></div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none max-w-sm w-[90%]">
+    <div id="toast-content" class="px-4 py-3 rounded-2xl bg-slate-900/95 border border-amber-500/40 text-white font-medium text-xs sm:text-sm shadow-2xl flex items-center gap-3 backdrop-blur-md">
+      <span id="toast-icon" class="text-xl">✨</span>
+      <span id="toast-msg" class="flex-1">Meldung</span>
+    </div>
+  </div>
+
+  <!-- Top App Bar -->
+  <header class="relative z-10 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0">
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl drop-shadow">🥩</span>
+        <div>
+          <h1 class="text-sm font-black tracking-wider uppercase font-fut text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 leading-tight">
+            GUT 26 • GÄSTE-SETUP
+          </h1>
+          <p class="text-[10px] text-slate-400 font-semibold tracking-wide">Erstelle deine offizielle Hüttenkarte</p>
+        </div>
+      </div>
+      <a href="index.html" class="text-[11px] font-bold text-slate-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 transition">
+        Zur Haupt-App ↗
+      </a>
+    </div>
+
+    <!-- Stepper / Progress Bar -->
+    <div class="max-w-xl mx-auto px-4 pt-1 pb-3">
+      <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1.5">
+        <span id="step-indicator-title" class="text-amber-400">1. Wer bist du?</span>
+        <span id="step-indicator-num" class="font-mono text-slate-300">Schritt 1 von 5</span>
+      </div>
+      <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+        <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-300 rounded-full" style="width: 20%;"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Wizard Container -->
+  <main class="relative z-10 flex-1 max-w-xl w-full mx-auto p-4 sm:p-6 pb-24">
+
+    <!-- ======================================================== -->
+    <!-- SCHRITT 1: NAME & HÜTTEN-ROLLE                          -->
+    <!-- ======================================================== -->
+    <section id="step-1" class="wizard-step space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-3xl">👋</span>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Herzlich willkommen auf der Hütte!</h2>
+        <p class="text-xs text-slate-400">Wie dürfen wir dich auf deiner Karte verewigen?</p>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+        <!-- Name Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Dein Name / Vorname</label>
+          <input id="guest-name" type="text" placeholder="z. B. Julia oder Felix" maxlength="20" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 transition">
+        </div>
+
+        <!-- Nickname Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Dein Hütten-Spitzname (optional)</label>
+          <input id="guest-nickname" type="text" placeholder="z. B. Der Bierbaron, Zapf-Queen" maxlength="25" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-200 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 transition">
+        </div>
+
+        <!-- Position / Role Selector Cards -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Deine Hütten-Position / Rolle</label>
+          <div class="grid grid-cols-2 gap-2" id="position-selector-grid">
+            <!-- Will be rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onclick="goToStep(2)" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+        <span>Weiter zu den Party-Attributen</span>
+        <span>➡️</span>
+      </button>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SCHRITT 2: DIE 6 PARTY-ATTRIBUTE                         -->
+    <!-- ======================================================== -->
+    <section id="step-2" class="wizard-step hidden space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-3xl">📊</span>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Deine Party-Attribute vergeben</h2>
+        <p class="text-xs text-slate-400">Bewerte dich ehrlich von 40 (Anfänger) bis 99 (Gottmodus)</p>
+      </div>
+
+      <!-- Live OVR Banner -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-500/40 flex items-center justify-between shadow-lg">
+        <div>
+          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Deine berechnete Gesamtwertung</span>
+          <span id="guest-ovr-status" class="text-xs font-semibold text-white">🔥 Absoluter Leistungsträger</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-fut font-bold text-amber-400">OVR</span>
+          <span id="guest-ovr-display" class="text-4xl font-fut font-black text-amber-300 leading-none">94</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+        
+        <!-- TRF -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🎯</span> TRF – Treffsicherheit</span>
+            <span id="val-trf" class="font-fut font-bold text-base text-white">94</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Bierpong, Darts, Bogenschießen & Kronkorken-Treffer</p>
+          <input id="slider-trf" type="range" min="40" max="99" value="94" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+        <!-- DUR -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🍺</span> DUR – Durst</span>
+            <span id="val-dur" class="font-fut font-bold text-base text-white">92</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Pegelfestigkeit, Schlucktempo & Nie ein leeres Glas</p>
+          <input id="slider-dur" type="range" min="40" max="99" value="92" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+        <!-- GES -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🗣️</span> GES – Geselligkeit</span>
+            <span id="val-ges" class="font-fut font-bold text-base text-white">96</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Smalltalk, Witze, neue Freundschaften & Runden spendieren</p>
+          <input id="slider-ges" type="range" min="40" max="99" value="96" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+        <!-- STM -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🕺</span> STM – Stimmung</span>
+            <span id="val-stm" class="font-fut font-bold text-base text-white">95</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Tanzbein, Mitsingen, Hymnen-Support & Hütte abreißend</p>
+          <input id="slider-stm" type="range" min="40" max="99" value="95" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+        <!-- GEM -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🪵</span> GEM – Gemütlichkeit</span>
+            <span id="val-gem" class="font-fut font-bold text-base text-white">91</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Lagerfeuer-Sitzen, Grillzange bewundern & Chill-Modus</p>
+          <input id="slider-gem" type="range" min="40" max="99" value="91" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+        <!-- TAK -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5"><span>🧠</span> TAK – Taktik</span>
+            <span id="val-tak" class="font-fut font-bold text-base text-white">88</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mb-1.5">Minispiel-Strategie, Regelauslegung & clevere Teambildung</p>
+          <input id="slider-tak" type="range" min="40" max="99" value="88" oninput="updateGuestStats()" class="w-full">
+        </div>
+
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="goToStep(1)" class="w-1/3 py-3.5 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold text-xs uppercase tracking-wider transition">
+          ⬅️ Zurück
+        </button>
+        <button type="button" onclick="goToStep(3)" class="w-2/3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+          <span>Weiter zum Foto / Selfie</span>
+          <span>➡️</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SCHRITT 3: FOTO & DIREKTES SELFIE                        -->
+    <!-- ======================================================== -->
+    <section id="step-3" class="wizard-step hidden space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-3xl">📸</span>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Dein Porträt auf die Karte bringen</h2>
+        <p class="text-xs text-slate-400">Mache jetzt direkt ein Selfie oder wähle dein bestes Foto</p>
+      </div>
+
+      <!-- Action Buttons: Selfie vs Upload -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Direct Selfie Button -->
+        <button type="button" onclick="openSelfieCamera()" class="p-4 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 hover:from-amber-500/30 hover:to-amber-600/20 border-2 border-dashed border-amber-500/60 transition flex flex-col items-center justify-center text-center gap-1 group shadow-lg">
+          <span class="text-3xl group-hover:scale-110 transition-transform">📸</span>
+          <span class="text-sm font-black text-amber-300">Direkt Selfie machen</span>
+          <span class="text-[10px] text-slate-400">Frontkamera / Webcam</span>
+        </button>
+        <input type="file" id="portrait-camera-fallback" accept="image/*" capture="user" class="hidden" onchange="handleUserPhotoUpload(event)">
+
+        <!-- Upload File Button -->
+        <label class="p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border-2 border-dashed border-slate-700 hover:border-amber-400 transition flex flex-col items-center justify-center text-center gap-1 cursor-pointer group shadow-lg">
+          <span class="text-3xl group-hover:scale-110 transition-transform">📁</span>
+          <span class="text-sm font-bold text-white">Foto aus Galerie</span>
+          <span class="text-[10px] text-slate-400">JPG, PNG, WebP</span>
+          <input type="file" id="portrait-file-input" accept="image/*" class="hidden" onchange="handleUserPhotoUpload(event)">
+        </label>
+      </div>
+
+      <!-- Portrait Cutout Canvas & Live Adjustment Panel -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+        
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Vorschau deines Kopfes:</span>
+          <label class="text-[11px] text-amber-400 flex items-center gap-1.5 cursor-pointer font-semibold">
+            <input type="checkbox" id="toggle-bg-removal" checked onchange="toggleBackgroundRemoval()" class="rounded text-amber-500">
+            <span>KI-Freisteller aktiv</span>
+          </label>
+        </div>
+
+        <!-- Cutout Preview Stage -->
+        <div class="relative w-44 h-44 mx-auto rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-inner flex items-center justify-center">
+          <!-- Checkerboard Pattern for Transparency -->
+          <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#475569_1px,transparent_1px)] [background-size:12px_12px]"></div>
+          <canvas id="portrait-canvas" width="600" height="600" class="w-full h-full object-contain pointer-events-none transition-transform"></canvas>
+        </div>
+
+        <!-- Sliders for Adjustment -->
+        <div class="space-y-3 pt-2">
+          <!-- Zoom -->
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Zoom / Größe</span>
+              <span id="lbl-zoom" class="text-amber-400 font-bold">100%</span>
+            </div>
+            <input id="slider-zoom" type="range" min="50" max="200" value="100" oninput="updatePhotoTransform()" class="w-full">
+          </div>
+
+          <!-- Position X & Y -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Links / Rechts</span>
+                <span id="lbl-x" class="text-amber-400 font-bold">0px</span>
+              </div>
+              <input id="slider-x" type="range" min="-120" max="120" value="0" oninput="updatePhotoTransform()" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Oben / Unten</span>
+                <span id="lbl-y" class="text-amber-400 font-bold">0px</span>
+              </div>
+              <input id="slider-y" type="range" min="-120" max="120" value="0" oninput="updatePhotoTransform()" class="w-full">
+            </div>
+          </div>
+
+          <!-- Tolerance & Brightness -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Freistell-Toleranz</span>
+                <span id="lbl-tolerance" class="text-amber-400 font-bold">42%</span>
+              </div>
+              <input id="slider-tolerance" type="range" min="5" max="85" value="42" oninput="applyPortraitProcessing()" class="w-full">
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Helligkeit</span>
+                <span id="lbl-brightness" class="text-amber-400 font-bold">100%</span>
+              </div>
+              <input id="slider-brightness" type="range" min="70" max="130" value="100" oninput="updatePhotoTransform()" class="w-full">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="goToStep(2)" class="w-1/3 py-3.5 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold text-xs uppercase tracking-wider transition">
+          ⬅️ Zurück
+        </button>
+        <button type="button" onclick="goToStep(4)" class="w-2/3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+          <span>Weiter zum Kartendesign</span>
+          <span>➡️</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SCHRITT 4: KARTENDESIGN & FARBTON                        -->
+    <!-- ======================================================== -->
+    <section id="step-4" class="wizard-step hidden space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-3xl">🎨</span>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Wähle deine Karten-Edition</h2>
+        <p class="text-xs text-slate-400">Welcher Look passt am besten zu deinem Style?</p>
+      </div>
+
+      <!-- Template Selection Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="guest-template-grid">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Color Slider Panel -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-slate-200 uppercase tracking-wider block">🌈 Eigene Schriftfarbe</span>
+            <span class="text-[11px] text-slate-400">Passe Schrift & Akzente nahtlos an</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="preview-color-pill" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold border border-white/20 shadow-md transition-colors" style="background-color: #FBBF24; color: #000000;">#FBBF24</span>
+            <button type="button" onclick="resetUserTextColor()" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Auto</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs text-slate-300 mb-1">
+            <span>Farbton (Farbspektrum)</span>
+            <span id="lbl-hue-val" class="text-amber-400 font-mono font-bold">42°</span>
+          </div>
+          <input id="slider-text-hue" type="range" min="0" max="360" value="42" oninput="onHslSliderChange()" class="hue-slider w-full">
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs text-slate-300 mb-1">
+            <span>Helligkeit (Schwarz bis Weiß)</span>
+            <span id="lbl-light-val" class="text-amber-400 font-mono font-bold">58%</span>
+          </div>
+          <input id="slider-text-light" type="range" min="0" max="100" value="58" oninput="onHslSliderChange()" class="lightness-slider w-full">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="goToStep(3)" class="w-1/3 py-3.5 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold text-xs uppercase tracking-wider transition">
+          ⬅️ Zurück
+        </button>
+        <button type="button" onclick="goToStep(5)" class="w-2/3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2">
+          <span>Karte fertigstellen! 🌟</span>
+          <span>➡️</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- SCHRITT 5: DIE FERTIGE KARTE & ABSENDEN                 -->
+    <!-- ======================================================== -->
+    <section id="step-5" class="wizard-step hidden space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-3xl">🏆</span>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Deine offizielle GUT 26 Karte!</h2>
+        <p class="text-xs text-slate-400">Berühre oder neige dein Smartphone für den 3D-Hologramm-Effekt</p>
+      </div>
+
+      <!-- MASTER FUT CARD CONTAINER (Exact Aspect Ratio from Calibration) -->
+      <div class="card-perspective w-full max-w-[320px] select-none mx-auto flex items-center justify-center">
+        <div id="fut-card-render" class="fut-card-shield relative w-full select-none transition-all duration-300 drop-shadow-2xl" style="aspect-ratio: 986 / 1200;">
+          
+          <div id="card-inner-layer" class="relative w-full h-full overflow-hidden select-none rounded-2xl">
+            <!-- Custom Template Background Image (100% object-fill matching Editor) -->
+            <img id="custom-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-fill pointer-events-none z-0">
+
+            <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet -->
+            <div id="layer-portrait" class="absolute z-10 pointer-events-none transition-all duration-75" style="top: 36%; left: 63%; width: 62%; transform: translate(-50%, -50%);">
+              <div class="relative w-full aspect-square flex items-center justify-center">
+                <canvas id="card-portrait-mirror" class="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"></canvas>
+              </div>
+            </div>
+
+            <!-- OVR & POSITION -->
+            <div id="layer-ovr" class="absolute z-20 flex flex-col items-center leading-none select-none transition-all duration-75" style="top: 25.5%; left: 24.5%; width: 20%; transform: translate(-50%, -50%);">
+              <span id="card-ovr-display" class="font-fut font-bold text-amber-300 drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)] tracking-tighter" style="font-size: 51px;">94</span>
+              <span id="card-pos-display" class="font-fut font-bold text-amber-300 uppercase tracking-widest drop-shadow -mt-1" style="font-size: 21px;">SK</span>
+            </div>
+
+            <!-- BADGE EMBLEM -->
+            <div id="layer-badge" class="absolute z-20 flex items-center justify-center transition-all duration-75" style="top: 43.4%; left: 24.7%; width: 15%; transform: translate(-50%, -50%);">
+              <span id="card-badge-display" class="text-amber-300 drop-shadow leading-none text-center" style="font-size: 20px;">🎯</span>
+            </div>
+
+            <!-- PLAYER NAME & NICKNAME -->
+            <div id="layer-name" class="absolute z-20 flex flex-col items-center justify-center text-center px-1 transition-all duration-75" style="top: 61%; left: 50%; width: 85%; transform: translate(-50%, -50%);">
+              <span id="card-name-display" class="font-fut font-extrabold uppercase tracking-wide text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] truncate max-w-full" style="font-size: 22px;">Julia</span>
+              <span id="card-nickname-display" class="font-display font-bold uppercase tracking-wider text-amber-300 text-[9px] -mt-1 drop-shadow truncate max-w-full">DIE TREFFSICHERE</span>
+            </div>
+
+            <!-- GOLDEN DIVIDER -->
+            <div id="layer-divider" class="absolute z-20 flex items-center justify-center transition-all duration-75" style="top: 65.5%; left: 50%; width: 65%; transform: translate(-50%, -50%);">
+              <div id="card-divider-bar" class="w-full bg-gradient-to-r from-transparent via-amber-400 to-transparent" style="height: 2px;"></div>
+            </div>
+
+            <!-- STATS MATRIX (TRF, DUR, GES | STM, GEM, TAK) -->
+            <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-4 gap-y-0.5 font-fut font-bold leading-none select-none transition-all duration-75" style="top: 74.9%; left: 51.2%; width: 68%; transform: translate(-50%, -50%); font-size: 14px;">
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">GEM</span>
+                <span id="card-stat-gem" class="text-amber-300 drop-shadow ml-1">91</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">TRF</span>
+                <span id="card-stat-trf" class="text-amber-300 drop-shadow ml-1">94</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">DUR</span>
+                <span id="card-stat-dur" class="text-amber-300 drop-shadow ml-1">92</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">STM</span>
+                <span id="card-stat-stm" class="text-amber-300 drop-shadow ml-1">95</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">GES</span>
+                <span id="card-stat-ges" class="text-amber-300 drop-shadow ml-1">96</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-white drop-shadow tracking-wider">TAK</span>
+                <span id="card-stat-tak" class="text-amber-300 drop-shadow ml-1">88</span>
+              </div>
+            </div>
+
+            <!-- Holo Overlay -->
+            <div class="absolute inset-0 holo-glare z-30"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel for Guests -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-3.5 shadow-xl backdrop-blur-md">
+        
+        <!-- Primary Action: Senden an Ric -->
+        <button id="btn-send-host" onclick="sendGuestCardToHost()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base tracking-wider uppercase shadow-xl shadow-amber-500/30 transition active:scale-95 flex items-center justify-center gap-2.5">
+          <span class="text-xl">📬</span>
+          <span>Karte an den Gastgeber senden</span>
+        </button>
+
+        <!-- Secondary Action: Save to Phone -->
+        <button onclick="downloadGuestCardPNG()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95">
+          <span>📥</span>
+          <span>In Ultra-HD auf mein Smartphone speichern</span>
+        </button>
+
+        <button type="button" onclick="goToStep(4)" class="w-full py-2.5 text-xs text-slate-400 hover:text-slate-200 transition text-center font-medium">
+          ✏️ Nochmal Angaben oder Design ändern
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Selfie Camera Modal (Live Stream & Snapshot) -->
+  <div id="selfie-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl max-w-md w-full p-5 shadow-2xl text-center space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📸</span> <span>Live-Selfie aufnehmen</span>
+        </h3>
+        <button type="button" onclick="closeSelfieCamera()" class="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 text-sm">✕</button>
+      </div>
+
+      <!-- Live Video Viewfinder -->
+      <div class="relative w-full aspect-square max-w-[320px] mx-auto bg-black rounded-2xl overflow-hidden border-2 border-slate-700 shadow-inner flex items-center justify-center">
+        <video id="selfie-video" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
+        <!-- Face framing guide -->
+        <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-amber-400/40 rounded-full m-6"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-2.5 pt-2">
+        <button type="button" onclick="switchCameraFacing()" id="btn-switch-camera" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Kamera wechseln (Front / Rückseite)">
+          <span>🔄</span>
+        </button>
+        <button type="button" onclick="takeSelfieSnapshot()" class="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/30 transition active:scale-95 flex items-center justify-center gap-2">
+          <span class="text-lg">📸</span>
+          <span>Foto schießen</span>
+        </button>
+        <button type="button" onclick="closeSelfieCamera()" class="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-semibold">
+          Abbrechen
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-400">Tipp: Gesicht gut ausleuchten und mittig im Kreis platzieren.</p>
+    </div>
+  </div>
+
+  <!-- Success Celebration Modal -->
+  <div id="success-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-emerald-500/50 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center space-y-4">
+      <div class="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto text-4xl shadow-xl shadow-emerald-500/20 animate-bounce">
+        🎉
+      </div>
+      <div>
+        <h3 class="text-2xl font-black text-white tracking-wide uppercase font-fut">
+          Perfekt angekommen!
+        </h3>
+        <p id="success-modal-name" class="text-amber-400 font-bold text-sm mt-1">
+          Deine Karte ist sicher im Drive von Ric gespeichert.
+        </p>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Deine Werte und dein Porträt sind nun Teil des offiziellen Grillhütte Ultimate Team Turniers. Wir freuen uns riesig auf ein legendäres Hüttenfest! 🥩🍻
+      </p>
+      <div class="pt-2 flex flex-col gap-2.5">
+        <button onclick="downloadGuestCardPNG()" class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95">
+          <span>📥</span>
+          <span>Als Bild auf mein Smartphone speichern</span>
+        </button>
+        <button onclick="closeSuccessModal()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition active:scale-95">
+          Alles klar, danke! 👍
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offscreen Canvas for High-Resolution PNG Exports -->
+  <canvas id="export-canvas" width="1800" height="2700" class="hidden"></canvas>
+
+  <!-- ======================================================== -->
+  <!-- APPLICATION SCRIPT LOGIC                                 -->
+  <!-- ======================================================== -->
+  <script>
+    /* Google Apps Script Submit URL (same as host app) */
+    const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
+
+    /* Guest-Allowed Editions (Chef is reserved for host) */
+    const GUEST_EDITIONS = [
+      {
+        id: 'img_bier',
+        name: 'Bierfest-Edition',
+        subtitle: 'Goldrahmen & Bier-Aura',
+        imageUrl: 'vorlagen/karte_bier_gold.png',
+        ratio: '986 / 1200',
+        badge: 'beer',
+        accentColor: '#FBBF24'
+      },
+      {
+        id: 'img_tracht',
+        name: 'Edelweiß-Wappen',
+        subtitle: 'Salbei, Roségold & Hirsch',
+        imageUrl: 'vorlagen/karte_blau_tracht.png',
+        ratio: '780 / 1200',
+        badge: 'target',
+        accentColor: '#6EE7B7'
+      },
+      {
+        id: 'img_glitzer',
+        name: 'Glitzer-Glamour',
+        subtitle: 'Pink, Rosé & Party',
+        imageUrl: 'vorlagen/karte_glitzer_pink.png',
+        ratio: '986 / 1200',
+        badge: 'flower',
+        accentColor: '#F472B6'
+      },
+      {
+        id: 'img_holz',
+        name: 'Holz & Eisen',
+        subtitle: 'Rustikal & Funkenflug',
+        imageUrl: 'vorlagen/karte_holz_eisen.png',
+        ratio: '831 / 1200',
+        badge: 'fire',
+        accentColor: '#F59E0B'
+      },
+      {
+        id: 'img_wald',
+        name: 'Eichenlaub & Wald',
+        subtitle: 'Goldrahmen & Smaragd',
+        imageUrl: 'vorlagen/karte_gruen_gold.png',
+        ratio: '809 / 1200',
+        badge: 'trophy',
+        accentColor: '#34D399'
+      },
+      {
+        id: 'img_krone',
+        name: 'Kaiserliche Krone',
+        subtitle: 'Roségold & Lila Samt',
+        imageUrl: 'vorlagen/karte_lila_krone.png',
+        ratio: '931 / 1200',
+        badge: 'crown',
+        accentColor: '#E9D5FF'
+      }
+    ];
+
+    /* Available Hut Positions */
+    const POSITIONS = [
+      { id: 'SK', label: 'SK – Schützenkönig', badge: 'target', desc: 'Präzision & Pfeile' },
+      { id: 'ZK', label: 'ZK – Zapfkönig', badge: 'beer', desc: 'Zapfhahn & Gläser' },
+      { id: 'DJ', label: 'DJ – Soundmeister', badge: 'trophy', desc: 'Beats & Stimmung' },
+      { id: 'SS', label: 'SS – Scharfschütze', badge: 'target', desc: 'Zielwasser & Darts' },
+      { id: 'PK', label: 'PK – Party-Königin', badge: 'crown', desc: 'Glamour & Energie' },
+      { id: 'BB', label: 'BB – Bierpong-Boss', badge: 'trophy', desc: 'Becher-Dominanz' },
+      { id: 'GS', label: 'GS – Gaststar / Joker', badge: 'flower', desc: 'Gute Laune pur' },
+      { id: 'GK', label: 'GK – Grill-Kaiser', badge: 'steak', desc: 'Fleisch & Flamme' }
+    ];
+
+    const BADGES = {
+      crown: '👑',
+      target: '🎯',
+      beer: '🍺',
+      steak: '🥩',
+      flower: '🌸',
+      fire: '🔥',
+      trophy: '🏆'
+    };
+
+    /* App State */
+    let currentStep = 1;
+    let selectedPosition = 'SK';
+    let selectedEditionId = 'img_bier';
+    let userTextColor = null;
+    let rawLoadedImage = new Image();
+    let isBgRemovalActive = true;
+    let loadedCardLayouts = null;
+
+    /* Live Selfie State */
+    let selfieStream = null;
+    let currentFacingMode = 'user';
+
+    /* Init on page load */
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. Load calibrated layouts
+      try {
+        const res = await fetch('karten_layouts.json');
+        if (res.ok) loadedCardLayouts = await res.json();
+      } catch (e) {
+        console.warn('Could not load karten_layouts.json:', e);
+      }
+
+      // 2. Render position selection cards
+      renderPositionSelectors();
+
+      // 3. Render guest editions
+      renderGuestTemplateGrid();
+
+      // 4. Load initial default photo
+      loadInitialPhoto('assets/avatar_schuetze.png');
+
+      // 5. Update initial stats and UI
+      updateGuestStats();
+      updateGuestCardPreview();
+    });
+
+    /* Render Position Selectors */
+    function renderPositionSelectors() {
+      const grid = document.getElementById('position-selector-grid');
+      grid.innerHTML = POSITIONS.map(pos => {
+        const isSel = pos.id === selectedPosition;
+        return `
+          <button type="button" onclick="selectGuestPosition('${pos.id}')" id="pos-card-${pos.id}" 
+            class="p-3 rounded-xl border text-left transition flex items-center gap-2.5 ${isSel ? 'bg-amber-500/20 border-amber-500 text-white shadow-md' : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'}">
+            <span class="text-2xl">${BADGES[pos.badge] || '⭐'}</span>
+            <div class="overflow-hidden">
+              <span class="block text-xs font-bold font-fut tracking-wide text-amber-300">${pos.label}</span>
+              <span class="block text-[10px] text-slate-400 truncate">${pos.desc}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectGuestPosition(posId) {
+      selectedPosition = posId;
+      renderPositionSelectors();
+      updateGuestCardPreview();
+    }
+
+    /* Render Guest Editions */
+    function renderGuestTemplateGrid() {
+      const grid = document.getElementById('guest-template-grid');
+      grid.innerHTML = GUEST_EDITIONS.map(ed => {
+        const isSel = ed.id === selectedEditionId;
+        return `
+          <div onclick="selectGuestEdition('${ed.id}')" id="tpl-card-${ed.id}"
+            class="group p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${isSel ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/30 shadow-lg' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
+            <div class="aspect-[3/4] w-full rounded-lg overflow-hidden bg-black/60 mb-2 flex items-center justify-center p-1 border border-slate-800/80">
+              <img src="${ed.imageUrl}" alt="${ed.name}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200">
+            </div>
+            <div>
+              <span class="block text-xs font-bold text-white group-hover:text-amber-400 transition-colors">${ed.name}</span>
+              <span class="block text-[10px] text-slate-400 truncate">${ed.subtitle}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectGuestEdition(edId) {
+      selectedEditionId = edId;
+      renderGuestTemplateGrid();
+      const ed = GUEST_EDITIONS.find(e => e.id === edId);
+      if (ed && !userTextColor) {
+        // sync preview color pill
+        const pill = document.getElementById('preview-color-pill');
+        if (pill) {
+          pill.style.backgroundColor = ed.accentColor;
+          pill.innerText = ed.accentColor.toUpperCase();
+        }
+      }
+      updateGuestCardPreview();
+    }
+
+    /* Step Navigation */
+    function goToStep(step) {
+      // Validate step 1: Name should not be empty
+      if (step > 1 && currentStep === 1) {
+        const name = document.getElementById('guest-name').value.trim();
+        if (!name) {
+          showToast('Bitte gib deinen Namen ein! ✍️', 'warning');
+          document.getElementById('guest-name').focus();
+          return;
+        }
+      }
+
+      currentStep = step;
+
+      // Hide all steps, show current
+      for (let s = 1; s <= 5; s++) {
+        const el = document.getElementById(`step-${s}`);
+        if (el) el.classList.toggle('hidden', s !== step);
+      }
+
+      // Update progress bar
+      const fill = document.getElementById('progress-bar-fill');
+      const num = document.getElementById('step-indicator-num');
+      const title = document.getElementById('step-indicator-title');
+
+      const titles = [
+        '1. Wer bist du?',
+        '2. Deine Party-Attribute',
+        '3. Dein Porträt & Selfie',
+        '4. Karten-Design & Farbe',
+        '5. Deine fertige Karte!'
+      ];
+
+      if (fill) fill.style.width = `${step * 20}%`;
+      if (num) num.innerText = `Schritt ${step} von 5`;
+      if (title) title.innerText = titles[step - 1];
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Update card preview whenever moving
+      updateGuestCardPreview();
+    }
+
+    /* Stats & OVR Calculation */
+    function updateGuestStats() {
+      const trf = parseInt(document.getElementById('slider-trf').value) || 94;
+      const dur = parseInt(document.getElementById('slider-dur').value) || 92;
+      const ges = parseInt(document.getElementById('slider-ges').value) || 96;
+      const stm = parseInt(document.getElementById('slider-stm').value) || 95;
+      const gem = parseInt(document.getElementById('slider-gem').value) || 91;
+      const tak = parseInt(document.getElementById('slider-tak').value) || 88;
+
+      document.getElementById('val-trf').innerText = trf;
+      document.getElementById('val-dur').innerText = dur;
+      document.getElementById('val-ges').innerText = ges;
+      document.getElementById('val-stm').innerText = stm;
+      document.getElementById('val-gem').innerText = gem;
+      document.getElementById('val-tak').innerText = tak;
+
+      const ovr = Math.min(99, Math.round((trf + dur + ges + stm + gem + tak) / 6));
+      document.getElementById('guest-ovr-display').innerText = ovr;
+
+      const statusEl = document.getElementById('guest-ovr-status');
+      if (statusEl) {
+        if (ovr >= 96) statusEl.innerText = '👑 Hütten-Legende (Absoluter Gottmodus)';
+        else if (ovr >= 93) statusEl.innerText = '🔥 Spitzenklasse (Volle Hüttenpower)';
+        else if (ovr >= 88) statusEl.innerText = '⚡ Sehr starker Leistungsträger';
+        else statusEl.innerText = '🍺 Geselliger Hütten-Held';
+      }
+
+      updateGuestCardPreview();
+    }
+
+    /* Live Selfie Camera */
+    async function openSelfieCamera() {
+      const modal = document.getElementById('selfie-modal');
+      const video = document.getElementById('selfie-video');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const fallback = document.getElementById('portrait-camera-fallback');
+        if (fallback) fallback.click();
+        return;
+      }
+
+      try {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        selfieStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 1280 }
+          },
+          audio: false
+        });
+        video.srcObject = selfieStream;
+        await video.play();
+      } catch (err) {
+        console.warn('getUserMedia fehlgeschlagen, nutze Fallback:', err);
+        closeSelfieCamera();
+        const fallback = document.getElementById('portrait-camera-fallback');
+        if (fallback) fallback.click();
+      }
+    }
+
+    function closeSelfieCamera() {
+      const modal = document.getElementById('selfie-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      if (selfieStream) {
+        selfieStream.getTracks().forEach(t => t.stop());
+        selfieStream = null;
+      }
+      const video = document.getElementById('selfie-video');
+      if (video) video.srcObject = null;
+    }
+
+    async function switchCameraFacing() {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      if (selfieStream) selfieStream.getTracks().forEach(t => t.stop());
+      const video = document.getElementById('selfie-video');
+      if (video) {
+        if (currentFacingMode === 'environment') video.classList.remove('scale-x-[-1]');
+        else video.classList.add('scale-x-[-1]');
+      }
+      try {
+        selfieStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 1280 } },
+          audio: false
+        });
+        if (video) {
+          video.srcObject = selfieStream;
+          await video.play();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function takeSelfieSnapshot() {
+      const video = document.getElementById('selfie-video');
+      if (!video || !video.videoWidth) {
+        showToast('Kamera-Stream noch nicht bereit.', 'warning');
+        return;
+      }
+
+      const snapCanvas = document.createElement('canvas');
+      snapCanvas.width = video.videoWidth;
+      snapCanvas.height = video.videoHeight;
+      const ctx = snapCanvas.getContext('2d');
+
+      if (currentFacingMode === 'user') {
+        ctx.translate(snapCanvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+
+      const dataUrl = snapCanvas.toDataURL('image/png');
+      closeSelfieCamera();
+
+      rawLoadedImage = new Image();
+      rawLoadedImage.onload = () => {
+        document.getElementById('slider-zoom').value = 100;
+        document.getElementById('slider-x').value = 0;
+        document.getElementById('slider-y').value = 0;
+        applyPortraitProcessing();
+        updatePhotoTransform();
+        showToast('Selfie aufgenommen & automatisch freigestellt! 📸', 'success');
+      };
+      rawLoadedImage.src = dataUrl;
+    }
+
+    /* Photo Upload Handlers */
+    function handleUserPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        rawLoadedImage = new Image();
+        rawLoadedImage.onload = () => {
+          document.getElementById('slider-zoom').value = 100;
+          document.getElementById('slider-x').value = 0;
+          document.getElementById('slider-y').value = 0;
+          applyPortraitProcessing();
+          updatePhotoTransform();
+          showToast('Foto geladen & automatisch freigestellt! 📸', 'success');
+        };
+        rawLoadedImage.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadInitialPhoto(url) {
+      fetch(url)
+        .then(res => res.blob())
+        .then(blob => new Promise((resolve) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result);
+          r.readAsDataURL(blob);
+        }))
+        .then(dataUrl => {
+          const im = new Image();
+          im.onload = () => {
+            rawLoadedImage = im;
+            applyPortraitProcessing();
+            updatePhotoTransform();
+          };
+          im.src = dataUrl;
+        })
+        .catch(() => {
+          rawLoadedImage.onload = () => {
+            applyPortraitProcessing();
+            updatePhotoTransform();
+          };
+          rawLoadedImage.src = url;
+        });
+    }
+
+    function toggleBackgroundRemoval() {
+      isBgRemovalActive = document.getElementById('toggle-bg-removal').checked;
+      applyPortraitProcessing();
+      showToast(isBgRemovalActive ? 'KI-Freisteller aktiv' : 'Original-Hintergrund beibehalten', 'info');
+    }
+
+    /* Local Smart Flood-Fill Background Removal */
+    function processImageToCanvas(img, canvas, maxDim) {
+      if (!img || !img.width || !canvas) return false;
+      const ctx = canvas.getContext('2d');
+
+      let w = img.width, h = img.height;
+      if (w > h && w > maxDim) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else if (h > maxDim) {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      if (!isBgRemovalActive) return true;
+
+      try {
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+        const tolerance = parseInt(document.getElementById('slider-tolerance').value) || 42;
+        const N = w * h;
+
+        let sR = 0, sG = 0, sB = 0;
+        for (let x = 0; x < w; x++) {
+          const i = x * 4;
+          sR += data[i]; sG += data[i + 1]; sB += data[i + 2];
+        }
+        sR /= w; sG /= w; sB /= w;
+
+        const seedTol = (tolerance / 100) * 441;
+        const localTol = 20 + tolerance * 0.75;
+
+        const distSeed = (p) => {
+          const i = p * 4;
+          const dr = data[i] - sR, dg = data[i + 1] - sG, db = data[i + 2] - sB;
+          return Math.sqrt(dr * dr + dg * dg + db * db);
+        };
+
+        const bgMask = new Uint8Array(N);
+        const queue = new Int32Array(N);
+        let qHead = 0, qTail = 0;
+        const push = (p) => { if (!bgMask[p]) { bgMask[p] = 1; queue[qTail++] = p; } };
+
+        for (let x = 0; x < w; x++) if (distSeed(x) < seedTol) push(x);
+        const sideLimit = Math.floor(h * 0.6);
+        for (let y = 1; y < sideLimit; y++) {
+          const l = y * w, r = y * w + (w - 1);
+          if (distSeed(l) < seedTol) push(l);
+          if (distSeed(r) < seedTol) push(r);
+        }
+
+        const canGrow = (p, pr, pg, pb) => {
+          if (bgMask[p]) return false;
+          const i = p * 4;
+          const dr = data[i] - pr, dg = data[i + 1] - pg, db = data[i + 2] - pb;
+          return Math.sqrt(dr * dr + dg * dg + db * db) < localTol;
+        };
+
+        while (qHead < qTail) {
+          const p = queue[qHead++];
+          const x = p % w, y = (p / w) | 0;
+          const i = p * 4;
+          const pr = data[i], pg = data[i + 1], pb = data[i + 2];
+
+          if (x > 0 && canGrow(p - 1, pr, pg, pb)) push(p - 1);
+          if (x < w - 1 && canGrow(p + 1, pr, pg, pb)) push(p + 1);
+          if (y > 0 && canGrow(p - w, pr, pg, pb)) push(p - w);
+          if (y < h - 1 && canGrow(p + w, pr, pg, pb)) push(p + w);
+        }
+
+        const bottomThreshold = h * 0.75;
+        for (let p = 0; p < N; p++) {
+          const i = p * 4;
+          let a = data[i + 3];
+          a = Math.round(a * (1 - Math.min(1, bgMask[p])));
+          const py = (p / w) | 0;
+          if (py > bottomThreshold) {
+            const fadeRatio = 1 - (py - bottomThreshold) / (h - bottomThreshold);
+            a = Math.round(a * Math.max(0, fadeRatio));
+          }
+          data[i + 3] = a;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+      } catch (err) {
+        console.error('Freisteller Fehler:', err);
+        return false;
+      }
+      return true;
+    }
+
+    function applyPortraitProcessing() {
+      const tol = document.getElementById('slider-tolerance').value;
+      document.getElementById('lbl-tolerance').innerText = `${tol}%`;
+      const pCanvas = document.getElementById('portrait-canvas');
+      processImageToCanvas(rawLoadedImage, pCanvas, 600);
+      syncPortraitToMirror();
+    }
+
+    function updatePhotoTransform() {
+      const zoom = document.getElementById('slider-zoom').value;
+      const x = document.getElementById('slider-x').value;
+      const y = document.getElementById('slider-y').value;
+      const b = document.getElementById('slider-brightness').value;
+
+      document.getElementById('lbl-zoom').innerText = `${zoom}%`;
+      document.getElementById('lbl-x').innerText = `${x}px`;
+      document.getElementById('lbl-y').innerText = `${y}px`;
+      document.getElementById('lbl-brightness').innerText = `${b}%`;
+
+      const pCanvas = document.getElementById('portrait-canvas');
+      if (pCanvas) {
+        pCanvas.style.transform = `scale(${zoom / 100}) translate(${x}px, ${y}px)`;
+        pCanvas.style.filter = `brightness(${b}%)`;
+      }
+      syncPortraitToMirror();
+    }
+
+    function syncPortraitToMirror() {
+      const pCanvas = document.getElementById('portrait-canvas');
+      const mCanvas = document.getElementById('card-portrait-mirror');
+      if (!pCanvas || !mCanvas) return;
+
+      mCanvas.width = pCanvas.width;
+      mCanvas.height = pCanvas.height;
+      const ctx = mCanvas.getContext('2d');
+      ctx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+      ctx.drawImage(pCanvas, 0, 0);
+
+      const zoom = document.getElementById('slider-zoom').value;
+      const x = document.getElementById('slider-x').value;
+      const y = document.getElementById('slider-y').value;
+      const b = document.getElementById('slider-brightness').value;
+      mCanvas.style.transform = `scale(${zoom / 100}) translate(${x}px, ${y}px)`;
+      mCanvas.style.filter = `brightness(${b}%)`;
+    }
+
+    /* Color Slider */
+    function onHslSliderChange() {
+      const hue = document.getElementById('slider-text-hue').value;
+      const light = document.getElementById('slider-text-light').value;
+      document.getElementById('lbl-hue-val').innerText = `${hue}°`;
+      document.getElementById('lbl-light-val').innerText = `${light}%`;
+
+      const hex = hslToHex(parseInt(hue), 100, parseInt(light));
+      userTextColor = hex;
+
+      const pill = document.getElementById('preview-color-pill');
+      if (pill) {
+        pill.style.backgroundColor = hex;
+        pill.style.color = parseInt(light) > 50 ? '#000000' : '#ffffff';
+        pill.innerText = hex.toUpperCase();
+      }
+      updateGuestCardPreview();
+    }
+
+    function resetUserTextColor() {
+      userTextColor = null;
+      const ed = GUEST_EDITIONS.find(e => e.id === selectedEditionId);
+      const pill = document.getElementById('preview-color-pill');
+      if (pill && ed) {
+        pill.style.backgroundColor = ed.accentColor;
+        pill.style.color = '#000000';
+        pill.innerText = ed.accentColor.toUpperCase();
+      }
+      updateGuestCardPreview();
+      showToast('Standardfarbe der Edition wiederhergestellt.', 'info');
+    }
+
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = s * Math.min(l, 1 - l) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    /* Card Preview Update (Applying calibrated layout 1:1) */
+    function updateGuestCardPreview() {
+      const ed = GUEST_EDITIONS.find(e => e.id === selectedEditionId) || GUEST_EDITIONS[0];
+      const cardShield = document.getElementById('fut-card-render');
+      const tplImg = document.getElementById('custom-template-img');
+
+      if (cardShield) cardShield.style.aspectRatio = ed.ratio;
+      if (tplImg) tplImg.src = ed.imageUrl;
+
+      // Identity & Position
+      const name = document.getElementById('guest-name').value.trim() || 'Julia';
+      const nickname = document.getElementById('guest-nickname').value.trim();
+      const posObj = POSITIONS.find(p => p.id === selectedPosition) || POSITIONS[0];
+      const badgeIcon = BADGES[posObj.badge] || '🎯';
+
+      const ovr = document.getElementById('guest-ovr-display').innerText;
+
+      document.getElementById('card-name-display').innerText = name;
+      const nickEl = document.getElementById('card-nickname-display');
+      if (nickname) {
+        nickEl.innerText = nickname.toUpperCase();
+        nickEl.style.display = 'block';
+      } else {
+        nickEl.style.display = 'none';
+      }
+
+      document.getElementById('card-ovr-display').innerText = ovr;
+      document.getElementById('card-pos-display').innerText = posObj.id;
+      document.getElementById('card-badge-display').innerText = badgeIcon;
+
+      // Stats
+      const trf = document.getElementById('slider-trf').value;
+      const dur = document.getElementById('slider-dur').value;
+      const ges = document.getElementById('slider-ges').value;
+      const stm = document.getElementById('slider-stm').value;
+      const gem = document.getElementById('slider-gem').value;
+      const tak = document.getElementById('slider-tak').value;
+
+      document.getElementById('card-stat-trf').innerText = trf;
+      document.getElementById('card-stat-dur').innerText = dur;
+      document.getElementById('card-stat-ges').innerText = ges;
+      document.getElementById('card-stat-stm').innerText = stm;
+      document.getElementById('card-stat-gem').innerText = gem;
+      document.getElementById('card-stat-tak').innerText = tak;
+
+      // Apply Calibrated Layout if loaded
+      if (loadedCardLayouts && loadedCardLayouts[ed.id]) {
+        applyCalibratedLayout(loadedCardLayouts[ed.id], ed);
+      } else {
+        // Fallback colors
+        const activeColor = userTextColor || ed.accentColor;
+        document.getElementById('card-ovr-display').style.color = activeColor;
+        document.getElementById('card-pos-display').style.color = activeColor;
+        document.getElementById('card-divider-bar').style.backgroundColor = activeColor;
+      }
+
+      syncPortraitToMirror();
+    }
+
+    function applyCalibratedLayout(layout, ed) {
+      const card = document.getElementById('fut-card-render');
+      const curH = card ? card.clientHeight : 504;
+      const fontScale = (curH > 0 ? curH : 504) / 504;
+      const activeColor = userTextColor || layout.ovr?.color || ed.accentColor;
+
+      // OVR
+      const elOvr = document.getElementById('layer-ovr');
+      if (elOvr && layout.ovr) {
+        elOvr.style.left = `${layout.ovr.x}%`;
+        elOvr.style.top = `${layout.ovr.y}%`;
+        elOvr.style.width = `${layout.ovr.width}%`;
+        elOvr.style.transform = `translate(-50%, -50%) scale(${layout.ovr.scale / 100}) rotate(${layout.ovr.rot}deg)`;
+        const ovrTxt = document.getElementById('card-ovr-display');
+        const posTxt = document.getElementById('card-pos-display');
+        if (ovrTxt) {
+          ovrTxt.style.fontSize = `${Math.round(layout.ovr.fontSize * fontScale)}px`;
+          ovrTxt.style.color = activeColor;
+        }
+        if (posTxt) {
+          posTxt.style.fontSize = `${Math.round(layout.ovr.fontSize * 0.42 * fontScale)}px`;
+          posTxt.style.color = activeColor;
+        }
+      }
+
+      // Badge
+      const elBadge = document.getElementById('layer-badge');
+      if (elBadge && layout.badge) {
+        elBadge.style.left = `${layout.badge.x}%`;
+        elBadge.style.top = `${layout.badge.y}%`;
+        elBadge.style.width = `${layout.badge.width}%`;
+        elBadge.style.transform = `translate(-50%, -50%) scale(${layout.badge.scale / 100}) rotate(${layout.badge.rot}deg)`;
+        const badgeTxt = document.getElementById('card-badge-display');
+        if (badgeTxt) badgeTxt.style.fontSize = `${Math.round(layout.badge.fontSize * fontScale)}px`;
+      }
+
+      // Portrait
+      const elPortrait = document.getElementById('layer-portrait');
+      if (elPortrait && layout.portrait) {
+        elPortrait.style.left = `${layout.portrait.x}%`;
+        elPortrait.style.top = `${layout.portrait.y}%`;
+        elPortrait.style.width = `${layout.portrait.width}%`;
+        elPortrait.style.transform = `translate(-50%, -50%) scale(${layout.portrait.scale / 100}) rotate(${layout.portrait.rot}deg)`;
+      }
+
+      // Name
+      const elName = document.getElementById('layer-name');
+      if (elName && layout.name) {
+        elName.style.left = `${layout.name.x}%`;
+        elName.style.top = `${layout.name.y}%`;
+        elName.style.width = `${layout.name.width}%`;
+        elName.style.transform = `translate(-50%, -50%) scale(${layout.name.scale / 100}) rotate(${layout.name.rot}deg)`;
+        const nameTxt = document.getElementById('card-name-display');
+        if (nameTxt) nameTxt.style.fontSize = `${Math.round(layout.name.fontSize * fontScale)}px`;
+      }
+
+      // Divider
+      const elDivider = document.getElementById('layer-divider');
+      if (elDivider && layout.divider) {
+        elDivider.style.left = `${layout.divider.x}%`;
+        elDivider.style.top = `${layout.divider.y}%`;
+        elDivider.style.width = `${layout.divider.width}%`;
+        elDivider.style.transform = `translate(-50%, -50%) scale(${layout.divider.scale / 100}) rotate(${layout.divider.rot}deg)`;
+        const bar = document.getElementById('card-divider-bar');
+        if (bar) {
+          bar.style.height = `${Math.max(1, Math.round(layout.divider.fontSize * fontScale))}px`;
+          bar.style.backgroundColor = activeColor;
+        }
+      }
+
+      // Stats
+      const elStats = document.getElementById('layer-stats');
+      if (elStats && layout.stats) {
+        elStats.style.left = `${layout.stats.x}%`;
+        elStats.style.top = `${layout.stats.y}%`;
+        elStats.style.width = `${layout.stats.width}%`;
+        elStats.style.transform = `translate(-50%, -50%) scale(${layout.stats.scale / 100}) rotate(${layout.stats.rot}deg)`;
+        elStats.style.fontSize = `${Math.round(layout.stats.fontSize * fontScale)}px`;
+
+        const statIds = ['card-stat-gem', 'card-stat-trf', 'card-stat-dur', 'card-stat-stm', 'card-stat-ges', 'card-stat-tak'];
+        statIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.color = activeColor;
+        });
+      }
+    }
+
+    /* High-Resolution 1800x2700 Canvas Drawing Engine (1:1 with Main App) */
+    async function renderHighResPNG() {
+      const ed = GUEST_EDITIONS.find(e => e.id === selectedEditionId) || GUEST_EDITIONS[0];
+      const layout = loadedCardLayouts ? loadedCardLayouts[ed.id] : null;
+
+      const canvas = document.getElementById('export-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const H = 2700;
+      let ratioVal = 986 / 1200;
+      if (ed.ratio) {
+        const parts = ed.ratio.split('/');
+        if (parts.length === 2) ratioVal = parseFloat(parts[0]) / parseFloat(parts[1]);
+      }
+      const W = Math.round(H * ratioVal);
+      canvas.width = W;
+      canvas.height = H;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // 1. Draw Template full-bleed
+      const templateImg = new Image();
+      templateImg.crossOrigin = 'anonymous';
+      await new Promise((resolve) => {
+        templateImg.onload = () => {
+          ctx.drawImage(templateImg, 0, 0, W, H);
+          resolve();
+        };
+        templateImg.onerror = resolve;
+        templateImg.src = ed.imageUrl;
+      });
+
+      // 2. High-Res Cutout of Portrait
+      const hiResCanvas = document.createElement('canvas');
+      processImageToCanvas(rawLoadedImage, hiResCanvas, 1600);
+
+      const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 64, y: 37, width: 62, scale: 100, rot: 0 };
+      const pScale = (pCfg.scale || 100) / 100;
+      const pRot = ((pCfg.rot || 0) * Math.PI) / 180;
+      const targetW = (pCfg.width / 100) * W;
+      const targetH = targetW;
+      const centerX = (pCfg.x / 100) * W;
+      const centerY = (pCfg.y / 100) * H;
+
+      const userZoom = (parseFloat(document.getElementById('slider-zoom').value) || 100) / 100;
+      const previewCardH = document.getElementById('fut-card-render')?.clientHeight || 504;
+      const exportCoordScale = H / previewCardH;
+      const userShiftX = (parseFloat(document.getElementById('slider-x').value) || 0) * exportCoordScale;
+      const userShiftY = (parseFloat(document.getElementById('slider-y').value) || 0) * exportCoordScale;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      if (pRot !== 0) ctx.rotate(pRot);
+      ctx.scale(pScale, pScale);
+
+      ctx.shadowColor = 'rgba(0,0,0,0.85)';
+      ctx.shadowBlur = 40;
+      ctx.shadowOffsetY = 20;
+
+      ctx.translate(userShiftX, userShiftY);
+      ctx.scale(userZoom, userZoom);
+      ctx.drawImage(hiResCanvas, -targetW / 2, -targetH / 2, targetW, targetH);
+      ctx.restore();
+
+      // 3. Draw Typography & Calibrated Badges
+      await document.fonts.ready;
+      const scaleH = H / 504;
+      const activeColor = userTextColor || (layout?.ovr?.color) || ed.accentColor;
+
+      // OVR & POS
+      const ovrCfg = (layout && layout.ovr) ? layout.ovr : { x: 24.5, y: 26, width: 20, scale: 100, fontSize: 51 };
+      const ovrX = (ovrCfg.x / 100) * W;
+      const ovrY = (ovrCfg.y / 100) * H;
+      const ovrScale = (ovrCfg.scale || 100) / 100;
+      const ovrFontSize = Math.round(ovrCfg.fontSize * scaleH * ovrScale);
+
+      const ovrVal = document.getElementById('guest-ovr-display').innerText;
+      const posObj = POSITIONS.find(p => p.id === selectedPosition) || POSITIONS[0];
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = activeColor;
+      ctx.font = `800 ${ovrFontSize}px Teko, sans-serif`;
+      ctx.shadowColor = 'rgba(0,0,0,0.95)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 10;
+      ctx.fillText(ovrVal, ovrX, ovrY);
+
+      ctx.font = `700 ${Math.round(ovrFontSize * 0.42)}px Teko, sans-serif`;
+      ctx.fillText(posObj.id, ovrX, ovrY + ovrFontSize * 0.38);
+
+      // Badge
+      const badgeCfg = (layout && layout.badge) ? layout.badge : { x: 24.7, y: 43.4, scale: 100, fontSize: 20 };
+      const badgeX = (badgeCfg.x / 100) * W;
+      const badgeY = (badgeCfg.y / 100) * H;
+      const badgeScale = (badgeCfg.scale || 100) / 100;
+      const badgeFontSize = Math.round(badgeCfg.fontSize * scaleH * badgeScale);
+      ctx.font = `${badgeFontSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+      ctx.fillText(BADGES[posObj.badge] || '🎯', badgeX, badgeY);
+
+      // Name & Nickname
+      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, width: 85, scale: 100, fontSize: 22 };
+      const nameX = (nameCfg.x / 100) * W;
+      const nameY = (nameCfg.y / 100) * H;
+      const nameScale = (nameCfg.scale || 100) / 100;
+      const nameFontSize = Math.round(nameCfg.fontSize * scaleH * nameScale);
+
+      const guestName = (document.getElementById('guest-name').value.trim() || 'Julia').toUpperCase();
+      const guestNick = document.getElementById('guest-nickname').value.trim().toUpperCase();
+
+      ctx.font = `800 ${nameFontSize}px Teko, sans-serif`;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(guestName, nameX, nameY);
+
+      if (guestNick) {
+        ctx.font = `700 ${Math.round(nameFontSize * 0.42)}px Rajdhani, sans-serif`;
+        ctx.fillStyle = activeColor;
+        ctx.fillText(guestNick, nameX, nameY + nameFontSize * 0.4);
+      }
+
+      // Divider Bar
+      const divCfg = (layout && layout.divider) ? layout.divider : { x: 50, y: 65.5, width: 65, scale: 100, fontSize: 2 };
+      const divX = (divCfg.x / 100) * W;
+      const divY = (divCfg.y / 100) * H;
+      const divW = (divCfg.width / 100) * W * ((divCfg.scale || 100) / 100);
+      const divH = Math.max(2, Math.round((divCfg.fontSize || 2) * scaleH));
+
+      ctx.fillStyle = activeColor;
+      ctx.fillRect(divX - divW / 2, divY, divW, divH);
+
+      // Stats Matrix
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 51.2, y: 74.9, width: 68, scale: 100, fontSize: 14 };
+      const statsCenterX = (statsCfg.x / 100) * W;
+      const statsCenterY = (statsCfg.y / 100) * H;
+      const statsScale = (statsCfg.scale || 100) / 100;
+      const statFont = Math.round((statsCfg.fontSize || 14) * scaleH * statsScale);
+      const colSpread = ((statsCfg.width / 100) * W * statsScale) / 4;
+      const rowGap = statFont * 1.05;
+
+      const col1X = statsCenterX - colSpread;
+      const col2X = statsCenterX + colSpread;
+      const row1Y = statsCenterY - rowGap;
+      const row2Y = statsCenterY;
+      const row3Y = statsCenterY + rowGap;
+
+      const trf = document.getElementById('slider-trf').value;
+      const dur = document.getElementById('slider-dur').value;
+      const ges = document.getElementById('slider-ges').value;
+      const stm = document.getElementById('slider-stm').value;
+      const gem = document.getElementById('slider-gem').value;
+      const tak = document.getElementById('slider-tak').value;
+
+      const drawStat = (label, val, x, y) => {
+        ctx.font = `700 ${statFont}px Teko, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(label, x - statFont * 1.5, y);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = activeColor;
+        ctx.fillText(val, x + statFont * 1.2, y);
+      };
+
+      drawStat('GEM', gem, col1X, row1Y);
+      drawStat('DUR', dur, col1X, row2Y);
+      drawStat('GES', ges, col1X, row3Y);
+
+      drawStat('TRF', trf, col2X, row1Y);
+      drawStat('STM', stm, col2X, row2Y);
+      drawStat('TAK', tak, col2X, row3Y);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    /* Submit to Google Drive (Code.gs) */
+    async function sendGuestCardToHost() {
+      const btn = document.getElementById('btn-send-host');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="animate-spin text-xl">⏳</span> <span>Wird übertragen...</span>`;
+      btn.disabled = true;
+
+      try {
+        const dataUrl = await renderHighResPNG();
+        const payload = JSON.stringify({
+          file: dataUrl,
+          name: document.getElementById('guest-name').value.trim() || 'Gast',
+          nickname: document.getElementById('guest-nickname').value.trim(),
+          ovr: document.getElementById('guest-ovr-display').innerText,
+          pos: selectedPosition,
+          badge: POSITIONS.find(p => p.id === selectedPosition)?.badge || 'target',
+          edition: selectedEditionId,
+          stats: {
+            trf: document.getElementById('slider-trf').value,
+            dur: document.getElementById('slider-dur').value,
+            ges: document.getElementById('slider-ges').value,
+            stm: document.getElementById('slider-stm').value,
+            gem: document.getElementById('slider-gem').value,
+            tak: document.getElementById('slider-tak').value
+          }
+        });
+
+        let delivered = false;
+        try {
+          const res = await fetch(GUT_SUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: payload
+          });
+          const json = await res.json();
+          if (json && json.ok) delivered = true;
+        } catch (e) {
+          console.warn('Standard request failed, trying no-cors:', e);
+        }
+
+        if (!delivered) {
+          try {
+            await fetch(GUT_SUBMIT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: payload,
+              mode: 'no-cors'
+            });
+            delivered = true;
+          } catch (e) {
+            console.error('No-cors also failed:', e);
+          }
+        }
+
+        openSuccessModal();
+      } catch (err) {
+        console.error('Export / Sende-Fehler:', err);
+        showToast('Fehler beim Übertragen. Bitte speichere die Karte auf deinem Handy!', 'error', 5000);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    /* Save to Smartphone / Download */
+    async function downloadGuestCardPNG() {
+      const dataUrl = await renderHighResPNG();
+      const rawName = document.getElementById('guest-name').value.trim() || 'Gast';
+      const safeName = rawName.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, '_');
+      const link = document.createElement('a');
+      link.download = `GUT26_Karte_${safeName}.png`;
+      link.href = dataUrl;
+      link.click();
+      showToast('Karte wird in Ultra-HD heruntergeladen! 📥', 'success');
+    }
+
+    function openSuccessModal() {
+      const modal = document.getElementById('success-modal');
+      const name = document.getElementById('guest-name').value.trim() || 'Gast';
+      document.getElementById('success-modal-name').innerText = `Vielen Dank, ${name}! Deine Karte ist sicher im Drive von Ric.`;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById('success-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function showToast(msg, type = 'info', duration = 3500) {
+      const toast = document.getElementById('toast');
+      const content = document.getElementById('toast-content');
+      const txt = document.getElementById('toast-msg');
+      const icon = document.getElementById('toast-icon');
+
+      txt.innerText = msg;
+      if (type === 'success') {
+        icon.innerText = '✅';
+        content.className = 'px-4 py-3 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-white font-medium text-xs sm:text-sm shadow-2xl flex items-center gap-3 backdrop-blur-md';
+      } else if (type === 'warning') {
+        icon.innerText = '⚠️';
+        content.className = 'px-4 py-3 rounded-2xl bg-amber-950/90 border border-amber-500/50 text-white font-medium text-xs sm:text-sm shadow-2xl flex items-center gap-3 backdrop-blur-md';
+      } else if (type === 'error') {
+        icon.innerText = '❌';
+        content.className = 'px-4 py-3 rounded-2xl bg-rose-950/90 border border-rose-500/50 text-white font-medium text-xs sm:text-sm shadow-2xl flex items-center gap-3 backdrop-blur-md';
+      } else {
+        icon.innerText = 'ℹ️';
+        content.className = 'px-4 py-3 rounded-2xl bg-slate-900/95 border border-amber-500/40 text-white font-medium text-xs sm:text-sm shadow-2xl flex items-center gap-3 backdrop-blur-md';
+      }
+
+      toast.classList.remove('-translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-24', 'opacity-0');
+      }, duration);
+    }
+  </script>
+</body>
+</html>

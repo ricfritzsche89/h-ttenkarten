@@ -211,6 +211,10 @@
         </button>
       </nav>
 
+        <button onclick="copyGuestInviteLink()" class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition shadow-sm" title="Link zum Gäste-Setup kopieren & teilen">
+          <span>📲</span>
+          <span class="hidden sm:inline">Gäste-Link</span>
+        </button>
         <a href="editor.html" class="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-slate-800/80 hover:bg-slate-700 text-amber-300 border border-slate-700 transition shadow-sm" title="Layout & Koordinaten Dev-Studio öffnen">
           <span>🛠️</span>
           <span class="hidden sm:inline">Layout-Studio</span>
@@ -276,12 +280,21 @@
               </div>
             </div>
 
-            <!-- Upload Zone -->
-            <div>
+            <!-- Photo Selection: Live Selfie or File Upload -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Option 1: Direct Selfie / Live Camera -->
+              <button type="button" onclick="openSelfieCamera()" class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-amber-500/60 hover:border-amber-400 rounded-xl cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 transition text-center group">
+                <span class="text-2xl mb-1 group-hover:scale-110 transition-transform">📸</span>
+                <span class="text-xs font-bold text-amber-300">Direktes Selfie machen</span>
+                <span class="text-[10px] text-slate-400">Frontkamera / Webcam</span>
+              </button>
+              <input type="file" id="portrait-camera-fallback" accept="image/*" capture="user" class="hidden" onchange="handleUserPhotoUpload(event)">
+
+              <!-- Option 2: Upload existing image file -->
               <label class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-700 hover:border-amber-400 rounded-xl cursor-pointer bg-slate-900/60 hover:bg-slate-900 transition text-center group">
                 <svg class="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                <span class="text-xs font-bold text-white">Foto vom Handy / PC auswählen</span>
-                <span class="text-[10px] text-slate-400">JPG, PNG oder WebP (Freisteller läuft lokal im Browser)</span>
+                <span class="text-xs font-bold text-white">Foto auswählen / Galerie</span>
+                <span class="text-[10px] text-slate-400">JPG, PNG oder WebP</span>
                 <input type="file" id="portrait-file-input" accept="image/*" class="hidden" onchange="handleUserPhotoUpload(event)">
               </label>
             </div>
@@ -804,6 +817,40 @@
     </div>
   </div>
 
+  <!-- Selfie Camera Modal (Front Camera Stream & Snapshot) -->
+  <div id="selfie-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl max-w-md w-full p-5 shadow-2xl text-center space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📸</span> <span>Live-Selfie aufnehmen</span>
+        </h3>
+        <button type="button" onclick="closeSelfieCamera()" class="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 text-sm">✕</button>
+      </div>
+
+      <!-- Live Video Viewfinder -->
+      <div class="relative w-full aspect-square max-w-[320px] mx-auto bg-black rounded-2xl overflow-hidden border-2 border-slate-700 shadow-inner flex items-center justify-center">
+        <video id="selfie-video" autoplay playsinline muted class="w-full h-full object-cover scale-x-[-1]"></video>
+        <!-- Face framing guide -->
+        <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-amber-400/40 rounded-full m-6"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-2.5 pt-2">
+        <button type="button" onclick="switchCameraFacing()" id="btn-switch-camera" class="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Kamera wechseln (Front / Rückseite)">
+          <span>🔄</span>
+        </button>
+        <button type="button" onclick="takeSelfieSnapshot()" class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm tracking-wider uppercase shadow-lg shadow-amber-500/30 transition active:scale-95 flex items-center justify-center gap-2">
+          <span class="text-lg">📸</span>
+          <span>Foto schießen</span>
+        </button>
+        <button type="button" onclick="closeSelfieCamera()" class="py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs font-semibold">
+          Abbrechen
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-400">Tipp: Gesicht gut ausleuchten und mittig im Kreis platzieren.</p>
+    </div>
+  </div>
+
   <!-- Offscreen Canvas for High-Resolution PNG Exports -->
   <canvas id="export-canvas" width="1800" height="2700" class="hidden"></canvas>
 
@@ -1213,6 +1260,137 @@
           rawLoadedImage.onload = () => applyPortraitProcessing();
           rawLoadedImage.src = url;
         });
+    }
+
+    /* Copy Guest Setup Link to Clipboard */
+    function copyGuestInviteLink() {
+      const url = new URL('guest.html', window.location.href).href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Gäste-Link kopiert! 📲 Jetzt per WhatsApp teilen.', 'success', 4000);
+        }).catch(() => {
+          prompt('Hier ist der Link für deine Gäste:', url);
+        });
+      } else {
+        prompt('Hier ist der Link für deine Gäste:', url);
+      }
+    }
+
+    /* Live Selfie Camera Management */
+    let selfieStream = null;
+    let currentFacingMode = 'user';
+
+    async function openSelfieCamera() {
+      const modal = document.getElementById('selfie-modal');
+      const video = document.getElementById('selfie-video');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Fallback: Trigger native camera file input
+        const fallback = document.getElementById('portrait-camera-fallback');
+        if (fallback) fallback.click();
+        return;
+      }
+
+      try {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        selfieStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 1280 }
+          },
+          audio: false
+        });
+        video.srcObject = selfieStream;
+        await video.play();
+      } catch (err) {
+        console.warn('getUserMedia fehlgeschlagen, nutze Kamera-Fallback:', err);
+        closeSelfieCamera();
+        const fallback = document.getElementById('portrait-camera-fallback');
+        if (fallback) fallback.click();
+      }
+    }
+
+    function closeSelfieCamera() {
+      const modal = document.getElementById('selfie-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      if (selfieStream) {
+        selfieStream.getTracks().forEach(track => track.stop());
+        selfieStream = null;
+      }
+      const video = document.getElementById('selfie-video');
+      if (video) video.srcObject = null;
+    }
+
+    async function switchCameraFacing() {
+      currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      if (selfieStream) {
+        selfieStream.getTracks().forEach(track => track.stop());
+      }
+      const video = document.getElementById('selfie-video');
+      if (video) {
+        if (currentFacingMode === 'environment') {
+          video.classList.remove('scale-x-[-1]');
+        } else {
+          video.classList.add('scale-x-[-1]');
+        }
+      }
+      try {
+        selfieStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 1280 }
+          },
+          audio: false
+        });
+        if (video) {
+          video.srcObject = selfieStream;
+          await video.play();
+        }
+      } catch (e) {
+        console.error('Kamerawechsel fehlgeschlagen:', e);
+      }
+    }
+
+    function takeSelfieSnapshot() {
+      const video = document.getElementById('selfie-video');
+      if (!video || !video.videoWidth) {
+        showToast('Kamera-Stream noch nicht bereit.', 'warning');
+        return;
+      }
+
+      const snapCanvas = document.createElement('canvas');
+      snapCanvas.width = video.videoWidth;
+      snapCanvas.height = video.videoHeight;
+      const ctx = snapCanvas.getContext('2d');
+
+      // Mirror horizontally if user front camera so snapshot matches preview
+      if (currentFacingMode === 'user') {
+        ctx.translate(snapCanvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+
+      const dataUrl = snapCanvas.toDataURL('image/png');
+      closeSelfieCamera();
+
+      photoIsPreCut = false;
+      rawLoadedImage = new Image();
+      rawLoadedImage.onload = () => {
+        document.getElementById('slider-zoom').value = 100;
+        document.getElementById('slider-x').value = 0;
+        document.getElementById('slider-y').value = 0;
+        document.getElementById('slider-brightness').value = 100;
+        applyPortraitProcessing();
+        updatePhotoTransform();
+        showToast('Selfie aufgenommen & automatisch freigestellt! 📸', 'success');
+      };
+      rawLoadedImage.src = dataUrl;
     }
 
     function handleUserPhotoUpload(event) {
@@ -2072,19 +2250,6 @@
       drawStat('STM', stm, col2X, row1Y);
       drawStat('GEM', gem, col2X, row2Y);
       drawStat('TAK', tak, col2X, row3Y);
-
-      // 5. Draw Perk Banner at Bottom
-      const perk = document.getElementById('card-perk-display').innerText;
-      const perkCfg = (layout && layout.perk) ? layout.perk : { x: 50, y: 88, scale: 100, fontSize: 11 };
-      const perkX = (perkCfg.x / 100) * W;
-      const perkY = (perkCfg.y / 100) * H;
-      const perkScale = (perkCfg.scale || 100) / 100;
-      const perkFont = Math.round((perkCfg.fontSize || 11) * scaleH * perkScale);
-
-      ctx.textAlign = 'center';
-      ctx.font = `700 ${perkFont}px Rajdhani, sans-serif`;
-      ctx.fillStyle = userTextColor || perkCfg.color || accentColor;
-      ctx.fillText(`⚡ ${perk.toUpperCase()}`, perkX, perkY);
     }
 
     /* ======================================================== */
@@ -2112,7 +2277,6 @@
           ovr: document.getElementById('input-ovr').value,
           pos: document.getElementById('input-pos').value,
           badge: document.getElementById('input-badge').value,
-          perk: document.getElementById('input-perk').value.trim(),
           edition: currentEditionId,
           stats: {
             trf: document.getElementById('slider-trf').value,
