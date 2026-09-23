@@ -240,18 +240,11 @@
         <!-- Editor Box -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl backdrop-blur-md">
           
-          <div class="flex flex-wrap items-center justify-between pb-4 border-b border-slate-800 gap-3 mb-6">
-            <div>
-              <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                <span>🎨</span> Karten-Editor & Editionen
-              </h2>
-              <p class="text-xs text-slate-400">Wähle eine der 7 Vorlagen</p>
-            </div>
-            
-            <button onclick="rollRandomScout()" class="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white text-xs font-bold shadow-md shadow-indigo-500/25 transition">
-              <span class="group-hover:rotate-180 transition-transform duration-300">🎲</span>
-              <span>Zufalls-Gast (Scout)</span>
-            </button>
+          <div class="pb-4 border-b border-slate-800 mb-6">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>🎨</span> Karten-Editor & Editionen
+            </h2>
+            <p class="text-xs text-slate-400">Wähle eine der 7 Vorlagen</p>
           </div>
 
           <!-- Section 1: Template Selection (7 PNG Editions) -->
@@ -273,7 +266,7 @@
             
             <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
               <label class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <span>📸</span> Spieler-Porträt & KI-Freisteller
+                <span>📸</span> 2. Spieler-Porträt & KI-Freisteller
               </label>
               <div class="flex items-center gap-3">
                 <label class="text-xs text-slate-300 flex items-center gap-1.5 cursor-pointer">
@@ -283,26 +276,14 @@
               </div>
             </div>
 
-            <!-- Upload Zone + Demo Guests -->
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-              
-              <div class="sm:col-span-7">
-                <label class="flex flex-col items-center justify-center p-3.5 border-2 border-dashed border-slate-700 hover:border-amber-400 rounded-xl cursor-pointer bg-slate-900/60 hover:bg-slate-900 transition text-center group">
-                  <svg class="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                  <span class="text-xs font-bold text-white">Foto vom Handy / PC auswählen</span>
-                  <span class="text-[10px] text-slate-400">JPG, PNG oder WebP (Freisteller läuft lokal im Browser)</span>
-                  <input type="file" id="portrait-file-input" accept="image/*" class="hidden" onchange="handleUserPhotoUpload(event)">
-                </label>
-              </div>
-
-              <!-- Demo Portrait Selectors -->
-              <div class="sm:col-span-5 flex flex-col gap-1.5">
-                <span class="text-[11px] font-semibold text-slate-400">Schnellauswahl Demo-Gäste:</span>
-                <div class="flex items-center gap-2" id="preset-avatars-row">
-                  <!-- Filled via JS -->
-                </div>
-              </div>
-
+            <!-- Upload Zone -->
+            <div>
+              <label class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-700 hover:border-amber-400 rounded-xl cursor-pointer bg-slate-900/60 hover:bg-slate-900 transition text-center group">
+                <svg class="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span class="text-xs font-bold text-white">Foto vom Handy / PC auswählen</span>
+                <span class="text-[10px] text-slate-400">JPG, PNG oder WebP (Freisteller läuft lokal im Browser)</span>
+                <input type="file" id="portrait-file-input" accept="image/*" class="hidden" onchange="handleUserPhotoUpload(event)">
+              </label>
             </div>
 
             <!-- Sliders for Cutout Tolerance, Zoom and Positioning -->
@@ -511,25 +492,6 @@
             </div>
           </div>
 
-          <!-- Section 5: PlayStyle Perk -->
-          <div>
-            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">4. Hütten-PlayStyle+ (Spezialfähigkeit)</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input id="input-perk" type="text" value="Zangen-Doppelklick+" maxlength="25" oninput="updateCardUI()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none">
-              <select onchange="applyPerkPreset(this.value)" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm focus:border-amber-500 focus:outline-none text-slate-400">
-                <option value="">⚡ Beliebte Fähigkeiten auswählen...</option>
-                <option value="Zangen-Doppelklick+">🥩 Zangen-Doppelklick+ (Grillmeister-Aura)</option>
-                <option value="Zielwasser Plus">🎯 Zielwasser Plus (Treffsicherheit +10)</option>
-                <option value="Zapfhahn-Sprint">🍺 Zapfhahn-Sprint (Nie ein leeres Glas)</option>
-                <option value="Compound-Präzision">🏹 Compound-Präzision (Bogenschützen-Meister)</option>
-                <option value="Playlist-Diktator">🎵 Playlist-Diktator (Stimmung x2)</option>
-                <option value="Sitzfleisch-Titan">🪵 Sitzfleisch-Titan (Geht als Allerletzter)</option>
-                <option value="Runden-Spender">🪙 Runden-Spender (Kneipen-Hero)</option>
-                <option value="Wildberry-Charme">🍓 Wildberry-Charme (Glamour & Laune)</option>
-              </select>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -632,12 +594,6 @@
                 </div>
               </div>
 
-              <!-- PlayStyle Badge Ribbon at Bottom -->
-              <div id="layer-perk" class="absolute z-20 flex items-center justify-center w-full transition-all duration-75" style="top: 88%; left: 50%; transform: translate(-50%, -50%);">
-                <span id="card-perk-badge" class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] sm:text-xs truncate drop-shadow flex items-center gap-1">
-                  <span>⚡</span>
-                  <span id="card-perk-display">Zangen-Doppelklick+</span>
-                </span>
               </div>
 
               <!-- Holographic Light reflection layer -->
@@ -1080,24 +1036,7 @@
         elStats.style.fontSize = `${Math.round(layout.stats.fontSize * fontScale)}px`;
       }
 
-      // 7. Perk
-      const elPerk = document.getElementById('layer-perk');
-      if (elPerk && layout.perk) {
-        elPerk.style.left = `${layout.perk.x}%`;
-        elPerk.style.top = `${layout.perk.y}%`;
-        elPerk.style.transform = `translate(-50%, -50%) scale(${layout.perk.scale / 100}) rotate(${layout.perk.rot}deg)`;
-        const perkBadge = document.getElementById('card-perk-badge');
-        if (perkBadge) perkBadge.style.fontSize = `${Math.round(layout.perk.fontSize * fontScale)}px`;
-      }
     }
-
-    /* Demo Avatars with varied backgrounds for cutout testing */
-    const DEMO_AVATARS = [
-      { name: 'Gastgeber', url: 'assets/avatar_gastgeber.png' },
-      { name: 'Schütze', url: 'assets/avatar_schuetze.png' },
-      { name: 'Zapfkönig', url: 'assets/avatar_zapfkoenig.png' },
-      { name: 'Königin', url: 'assets/avatar_koenigin.png' }
-    ];
 
     /* Badges icon dictionary */
     const BADGES = {
@@ -1137,10 +1076,9 @@
         pos: 'GK',
         badge: 'crown',
         editionId: 'img_chef',
-        perk: 'Zangen-Doppelklick+',
         stats: { trf: 99, dur: 98, ges: 99, stm: 97, gem: 99, tak: 92 },
         score: 45,
-        photoDataUrl: DEMO_AVATARS[0].url
+        photoDataUrl: 'assets/avatar_gastgeber.png'
       },
       {
         id: 'p_2',
@@ -1150,10 +1088,9 @@
         pos: 'SK',
         badge: 'target',
         editionId: 'img_schuetze',
-        perk: 'Zielwasser Plus',
         stats: { trf: 96, dur: 92, ges: 90, stm: 88, gem: 94, tak: 85 },
         score: 40,
-        photoDataUrl: DEMO_AVATARS[1].url
+        photoDataUrl: 'assets/avatar_schuetze.png'
       },
       {
         id: 'p_3',
@@ -1163,10 +1100,9 @@
         pos: 'ZK',
         badge: 'beer',
         editionId: 'img_bier',
-        perk: 'Zapfhahn-Sprint',
         stats: { trf: 82, dur: 99, ges: 96, stm: 95, gem: 86, tak: 84 },
         score: 31,
-        photoDataUrl: DEMO_AVATARS[2].url
+        photoDataUrl: 'assets/avatar_zapfkoenig.png'
       },
       {
         id: 'p_4',
@@ -1176,10 +1112,9 @@
         pos: 'PK',
         badge: 'crown',
         editionId: 'img_glitzer',
-        perk: 'Wildberry-Charme',
         stats: { trf: 89, dur: 90, ges: 98, stm: 99, gem: 91, tak: 82 },
         score: 28,
-        photoDataUrl: DEMO_AVATARS[3].url
+        photoDataUrl: 'assets/avatar_koenigin.png'
       }
     ];
 
