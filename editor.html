@@ -452,15 +452,76 @@
       perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11, color: '#FBBF24' }
     };
 
-    const DEFAULT_CONFIGS = {};
-    EDITIONS.forEach(e => {
-      DEFAULT_CONFIGS[e.id] = JSON.parse(JSON.stringify(BASE_DEFAULT));
-    });
+    const DEFAULT_CONFIGS = {
+      "img_bier": {
+        "ovr": { "x": 24.2, "y": 26.1, "scale": 100, "rot": 0, "width": 20, "fontSize": 51, "color": "#FBBF24" },
+        "badge": { "x": 24.7, "y": 43.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 64.3, "y": 37.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.2, "y": 74.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50, "y": 88, "scale": 100, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_krone": {
+        "ovr": { "x": 29.1, "y": 27.5, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29, "y": 43.1, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 59.2, "y": 38.6, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 50, "y": 74, "scale": 91, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 49.8, "y": 83.8, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_tracht": {
+        "ovr": { "x": 28.7, "y": 27.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29, "y": 40.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 62.5, "y": 41.7, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.8, "y": 73.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50.2, "y": 86.1, "scale": 56, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_glitzer": {
+        "ovr": { "x": 21, "y": 22.9, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 20.9, "y": 39.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 60, "y": 36, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 45.7, "y": 60.3, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 46.1, "y": 73.3, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 45.7, "y": 83.4, "scale": 57, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_holz": {
+        "ovr": { "x": 30.3, "y": 25.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29.9, "y": 38.7, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 60.8, "y": 36.3, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 52.5, "y": 61.2, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.6, "y": 74, "scale": 92, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 52.1, "y": 86.3, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_schuetze": {
+        "ovr": { "x": 30.8, "y": 28.7, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 31.4, "y": 41, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 58.1, "y": 39.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 52, "y": 60.6, "scale": 91, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 49.3, "y": 71.7, "scale": 74, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50.6, "y": 81.5, "scale": 48, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_chef": {
+        "ovr": { "x": 30.8, "y": 30, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 31.3, "y": 45.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 61.4, "y": 42.9, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 98, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 50, "y": 74, "scale": 89, "rot": 0, "width": 68, "fontSize": 34, "color": "#FBBF24" },
+        "perk": { "x": 48, "y": 88, "scale": 42, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      }
+    };
 
     // Sicheres Laden
-    let configs = DEFAULT_CONFIGS;
+    let configs = JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
     try {
-      const stored = localStorage.getItem('gut_editor_configs_v3');
+      const stored = localStorage.getItem('gut_editor_configs_v4');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed === 'object') {
@@ -473,7 +534,7 @@
 
     function saveConfigs() {
       try {
-        localStorage.setItem('gut_editor_configs_v3', JSON.stringify(configs));
+        localStorage.setItem('gut_editor_configs_v4', JSON.stringify(configs));
       } catch (e) {}
       updateJsonOutput();
     }
@@ -743,7 +804,7 @@
     }
 
     function resetCurrentTemplate() {
-      configs[currentEditionId] = JSON.parse(JSON.stringify(BASE_DEFAULT));
+      configs[currentEditionId] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS[currentEditionId] || BASE_DEFAULT));
       applyAllStyles();
       syncSliders();
       saveConfigs();

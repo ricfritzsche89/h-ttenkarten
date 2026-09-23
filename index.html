@@ -556,21 +556,22 @@
               <div id="procedural-bg-layer" class="absolute inset-0 pointer-events-none z-0"></div>
 
               <!-- PORTRAIT PHOTO LAYER: Organisch eingeblendet & per Drag and Drop verschiebbar -->
-              <div id="photo-frame-wrapper" class="absolute top-[8%] right-[4%] w-[68%] h-[53%] pointer-events-auto cursor-grab active:cursor-grabbing z-10 overflow-hidden flex items-center justify-center select-none" style="touch-action: none; mask-image: linear-gradient(to bottom, black 65%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 98%);">
+              <div id="photo-frame-wrapper" class="absolute pointer-events-auto cursor-grab active:cursor-grabbing z-10 overflow-hidden flex items-center justify-center select-none" style="top: 37.5%; left: 64.3%; width: 62%; height: 50%; transform: translate(-50%, -50%); touch-action: none; mask-image: linear-gradient(to bottom, black 65%, transparent 98%); -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 98%);">
                 <div id="photo-container" class="w-full h-full relative pointer-events-none">
                   <canvas id="portrait-canvas" class="w-full h-full object-cover origin-center pointer-events-none" style="transform: scale(1) translate(0px, 0px); filter: brightness(100%);"></canvas>
                 </div>
               </div>
 
-              <!-- Top Card Header: OVR, Position, Nation Flag, Crest -->
-              <div class="absolute top-[8%] left-[7%] z-20 flex flex-col items-center leading-none text-center">
-                <span id="card-ovr-display" class="font-fut font-extrabold text-4xl sm:text-5xl tracking-tighter drop-shadow-md text-amber-300">99</span>
-                <span id="card-pos-display" class="font-fut font-bold text-base sm:text-lg tracking-wider text-amber-100 mt-0.5">GK</span>
-                
-                <div class="w-6 h-0.5 bg-amber-400/70 my-1"></div>
-                
+              <!-- Top Card Header: OVR, Position -->
+              <div id="layer-ovr" class="absolute z-20 flex flex-col items-center leading-none text-center transition-all duration-75" style="top: 26.1%; left: 24.2%; transform: translate(-50%, -50%);">
+                <span id="card-ovr-display" class="font-fut font-extrabold tracking-tighter drop-shadow-md text-amber-300 text-5xl">99</span>
+                <span id="card-pos-display" class="font-fut font-bold tracking-wider text-amber-100 text-lg mt-0.5">GK</span>
+              </div>
+
+              <!-- Nation Flag & Crest -->
+              <div id="layer-badge" class="absolute z-20 flex flex-col items-center leading-none text-center transition-all duration-75" style="top: 43.4%; left: 24.7%; transform: translate(-50%, -50%);">
                 <!-- Flag -->
-                <div class="w-6 h-4 rounded-sm shadow-sm overflow-hidden border border-white/20 my-0.5">
+                <div class="w-7 h-4 rounded-sm shadow-sm overflow-hidden border border-white/20 my-0.5">
                   <div class="w-full h-1/3 bg-black"></div>
                   <div class="w-full h-1/3 bg-red-600"></div>
                   <div class="w-full h-1/3 bg-amber-400"></div>
@@ -583,18 +584,22 @@
               </div>
 
               <!-- Card Middle Section: Name & Nickname -->
-              <div class="absolute top-[59%] left-0 right-0 z-20 px-4 text-center">
-                <h3 id="card-name-display" class="font-fut font-extrabold text-xl sm:text-2xl tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+              <div id="layer-name" class="absolute z-20 text-center w-[85%] transition-all duration-75" style="top: 61%; left: 50%; transform: translate(-50%, -50%);">
+                <h3 id="card-name-display" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] text-2xl">
                   WERNER (GASTGEBER)
                 </h3>
-                <p id="card-nickname-display" class="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                <p id="card-nickname-display" class="font-bold tracking-widest uppercase text-amber-400 -mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] text-xs">
                   DER HÜTTEN-PATRON
                 </p>
-                <div class="w-3/4 mx-auto h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent my-1"></div>
+              </div>
+
+              <!-- Divider Line -->
+              <div id="layer-divider" class="absolute z-20 flex items-center justify-center w-full transition-all duration-75" style="top: 65.5%; left: 50%; transform: translate(-50%, -50%);">
+                <div id="card-divider-line" class="w-[65%] h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent"></div>
               </div>
 
               <!-- 6 Attributes Grid (FUT Style: Label first, Value second) -->
-              <div class="absolute top-[69%] left-0 right-0 z-20 px-6 sm:px-8 grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs sm:text-sm font-fut">
+              <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-2 font-fut w-[68%] transition-all duration-75" style="top: 74.9%; left: 51.2%; transform: translate(-50%, -50%);">
                 <!-- Column 1 -->
                 <div class="space-y-0.5 pr-2.5 sm:pr-3 border-r border-white/20">
                   <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
@@ -628,8 +633,8 @@
               </div>
 
               <!-- PlayStyle Badge Ribbon at Bottom -->
-              <div class="absolute bottom-[4.5%] left-0 right-0 z-20 flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] font-bold">
-                <span class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] sm:text-xs truncate drop-shadow flex items-center gap-1">
+              <div id="layer-perk" class="absolute z-20 flex items-center justify-center w-full transition-all duration-75" style="top: 88%; left: 50%; transform: translate(-50%, -50%);">
+                <span id="card-perk-badge" class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] sm:text-xs truncate drop-shadow flex items-center gap-1">
                   <span>⚡</span>
                   <span id="card-perk-display">Zangen-Doppelklick+</span>
                 </span>
@@ -857,6 +862,7 @@
         name: 'Kaiserliche Prunkkrone',
         subtitle: 'Roségold, Lila & Diamanten',
         imageUrl: 'vorlagen/karte_lila_krone.png',
+        ratio: '931 / 1200',
         borderGradient: 'from-rose-300 via-amber-500 to-amber-900',
         innerBg: 'bg-black',
         accentColor: '#E9D5FF',
@@ -867,6 +873,7 @@
         name: 'Edelweiß-Wappen',
         subtitle: 'Salbei, Roségold & Eichhörnchen',
         imageUrl: 'vorlagen/karte_blau_tracht.png',
+        ratio: '780 / 1200',
         borderGradient: 'from-rose-300 via-emerald-600 to-slate-900',
         innerBg: 'bg-black',
         accentColor: '#6EE7B7',
@@ -877,6 +884,7 @@
         name: 'Glitzer-Glamour',
         subtitle: 'Roségold-Funkeln in Pink',
         imageUrl: 'vorlagen/karte_glitzer_pink.png',
+        ratio: '857 / 1200',
         borderGradient: 'from-rose-300 via-pink-600 to-amber-500',
         innerBg: 'bg-black',
         accentColor: '#F9A8D4',
@@ -887,6 +895,7 @@
         name: 'Goldenes Bierfest',
         subtitle: 'Bernstein, Schaum & Hopfen',
         imageUrl: 'vorlagen/karte_bier_gold.png',
+        ratio: '986 / 1200',
         borderGradient: 'from-amber-300 via-yellow-600 to-amber-900',
         innerBg: 'bg-black',
         accentColor: '#FBBF24',
@@ -897,6 +906,7 @@
         name: 'Eisenhütte',
         subtitle: 'Holz, Schmiedeeisen & Funken',
         imageUrl: 'vorlagen/karte_holz_eisen.png',
+        ratio: '943 / 1200',
         borderGradient: 'from-slate-600 via-stone-800 to-black',
         innerBg: 'bg-black',
         accentColor: '#D6D3D1',
@@ -907,6 +917,7 @@
         name: 'Schützenwappen',
         subtitle: 'Jagdgrün, Lorbeer & Gold',
         imageUrl: 'vorlagen/karte_gruen_gold.png',
+        ratio: '954 / 1200',
         borderGradient: 'from-amber-300 via-emerald-700 to-amber-900',
         innerBg: 'bg-black',
         accentColor: '#34D399',
@@ -917,12 +928,163 @@
         name: 'Gastgeber-Chef',
         subtitle: 'Gold, Krone & Vinyl – nur Ric',
         imageUrl: 'vorlagen/karte_chef.png',
+        ratio: '572 / 716',
         borderGradient: 'from-amber-300 via-yellow-500 to-amber-900',
         innerBg: 'bg-black',
         accentColor: '#FDE68A',
         badgeColor: 'text-amber-200'
       }
     ];
+
+    /* Kalibrierte Layout-Koordinaten fuer alle 7 Kartenvorlagen */
+    const KARTEN_LAYOUTS = {
+      "img_bier": {
+        "ovr": { "x": 24.2, "y": 26.1, "scale": 100, "rot": 0, "width": 20, "fontSize": 51, "color": "#FBBF24" },
+        "badge": { "x": 24.7, "y": 43.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 64.3, "y": 37.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.2, "y": 74.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50, "y": 88, "scale": 100, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_krone": {
+        "ovr": { "x": 29.1, "y": 27.5, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29, "y": 43.1, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 59.2, "y": 38.6, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 50, "y": 74, "scale": 91, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 49.8, "y": 83.8, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_tracht": {
+        "ovr": { "x": 28.7, "y": 27.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29, "y": 40.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 62.5, "y": 41.7, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.8, "y": 73.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50.2, "y": 86.1, "scale": 56, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_glitzer": {
+        "ovr": { "x": 21, "y": 22.9, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 20.9, "y": 39.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 60, "y": 36, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 45.7, "y": 60.3, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 46.1, "y": 73.3, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 45.7, "y": 83.4, "scale": 57, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_holz": {
+        "ovr": { "x": 30.3, "y": 25.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 29.9, "y": 38.7, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 60.8, "y": 36.3, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 52.5, "y": 61.2, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 51.6, "y": 74, "scale": 92, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 52.1, "y": 86.3, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_schuetze": {
+        "ovr": { "x": 30.8, "y": 28.7, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 31.4, "y": 41, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 58.1, "y": 39.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 52, "y": 60.6, "scale": 91, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 49.3, "y": 71.7, "scale": 74, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
+        "perk": { "x": 50.6, "y": 81.5, "scale": 48, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      },
+      "img_chef": {
+        "ovr": { "x": 30.8, "y": 30, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
+        "badge": { "x": 31.3, "y": 45.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
+        "portrait": { "x": 61.4, "y": 42.9, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
+        "name": { "x": 50, "y": 61, "scale": 98, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
+        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
+        "stats": { "x": 50, "y": 74, "scale": 89, "rot": 0, "width": 68, "fontSize": 34, "color": "#FBBF24" },
+        "perk": { "x": 48, "y": 88, "scale": 42, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
+      }
+    };
+
+    function applyCardLayout(editionId) {
+      const layout = KARTEN_LAYOUTS[editionId] || KARTEN_LAYOUTS['img_bier'];
+      if (!layout) return;
+
+      const cardWrapper = document.getElementById('fut-card-render');
+      const edInfo = CARD_EDITIONS.find(e => e.id === editionId);
+      if (cardWrapper && edInfo && edInfo.ratio) {
+        cardWrapper.style.aspectRatio = edInfo.ratio;
+      }
+
+      // 1. Portrait Frame
+      const elPortrait = document.getElementById('photo-frame-wrapper');
+      if (elPortrait && layout.portrait) {
+        elPortrait.style.left = `${layout.portrait.x}%`;
+        elPortrait.style.top = `${layout.portrait.y}%`;
+        elPortrait.style.width = `${layout.portrait.width}%`;
+        elPortrait.style.transform = `translate(-50%, -50%) scale(${layout.portrait.scale / 100}) rotate(${layout.portrait.rot}deg)`;
+      }
+
+      // 2. OVR & Position
+      const elOvr = document.getElementById('layer-ovr');
+      if (elOvr && layout.ovr) {
+        elOvr.style.left = `${layout.ovr.x}%`;
+        elOvr.style.top = `${layout.ovr.y}%`;
+        elOvr.style.transform = `translate(-50%, -50%) scale(${layout.ovr.scale / 100}) rotate(${layout.ovr.rot}deg)`;
+        const txtOvr = document.getElementById('card-ovr-display');
+        const txtPos = document.getElementById('card-pos-display');
+        if (txtOvr) txtOvr.style.fontSize = `${layout.ovr.fontSize}px`;
+        if (txtPos) txtPos.style.fontSize = `${Math.round(layout.ovr.fontSize * 0.38)}px`;
+      }
+
+      // 3. Badge & Flag
+      const elBadge = document.getElementById('layer-badge');
+      if (elBadge && layout.badge) {
+        elBadge.style.left = `${layout.badge.x}%`;
+        elBadge.style.top = `${layout.badge.y}%`;
+        elBadge.style.transform = `translate(-50%, -50%) scale(${layout.badge.scale / 100}) rotate(${layout.badge.rot}deg)`;
+      }
+
+      // 4. Name & Nickname
+      const elName = document.getElementById('layer-name');
+      if (elName && layout.name) {
+        elName.style.left = `${layout.name.x}%`;
+        elName.style.top = `${layout.name.y}%`;
+        elName.style.width = `${layout.name.width}%`;
+        elName.style.transform = `translate(-50%, -50%) scale(${layout.name.scale / 100}) rotate(${layout.name.rot}deg)`;
+        const txtName = document.getElementById('card-name-display');
+        const txtNick = document.getElementById('card-nickname-display');
+        if (txtName) txtName.style.fontSize = `${layout.name.fontSize}px`;
+        if (txtNick) txtNick.style.fontSize = `${Math.round(layout.name.fontSize * 0.45)}px`;
+      }
+
+      // 5. Divider
+      const elDivider = document.getElementById('layer-divider');
+      if (elDivider && layout.divider) {
+        elDivider.style.left = `${layout.divider.x}%`;
+        elDivider.style.top = `${layout.divider.y}%`;
+        elDivider.style.transform = `translate(-50%, -50%) scale(${layout.divider.scale / 100}) rotate(${layout.divider.rot}deg)`;
+        const line = document.getElementById('card-divider-line');
+        if (line) line.style.width = `${layout.divider.width}%`;
+      }
+
+      // 6. Stats
+      const elStats = document.getElementById('layer-stats');
+      if (elStats && layout.stats) {
+        elStats.style.left = `${layout.stats.x}%`;
+        elStats.style.top = `${layout.stats.y}%`;
+        elStats.style.width = `${layout.stats.width}%`;
+        elStats.style.transform = `translate(-50%, -50%) scale(${layout.stats.scale / 100}) rotate(${layout.stats.rot}deg)`;
+        elStats.style.fontSize = `${layout.stats.fontSize}px`;
+      }
+
+      // 7. Perk
+      const elPerk = document.getElementById('layer-perk');
+      if (elPerk && layout.perk) {
+        elPerk.style.left = `${layout.perk.x}%`;
+        elPerk.style.top = `${layout.perk.y}%`;
+        elPerk.style.transform = `translate(-50%, -50%) scale(${layout.perk.scale / 100}) rotate(${layout.perk.rot}deg)`;
+        const perkBadge = document.getElementById('card-perk-badge');
+        if (perkBadge) perkBadge.style.fontSize = `${layout.perk.fontSize}px`;
+      }
+    }
 
     /* Demo Avatars with varied backgrounds for cutout testing */
     const DEMO_AVATARS = [
@@ -1568,6 +1730,9 @@
 
       // Render procedural background on card (nur, wenn kein PNG aktiv ist)
       renderProceduralBackground(imageSrc ? null : edition.id);
+
+      // Kalibrierte Koordinaten & Skalierungen auf HTML-Karte anwenden
+      applyCardLayout(currentEditionId);
     }
 
     /* Procedural SVG Backgrounds for each edition */
@@ -1803,6 +1968,7 @@
     function finishExportDrawing(ctx, W, H) {
       const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];
       const accentColor = userTextColor || edition.accentColor || '#FDE68A';
+      const layout = KARTEN_LAYOUTS[currentEditionId] || KARTEN_LAYOUTS['img_bier'];
 
       // 1. Player-Portraet: frischer High-Res-Freisteller aus dem ORIGINALFOTO
       const zoom = (parseInt(document.getElementById('slider-zoom').value) || 100) / 100;
@@ -1813,11 +1979,12 @@
       const hiResCanvas = document.createElement('canvas');
       const hasPhoto = processImageToCanvas(rawLoadedImage, hiResCanvas, PHOTO_EXPORT_MAX);
 
+      const pCfg = (layout && layout.portrait) ? layout.portrait : { x: 60, y: 36, scale: 100 };
       if (hasPhoto && hiResCanvas.width) {
-        const pw = 780 * zoom;
-        const ph = 780 * zoom;
-        const px = W * 0.32 + posX;
-        const py = H * 0.08 + posY;
+        const pw = 800 * zoom * (pCfg.scale / 100);
+        const ph = 800 * zoom * (pCfg.scale / 100);
+        const px = (pCfg.x / 100) * W - pw / 2 + posX;
+        const py = (pCfg.y / 100) * H - ph / 2 + posY;
 
         ctx.save();
         ctx.filter = `brightness(${brightness}%)`;
@@ -1830,22 +1997,33 @@
       const pos = document.getElementById('card-pos-display').innerText;
       const badgeIcon = document.getElementById('card-badge-display').innerText;
 
-      const ovrX = W * 0.17;
-      ctx.fillStyle = accentColor;
-      ctx.font = '900 135px Rajdhani, sans-serif';
+      const ovrCfg = (layout && layout.ovr) ? layout.ovr : { x: 24.2, y: 26.1, scale: 100, fontSize: 51 };
+      const ovrX = (ovrCfg.x / 100) * W;
+      const ovrY = (ovrCfg.y / 100) * H;
+      const ovrScale = (ovrCfg.scale || 100) / 100;
+      const ovrFont = Math.round((ovrCfg.fontSize || 51) * 2.8 * ovrScale);
+      const posFont = Math.round(ovrFont * 0.38);
+
+      ctx.fillStyle = userTextColor || ovrCfg.color || accentColor;
+      ctx.font = `900 ${ovrFont}px Rajdhani, sans-serif`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0,0,0,0.8)';
       ctx.shadowBlur = 10;
-      ctx.fillText(ovr, ovrX, H * 0.155);
+      ctx.fillText(ovr, ovrX, ovrY);
 
-      ctx.font = '700 52px Rajdhani, sans-serif';
+      ctx.font = `700 ${posFont}px Rajdhani, sans-serif`;
       ctx.fillStyle = '#F3F4F6';
-      ctx.fillText(pos, ovrX, H * 0.195);
+      ctx.fillText(pos, ovrX, ovrY + posFont * 0.95);
 
-      // Flagge zeichnen
-      const flagW = 54, flagH = 34;
-      const flagX = ovrX - flagW / 2;
-      const flagY = H * 0.215;
+      // Flagge & Wappen
+      const badgeCfg = (layout && layout.badge) ? layout.badge : { x: 24.7, y: 43.4, scale: 100 };
+      const badgeX = (badgeCfg.x / 100) * W;
+      const badgeY = (badgeCfg.y / 100) * H;
+      const badgeScale = (badgeCfg.scale || 100) / 100;
+
+      const flagW = 54 * badgeScale, flagH = 34 * badgeScale;
+      const flagX = badgeX - flagW / 2;
+      const flagY = badgeY - flagH - 10 * badgeScale;
       ctx.save();
       ctx.shadowBlur = 4;
       ctx.fillStyle = '#000000';
@@ -1859,33 +2037,44 @@
       ctx.strokeRect(flagX, flagY, flagW, flagH);
       ctx.restore();
 
-      ctx.font = '60px sans-serif';
-      ctx.fillText(badgeIcon, ovrX, H * 0.275);
+      ctx.font = `${Math.round(60 * badgeScale)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(badgeIcon, badgeX, badgeY + 15 * badgeScale);
 
       // 3. Draw Player Name & Nickname
       const name = document.getElementById('card-name-display').innerText;
       const nickname = document.getElementById('card-nickname-display').innerText;
 
+      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, scale: 100, fontSize: 22 };
+      const nameX = (nameCfg.x / 100) * W;
+      const nameY = (nameCfg.y / 100) * H;
+      const nameScale = (nameCfg.scale || 100) / 100;
+      const nameFont = Math.round((nameCfg.fontSize || 22) * 3.0 * nameScale);
+      const nickFont = Math.round(nameFont * 0.45);
+
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
       ctx.shadowBlur = 12;
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '800 66px Rajdhani, sans-serif';
+      ctx.fillStyle = nameCfg.color || '#FFFFFF';
+      ctx.font = `800 ${nameFont}px Rajdhani, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(name.toUpperCase(), W * 0.5, H * 0.61);
+      ctx.fillText(name.toUpperCase(), nameX, nameY);
 
       if (nickname) {
-        ctx.fillStyle = accentColor;
-        ctx.font = '700 28px Rajdhani, sans-serif';
+        ctx.fillStyle = userTextColor || nameCfg.color || accentColor;
+        ctx.font = `700 ${nickFont}px Rajdhani, sans-serif`;
         ctx.letterSpacing = '3px';
-        ctx.fillText(nickname.toUpperCase(), W * 0.5, H * 0.635);
+        ctx.fillText(nickname.toUpperCase(), nameX, nameY + nickFont * 1.15);
       }
 
       // Divider Line
-      ctx.strokeStyle = accentColor;
+      const divCfg = (layout && layout.divider) ? layout.divider : { x: 50, y: 65.5, width: 65 };
+      const divY = (divCfg.y / 100) * H;
+      const divHalfW = ((divCfg.width || 65) / 200) * W;
+      ctx.strokeStyle = userTextColor || divCfg.color || accentColor;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(W * 0.20, H * 0.655);
-      ctx.lineTo(W * 0.80, H * 0.655);
+      ctx.moveTo(nameX - divHalfW, divY);
+      ctx.lineTo(nameX + divHalfW, divY);
       ctx.stroke();
 
       // 4. Draw The 6 Stats
@@ -1896,32 +2085,38 @@
       const gem = document.getElementById('card-stat-gem').innerText;
       const tak = document.getElementById('card-stat-tak').innerText;
 
-      const col1X = W * 0.33;
-      const col2X = W * 0.67;
-      const row1Y = H * 0.71;
-      const row2Y = H * 0.755;
-      const row3Y = H * 0.80;
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 51.2, y: 74.9, scale: 100, fontSize: 14 };
+      const statsCenterX = (statsCfg.x / 100) * W;
+      const statsCenterY = (statsCfg.y / 100) * H;
+      const statsScale = (statsCfg.scale || 100) / 100;
+      const statValFont = Math.round((statsCfg.fontSize || 14) * 3.3 * statsScale);
+      const statLblFont = Math.round(statValFont * 0.72);
+
+      const colSpacing = 280 * statsScale;
+      const rowSpacing = 95 * statsScale;
+      const col1X = statsCenterX - colSpacing;
+      const col2X = statsCenterX + colSpacing;
+      const row1Y = statsCenterY - rowSpacing;
+      const row2Y = statsCenterY;
+      const row3Y = statsCenterY + rowSpacing;
 
       function drawStat(label, val, x, y) {
-        // Label (Buchstaben) linksbündig
         ctx.textAlign = 'left';
-        ctx.font = '600 34px Rajdhani, sans-serif';
+        ctx.font = `600 ${statLblFont}px Rajdhani, sans-serif`;
         ctx.fillStyle = '#E5E7EB';
-        ctx.fillText(label, x - 85, y);
+        ctx.fillText(label, x - 100 * statsScale, y);
 
-        // Wert (Zahl) rechtsbündig
         ctx.textAlign = 'right';
-        ctx.font = '800 46px Rajdhani, sans-serif';
-        ctx.fillStyle = accentColor;
-        ctx.fillText(val, x + 85, y);
+        ctx.font = `800 ${statValFont}px Rajdhani, sans-serif`;
+        ctx.fillStyle = userTextColor || statsCfg.color || accentColor;
+        ctx.fillText(val, x + 100 * statsScale, y);
       }
 
-      // Vertikale Trennlinie zwischen den Stat-Spalten
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(W * 0.5, row1Y - 32);
-      ctx.lineTo(W * 0.5, row3Y + 12);
+      ctx.moveTo(statsCenterX, row1Y - 32 * statsScale);
+      ctx.lineTo(statsCenterX, row3Y + 12 * statsScale);
       ctx.stroke();
 
       drawStat('TRF', trf, col1X, row1Y);
@@ -1934,10 +2129,16 @@
 
       // 5. Draw Perk Banner at Bottom
       const perk = document.getElementById('card-perk-display').innerText;
+      const perkCfg = (layout && layout.perk) ? layout.perk : { x: 50, y: 88, scale: 100, fontSize: 11 };
+      const perkX = (perkCfg.x / 100) * W;
+      const perkY = (perkCfg.y / 100) * H;
+      const perkScale = (perkCfg.scale || 100) / 100;
+      const perkFont = Math.round((perkCfg.fontSize || 11) * 2.8 * perkScale);
+
       ctx.textAlign = 'center';
-      ctx.font = '700 30px Rajdhani, sans-serif';
-      ctx.fillStyle = accentColor;
-      ctx.fillText(`⚡ ${perk.toUpperCase()}`, W * 0.5, H * 0.875);
+      ctx.font = `700 ${perkFont}px Rajdhani, sans-serif`;
+      ctx.fillStyle = userTextColor || perkCfg.color || accentColor;
+      ctx.fillText(`⚡ ${perk.toUpperCase()}`, perkX, perkY);
     }
 
     /* ======================================================== */
