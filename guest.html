@@ -98,6 +98,26 @@
       background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 65%, rgba(255,215,0,0.18) 100%);
       pointer-events: none;
     }
+
+    /* 3D Card Fan Deck Animation */
+    @keyframes fan-float {
+      0%, 100% { transform: translateY(-8px) scale(1.05); }
+      50% { transform: translateY(-13px) scale(1.06); }
+    }
+    .animate-fan-hero {
+      animation: fan-float 3.5s ease-in-out infinite;
+    }
+    .card-fan-container {
+      perspective: 1000px;
+    }
+    .card-fan-card {
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: 50% 120%;
+    }
+    .card-fan-container:hover .card-fan-card:not(:hover) {
+      opacity: 0.88;
+      filter: brightness(0.92);
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-black">
@@ -152,10 +172,72 @@
     <!-- SCHRITT 1: NAME & HÜTTEN-ROLLE                          -->
     <!-- ======================================================== -->
     <section id="step-1" class="wizard-step space-y-6">
-      <div class="text-center space-y-1">
-        <span class="text-3xl">👋</span>
-        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Herzlich willkommen auf der Hütte!</h2>
-        <p class="text-xs text-slate-400">Wie dürfen wir dich auf deiner Karte verewigen?</p>
+      
+      <!-- HERO KARTENFÄCHER: Visuelles Highlight zur Begrüßung -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-amber-500/15 via-slate-900/90 to-slate-950 border border-amber-500/30 p-4 sm:p-6 text-center shadow-2xl backdrop-blur-md">
+        
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] sm:text-xs font-black tracking-wider uppercase mb-2 shadow-sm">
+          <span>🃏</span> <span>OFFIZIELLES HÜTTEN-SAMMELALBUM</span>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-black text-white font-fut tracking-wide uppercase leading-tight">
+          Hol dir deine persönliche <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">Hütten-Sammelkarte!</span>
+        </h2>
+        
+        <p class="text-xs text-slate-300 max-w-md mx-auto mt-1.5 mb-4 leading-relaxed">
+          Wie bei <strong>FIFA / FUT</strong> bekommt jeder Gast sein eigenes Sammelkarten-Unikat! Wähle deinen Style, bewerte deine Party-Skills und knipse ein schnelles Selfie.
+        </p>
+
+        <!-- Interaktiver 3D-Kartenfächer -->
+        <div class="card-fan-container relative h-44 sm:h-52 max-w-sm mx-auto flex items-center justify-center my-3 select-none">
+          
+          <!-- Karte 1 (Links außen: Tracht / Salbei) -->
+          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform -translate-x-20 sm:-translate-x-24 translate-y-3 -rotate-12 hover:-translate-y-5 hover:-rotate-12 hover:scale-110 hover:z-30 cursor-pointer">
+            <img src="vorlagen/karte_blau_tracht.png" alt="Tracht Edition" class="w-full h-full object-contain filter drop-shadow">
+          </div>
+
+          <!-- Karte 2 (Links innen: Pink Glitzer) -->
+          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform -translate-x-10 sm:-translate-x-12 translate-y-1 -rotate-6 hover:-translate-y-5 hover:-rotate-6 hover:scale-110 hover:z-30 cursor-pointer">
+            <img src="vorlagen/karte_glitzer_pink.png" alt="Glitzer Edition" class="w-full h-full object-contain filter drop-shadow">
+          </div>
+
+          <!-- Karte 3 (Mitte / Hero: Bier-Gold) -->
+          <div class="card-fan-card animate-fan-hero absolute w-28 sm:w-32 aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(245,158,11,0.45)] border-2 border-amber-400 transform translate-x-0 -translate-y-2 rotate-0 scale-105 z-20 hover:-translate-y-7 hover:scale-115 hover:z-30 cursor-pointer">
+            <img src="vorlagen/karte_bier_gold.png" alt="Bier Gold Edition" class="w-full h-full object-contain filter drop-shadow">
+            <div class="absolute inset-0 bg-gradient-to-tr from-amber-400/20 via-transparent to-white/20 pointer-events-none"></div>
+          </div>
+
+          <!-- Karte 4 (Rechts innen: Holz & Eisen) -->
+          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform translate-x-10 sm:translate-x-12 translate-y-1 rotate-6 hover:-translate-y-5 hover:rotate-6 hover:scale-110 hover:z-30 cursor-pointer">
+            <img src="vorlagen/karte_holz_eisen.png" alt="Holz & Eisen Edition" class="w-full h-full object-contain filter drop-shadow">
+          </div>
+
+          <!-- Karte 5 (Rechts außen: Kaiser-Krone) -->
+          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform translate-x-20 sm:translate-x-24 translate-y-3 rotate-12 hover:-translate-y-5 hover:rotate-12 hover:scale-110 hover:z-30 cursor-pointer">
+            <img src="vorlagen/karte_lila_krone.png" alt="Krone Edition" class="w-full h-full object-contain filter drop-shadow">
+          </div>
+
+        </div>
+
+        <!-- 3 Feature Steps Badges -->
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/80 text-center">
+          <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/90">
+            <span class="text-sm block mb-0.5">📸</span>
+            <span class="text-[10px] sm:text-xs font-bold text-slate-200 block">1. Selfie machen</span>
+            <span class="text-[9px] text-slate-400">Automatisch freigestellt</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/90">
+            <span class="text-sm block mb-0.5">📊</span>
+            <span class="text-[10px] sm:text-xs font-bold text-slate-200 block">2. Skills vergeben</span>
+            <span class="text-[9px] text-slate-400">Durst, Stimmung...</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/90">
+            <span class="text-sm block mb-0.5">🏆</span>
+            <span class="text-[10px] sm:text-xs font-bold text-slate-200 block">3. Karte sichern</span>
+            <span class="text-[9px] text-slate-400">Ultra-HD & TV-Dashboard</span>
+          </div>
+        </div>
+
       </div>
 
       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl backdrop-blur-md">
