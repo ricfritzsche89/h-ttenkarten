@@ -162,7 +162,7 @@
         <!-- Name Input -->
         <div>
           <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Dein Name / Vorname</label>
-          <input id="guest-name" type="text" placeholder="z. B. Julia oder Felix" maxlength="20" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 transition">
+          <input id="guest-name" type="text" placeholder="z. B. Julia oder Felix" maxlength="20" oninput="onGuestNameChange()" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 transition">
         </div>
 
         <!-- Nickname Input -->
@@ -470,7 +470,7 @@
 
             <!-- PLAYER NAME & NICKNAME -->
             <div id="layer-name" class="absolute z-20 flex flex-col items-center justify-center text-center px-1 transition-all duration-75" style="top: 61%; left: 50%; width: 88%; transform: translate(-50%, -50%);">
-              <span id="card-name-display" class="font-fut font-extrabold uppercase tracking-wide text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] truncate max-w-full leading-none" style="font-size: 30px;">Julia</span>
+              <span id="card-name-display" class="font-fut font-extrabold uppercase tracking-wide text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)] truncate max-w-full leading-none" style="font-size: 34px;">Julia</span>
               <span id="card-nickname-display" class="font-display font-bold uppercase tracking-wider text-amber-300 text-[11px] mt-0.5 drop-shadow truncate max-w-full">DIE TREFFSICHERE</span>
             </div>
 
@@ -480,7 +480,7 @@
             </div>
 
             <!-- 4 AUSGESCHRIEBENE STATS (DURST, STIMMUNG | TREFFER, GESELLIG) -->
-            <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-5 gap-y-1.5 font-fut font-bold leading-none select-none transition-all duration-75" style="top: 75.5%; left: 50.8%; width: 74%; transform: translate(-50%, -50%); font-size: 18px;">
+            <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-4 gap-y-1.5 font-fut font-bold leading-none select-none transition-all duration-75" style="top: 75.5%; left: 50.8%; width: 68%; transform: translate(-50%, -50%); font-size: 19px;">
               <!-- Zeile 1 Links: DURST -->
               <div class="flex items-center justify-between">
                 <span class="text-white drop-shadow tracking-wider">DURST</span>
@@ -635,8 +635,17 @@
     /* Google Apps Script Submit URL (same as host app) */
     const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
 
-    /* Guest-Allowed Editions (Chef is reserved for host) */
+    /* Guest-Allowed Editions (Chef is unlocked for Ric) */
     const GUEST_EDITIONS = [
+      {
+        id: 'img_chef',
+        name: '👑 Boss / Gastgeber',
+        subtitle: 'Gold, Krone & Vinyl – exklusiv für Ric',
+        imageUrl: 'vorlagen/karte_chef.png',
+        ratio: '572 / 716',
+        badge: 'crown',
+        accentColor: '#FDE68A'
+      },
       {
         id: 'img_bier',
         name: 'Bierfest-Edition',
@@ -692,6 +701,23 @@
         accentColor: '#E9D5FF'
       }
     ];
+
+    function isGuestChefUnlocked() {
+      const name = (document.getElementById('guest-name')?.value || '').trim().toLowerCase();
+      return name === 'ric' || name.startsWith('ric') || name.includes('ric');
+    }
+
+    function onGuestNameChange() {
+      const chefUnlocked = isGuestChefUnlocked();
+      // Wenn Ric eingetippt wird und noch die Standard-Vorlage gewählt ist, Boss-Karte vorauswählen
+      if (chefUnlocked && selectedEditionId === 'img_bier') {
+        selectedEditionId = 'img_chef';
+      } else if (!chefUnlocked && selectedEditionId === 'img_chef') {
+        selectedEditionId = 'img_bier';
+      }
+      renderGuestTemplateGrid();
+      updateGuestCardPreview();
+    }
 
     /* Available Hut Positions */
     const POSITIONS = [
@@ -786,7 +812,10 @@
     /* Render Guest Editions */
     function renderGuestTemplateGrid() {
       const grid = document.getElementById('guest-template-grid');
-      grid.innerHTML = GUEST_EDITIONS.map(ed => {
+      const chefUnlocked = isGuestChefUnlocked();
+      const visibleEditions = GUEST_EDITIONS.filter(ed => ed.id !== 'img_chef' || chefUnlocked);
+
+      grid.innerHTML = visibleEditions.map(ed => {
         const isSel = ed.id === selectedEditionId;
         return `
           <div onclick="selectGuestEdition('${ed.id}')" id="tpl-card-${ed.id}"
@@ -1541,7 +1570,7 @@
         elName.style.transform = `translate(-50%, -50%) scale(${layout.name.scale / 100}) rotate(${layout.name.rot}deg)`;
         const nameTxt = document.getElementById('card-name-display');
         if (nameTxt) {
-          const nameFontSize = Math.max(29, layout.name.fontSize || 29);
+          const nameFontSize = Math.max(34, layout.name.fontSize || 34);
           nameTxt.style.fontSize = `${Math.round(nameFontSize * fontScale)}px`;
         }
       }
@@ -1560,14 +1589,14 @@
         }
       }
 
-      // 4 Stats (Größere Schrift, luftig & optimal im Schild platziert)
+      // 4 Stats (Größere Schrift, 5% mehr zur Mitte gerückt)
       const elStats = document.getElementById('layer-stats');
       if (elStats && layout.stats) {
         elStats.style.left = `${layout.stats.x}%`;
         elStats.style.top = `${layout.stats.y}%`;
-        elStats.style.width = `${Math.max(74, layout.stats.width)}%`;
+        elStats.style.width = `${layout.stats.width || 68}%`;
         elStats.style.transform = `translate(-50%, -50%) scale(${layout.stats.scale / 100}) rotate(${layout.stats.rot}deg)`;
-        const statFontSize = Math.max(18, layout.stats.fontSize || 18);
+        const statFontSize = Math.max(19, layout.stats.fontSize || 19);
         elStats.style.fontSize = `${Math.round(statFontSize * fontScale)}px`;
 
         const statIds = ['card-stat-dur', 'card-stat-trf', 'card-stat-stm', 'card-stat-ges'];
@@ -1678,11 +1707,11 @@
       ctx.fillText(BADGES[posObj.badge] || '🎯', badgeX, badgeY);
 
       // Name & Nickname
-      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, width: 88, scale: 100, fontSize: 29 };
+      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, width: 88, scale: 100, fontSize: 34 };
       const nameX = (nameCfg.x / 100) * W;
       const nameY = (nameCfg.y / 100) * H;
       const nameScale = (nameCfg.scale || 100) / 100;
-      const nameFontSize = Math.round(Math.max(29, nameCfg.fontSize || 29) * scaleH * nameScale);
+      const nameFontSize = Math.round(Math.max(34, nameCfg.fontSize || 34) * scaleH * nameScale);
 
       const guestName = (document.getElementById('guest-name').value.trim() || 'Julia').toUpperCase();
       const guestNick = document.getElementById('guest-nickname').value.trim().toUpperCase();
@@ -1707,13 +1736,13 @@
       ctx.fillStyle = activeColor;
       ctx.fillRect(divX - divW / 2, divY, divW, divH);
 
-      // 4 Ausgeschriebene Stats
-      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 50.8, y: 75.5, width: 74, scale: 100, fontSize: 18 };
+      // 4 Ausgeschriebene Stats (Buchstaben links & Zahlen rechts 5% mehr zur Mitte)
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 50.8, y: 75.5, width: 68, scale: 100, fontSize: 19 };
       const statsCenterX = (statsCfg.x / 100) * W;
       const statsCenterY = (statsCfg.y / 100) * H;
       const statsScale = (statsCfg.scale || 100) / 100;
-      const statFont = Math.round(Math.max(18, statsCfg.fontSize || 18) * scaleH * statsScale);
-      const colSpread = ((Math.max(74, statsCfg.width) / 100) * W * statsScale) / 3.8;
+      const statFont = Math.round(Math.max(19, statsCfg.fontSize || 19) * scaleH * statsScale);
+      const colSpread = (((statsCfg.width || 68) / 100) * W * statsScale) / 3.8;
       const rowGap = statFont * 1.25;
 
       const col1X = statsCenterX - colSpread;
@@ -1730,10 +1759,10 @@
         ctx.font = `700 ${statFont}px Teko, sans-serif`;
         ctx.textAlign = 'left';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(label, x - colSpread * 0.78, y);
+        ctx.fillText(label, x - colSpread * 0.72, y);
         ctx.textAlign = 'right';
         ctx.fillStyle = activeColor;
-        ctx.fillText(val, x + colSpread * 0.78, y);
+        ctx.fillText(val, x + colSpread * 0.72, y);
       };
 
       // Zeile 1: DURST (links), TREFFER (rechts)

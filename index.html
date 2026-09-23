@@ -546,7 +546,7 @@
 
               <!-- Card Middle Section: Name & Nickname -->
               <div id="layer-name" class="absolute z-20 text-center w-[88%] transition-all duration-75" style="top: 61%; left: 50%; transform: translate(-50%, -50%);">
-                <h3 id="card-name-display" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)] text-3xl leading-none" style="font-size: 29px;">
+                <h3 id="card-name-display" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_5px_rgba(0,0,0,0.9)] text-3xl leading-none" style="font-size: 34px;">
                   WERNER (GASTGEBER)
                 </h3>
                 <p id="card-nickname-display" class="font-bold tracking-widest uppercase text-amber-400 mt-0.5 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] text-[11px]">
@@ -560,7 +560,7 @@
               </div>
 
               <!-- 4 Attributes Grid (DURST, STIMMUNG | TREFFER, GESELLIG) -->
-              <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-5 gap-y-1 font-fut w-[74%] transition-all duration-75 text-base sm:text-lg" style="top: 75.5%; left: 50.8%; transform: translate(-50%, -50%); font-size: 18px;">
+              <div id="layer-stats" class="absolute z-20 grid grid-cols-2 gap-x-4 gap-y-1 font-fut w-[68%] transition-all duration-75 text-base sm:text-lg" style="top: 75.5%; left: 50.8%; transform: translate(-50%, -50%); font-size: 19px;">
                 <!-- Zeile 1 Links: DURST -->
                 <div class="flex items-center justify-between">
                   <span class="text-slate-100 font-bold tracking-wider">DURST</span>
@@ -917,70 +917,462 @@
 
     /* Kalibrierte Layout-Koordinaten fuer alle 7 Kartenvorlagen */
     const KARTEN_LAYOUTS = {
-      "img_bier": {
-        "ovr": { "x": 24.2, "y": 26.1, "scale": 100, "rot": 0, "width": 20, "fontSize": 51, "color": "#FBBF24" },
-        "badge": { "x": 24.7, "y": 43.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 64.3, "y": 37.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 51.2, "y": 74.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 50, "y": 88, "scale": 100, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_krone": {
-        "ovr": { "x": 29.1, "y": 27.5, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 29, "y": 43.1, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 59.2, "y": 38.6, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 50, "y": 74, "scale": 91, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 49.8, "y": 83.8, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_tracht": {
-        "ovr": { "x": 28.7, "y": 27.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 29, "y": 40.4, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 62.5, "y": 41.7, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 50, "y": 61, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 51.8, "y": 73.9, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 50.2, "y": 86.1, "scale": 56, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_glitzer": {
-        "ovr": { "x": 21, "y": 22.9, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 20.9, "y": 39.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 60, "y": 36, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 45.7, "y": 60.3, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 46.1, "y": 73.3, "scale": 100, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 45.7, "y": 83.4, "scale": 57, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_holz": {
-        "ovr": { "x": 30.3, "y": 25.3, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 29.9, "y": 38.7, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 60.8, "y": 36.3, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 52.5, "y": 61.2, "scale": 100, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 51.6, "y": 74, "scale": 92, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 52.1, "y": 86.3, "scale": 66, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_schuetze": {
-        "ovr": { "x": 30.8, "y": 28.7, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 31.4, "y": 41, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 58.1, "y": 39.5, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 52, "y": 60.6, "scale": 91, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 49.3, "y": 71.7, "scale": 74, "rot": 0, "width": 68, "fontSize": 14, "color": "#FBBF24" },
-        "perk": { "x": 50.6, "y": 81.5, "scale": 48, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      },
-      "img_chef": {
-        "ovr": { "x": 30.8, "y": 30, "scale": 100, "rot": 0, "width": 20, "fontSize": 44, "color": "#FBBF24" },
-        "badge": { "x": 31.3, "y": 45.3, "scale": 100, "rot": 0, "width": 15, "fontSize": 20, "color": "#FBBF24" },
-        "portrait": { "x": 61.4, "y": 42.9, "scale": 100, "rot": 0, "width": 62, "fontSize": 16, "color": "#FFFFFF" },
-        "name": { "x": 50, "y": 61, "scale": 98, "rot": 0, "width": 85, "fontSize": 22, "color": "#FFFFFF" },
-        "divider": { "x": 50, "y": 65.5, "scale": 100, "rot": 0, "width": 65, "fontSize": 2, "color": "#FBBF24" },
-        "stats": { "x": 50, "y": 74, "scale": 89, "rot": 0, "width": 68, "fontSize": 34, "color": "#FBBF24" },
-        "perk": { "x": 48, "y": 88, "scale": 42, "rot": 0, "width": 60, "fontSize": 11, "color": "#FBBF24" }
-      }
-    };
+  "img_bier": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_krone": {
+    "ovr": {
+      "x": 29.1,
+      "y": 27.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 29,
+      "y": 43.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 59.2,
+      "y": 38.6,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 50,
+      "y": 75.5,
+      "scale": 91,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 49.8,
+      "y": 83.8,
+      "scale": 66,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_tracht": {
+    "ovr": {
+      "x": 28.7,
+      "y": 27.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 29,
+      "y": 40.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 62.5,
+      "y": 41.7,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 51.8,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 50.2,
+      "y": 86.1,
+      "scale": 56,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_glitzer": {
+    "ovr": {
+      "x": 21,
+      "y": 22.9,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 20.9,
+      "y": 39.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 60,
+      "y": 36,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 45.7,
+      "y": 60.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 46.1,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 45.7,
+      "y": 83.4,
+      "scale": 57,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_holz": {
+    "ovr": {
+      "x": 30.3,
+      "y": 25.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 29.9,
+      "y": 38.7,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 60.8,
+      "y": 36.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 52.5,
+      "y": 61.2,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 51.6,
+      "y": 75.5,
+      "scale": 92,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 52.1,
+      "y": 86.3,
+      "scale": 66,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_schuetze": {
+    "ovr": {
+      "x": 30.8,
+      "y": 28.7,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 31.4,
+      "y": 41,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 58.1,
+      "y": 39.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 52,
+      "y": 60.6,
+      "scale": 91,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 49.3,
+      "y": 75.5,
+      "scale": 74,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 50.6,
+      "y": 81.5,
+      "scale": 48,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  },
+  "img_chef": {
+    "ovr": {
+      "x": 30.8,
+      "y": 30,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 31.3,
+      "y": 45.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 61.4,
+      "y": 42.9,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 98,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#FBBF24"
+    },
+    "stats": {
+      "x": 50,
+      "y": 75.5,
+      "scale": 89,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FBBF24"
+    },
+    "perk": {
+      "x": 48,
+      "y": 88,
+      "scale": 42,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
+  }
+};
 
     function applyCardLayout(editionId) {
       const layout = KARTEN_LAYOUTS[editionId] || KARTEN_LAYOUTS['img_bier'];
@@ -1630,7 +2022,8 @@
 
     /* Die Chef-Vorlage ist nur waehlbar, wenn oben der Name "Ric" eingetragen ist */
     function isChefUnlocked() {
-      return (document.getElementById('input-name').value || '').trim().toLowerCase() === 'ric';
+      const val = (document.getElementById('input-name')?.value || '').trim().toLowerCase();
+      return val === 'ric' || val.startsWith('ric') || val.includes('ric');
     }
     function isEditionSelectable(id) {
       return id !== 'img_chef' || isChefUnlocked();
@@ -2191,11 +2584,11 @@
       const name = document.getElementById('card-name-display').innerText;
       const nickname = document.getElementById('card-nickname-display').innerText;
 
-      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, scale: 100, fontSize: 29 };
+      const nameCfg = (layout && layout.name) ? layout.name : { x: 50, y: 61, scale: 100, fontSize: 34 };
       const nameX = (nameCfg.x / 100) * W;
       const nameY = (nameCfg.y / 100) * H;
       const nameScale = (nameCfg.scale || 100) / 100;
-      const nameFont = Math.round(Math.max(29, nameCfg.fontSize || 29) * scaleH * nameScale);
+      const nameFont = Math.round(Math.max(34, nameCfg.fontSize || 34) * scaleH * nameScale);
       const nickFont = Math.round(nameFont * 0.40);
 
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
@@ -2229,21 +2622,21 @@
       const trf = document.getElementById('card-stat-trf').innerText;
       const ges = document.getElementById('card-stat-ges').innerText;
 
-      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 50.8, y: 75.5, scale: 100, fontSize: 18, width: 74 };
+      const statsCfg = (layout && layout.stats) ? layout.stats : { x: 50.8, y: 75.5, scale: 100, fontSize: 19, width: 68 };
       const statsCenterX = (statsCfg.x / 100) * W;
       const statsCenterY = (statsCfg.y / 100) * H;
       const statsScale = (statsCfg.scale || 100) / 100;
-      const statValFont = Math.round(Math.max(18, statsCfg.fontSize || 18) * scaleH * statsScale);
+      const statValFont = Math.round(Math.max(19, statsCfg.fontSize || 19) * scaleH * statsScale);
       const statLblFont = Math.round(statValFont * 0.95);
 
-      const statsW = ((statsCfg.width || 74) / 100) * W * statsScale;
+      const statsW = ((statsCfg.width || 68) / 100) * W * statsScale;
       const halfW = statsW / 2;
       const rowGap = Math.round(22 * scaleH * statsScale);
 
-      const col1Left = statsCenterX - halfW;
+      const col1Left = statsCenterX - halfW * 0.95;
       const col1Right = statsCenterX - statsW * 0.05;
       const col2Left = statsCenterX + statsW * 0.05;
-      const col2Right = statsCenterX + halfW;
+      const col2Right = statsCenterX + halfW * 0.95;
 
       const row1Y = statsCenterY - rowGap * 0.55;
       const row2Y = statsCenterY + rowGap * 0.55;
