@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GUT 26 – Layout & Koordinaten Dev-Studio</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            fut: ['Rajdhani', 'sans-serif'],
+            cinzel: ['Cinzel', 'serif'],
+            stamp: ['Oswald', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Range input styling */
+    input[type=range] {
+      accent-color: #F59E0B;
+    }
+    .selected-outline {
+      outline: 2px dashed #F59E0B;
+      outline-offset: 4px;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-amber-500 selection:text-black antialiased p-4 lg:p-6">
+
+  <!-- Header Navigation -->
+  <header class="max-w-7xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 text-xl font-bold shadow-lg shadow-amber-500/20">
+        🛠️
+      </div>
+      <div>
+        <h1 class="text-xl font-black font-fut tracking-wider uppercase text-amber-400">
+          GUT 26 • Layout Calibration Studio
+        </h1>
+        <p class="text-xs text-slate-400">Entwickler-Editor: Schiebe & skaliere jedes Element auf den 7 Vorlagen</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="index.html" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center gap-1.5">
+        <span>⬅️</span>
+        <span>Zurück zur Haupt-App</span>
+      </a>
+      <button onclick="exportConfigJson()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center gap-1.5">
+        <span>💾</span>
+        <span>Konfig kopieren (JSON)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Studio Layout -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT: Interactive Preview Canvas & Overlay -->
+    <div class="lg:col-span-6 flex flex-col items-center">
+      
+      <!-- Template Selector Badges -->
+      <div class="w-full mb-3 flex flex-wrap gap-1.5 justify-center" id="template-buttons">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Card Stage Container -->
+      <div class="relative w-full max-w-[420px] aspect-[1/1.28] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 flex items-center justify-center select-none overflow-hidden">
+        
+        <!-- THE CARD WRAPPER -->
+        <div id="card-wrapper" class="relative w-full h-full select-none overflow-hidden flex items-center justify-center">
+          
+          <!-- Vorlagen-Bild -->
+          <img id="stage-template-img" src="vorlagen/karte_bier_gold.png" alt="Vorlage" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-0">
+
+          <!-- 1. PORTRAIT LAYER -->
+          <div id="layer-portrait" onclick="selectElement('portrait')" class="absolute cursor-pointer transition-all duration-75 z-10 overflow-hidden flex items-center justify-center">
+            <img id="portrait-img" src="assets/avatar_gastgeber.png" alt="Avatar" class="w-full h-full object-contain pointer-events-none">
+          </div>
+
+          <!-- 2. OVR & POSITION LAYER -->
+          <div id="layer-ovr" onclick="selectElement('ovr')" class="absolute cursor-pointer transition-all duration-75 z-20 flex flex-col items-center leading-none text-center">
+            <span id="txt-ovr" class="font-fut font-extrabold tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-amber-300">99</span>
+            <span id="txt-pos" class="font-fut font-bold tracking-wider text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">GK</span>
+          </div>
+
+          <!-- 3. FLAG & BADGE LAYER -->
+          <div id="layer-badge" onclick="selectElement('badge')" class="absolute cursor-pointer transition-all duration-75 z-20 flex flex-col items-center">
+            <div id="el-flag" class="rounded-sm shadow overflow-hidden border border-white/30 my-0.5">
+              <div class="w-full h-1/3 bg-black"></div>
+              <div class="w-full h-1/3 bg-red-600"></div>
+              <div class="w-full h-1/3 bg-amber-400"></div>
+            </div>
+            <div id="txt-badge" class="mt-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">👑</div>
+          </div>
+
+          <!-- 4. NAME & NICKNAME LAYER -->
+          <div id="layer-name" onclick="selectElement('name')" class="absolute cursor-pointer transition-all duration-75 z-20 text-center w-full px-2">
+            <h3 id="txt-name" class="font-fut font-extrabold tracking-wider uppercase text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+              WERNER (GASTGEBER)
+            </h3>
+            <p id="txt-nickname" class="font-bold tracking-widest uppercase text-amber-400 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              DER HÜTTEN-PATRON
+            </p>
+          </div>
+
+          <!-- 5. DIVIDER LINE -->
+          <div id="layer-divider" onclick="selectElement('divider')" class="absolute cursor-pointer transition-all duration-75 z-20 flex items-center justify-center">
+            <div id="el-divider-line" class="h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+          </div>
+
+          <!-- 6. STATS LAYER -->
+          <div id="layer-stats" onclick="selectElement('stats')" class="absolute cursor-pointer transition-all duration-75 z-20 grid grid-cols-2 font-fut">
+            <!-- Col 1 -->
+            <div class="space-y-0.5">
+              <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">TRF</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                <span class="font-extrabold text-amber-300 drop-shadow">98</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">DUR</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">GES</span>
+              </div>
+            </div>
+            <!-- Col 2 -->
+            <div class="space-y-0.5">
+              <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                <span class="font-extrabold text-amber-300 drop-shadow">97</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">STM</span>
+              </div>
+              <div class="flex items-center justify-between border-b border-white/10 pb-0.5">
+                <span class="font-extrabold text-amber-300 drop-shadow">99</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">GEM</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-amber-300 drop-shadow">92</span>
+                <span class="text-slate-200 font-semibold tracking-wider text-[10px]">TAK</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. PLAYSTYLE PERK LAYER -->
+          <div id="layer-perk" onclick="selectElement('perk')" class="absolute cursor-pointer transition-all duration-75 z-20 flex items-center justify-center">
+            <span id="el-perk-badge" class="px-2.5 py-0.5 rounded-full bg-black/60 border border-amber-500/40 text-amber-300 uppercase tracking-wider font-fut text-[10px] truncate drop-shadow flex items-center gap-1">
+              <span>⚡</span>
+              <span>ZANGEN-DOPPELKLICK+</span>
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Quick Helpers -->
+      <div class="mt-3 flex items-center gap-2 text-xs text-slate-400">
+        <span>💡 Klicke ein Element auf der Karte an, um es direkt zu steuern.</span>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Inspector & Control Sliders -->
+    <div class="lg:col-span-6 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl backdrop-blur-md space-y-6">
+      
+      <!-- Active Element Title -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Ausgewähltes Element</span>
+          <h2 id="inspector-title" class="text-lg font-bold text-white flex items-center gap-2">
+            OVR & Position
+          </h2>
+        </div>
+        <select id="element-dropdown" onchange="selectElement(this.value)" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 font-medium focus:border-amber-500 focus:outline-none">
+          <option value="ovr">🔢 1. OVR & Position</option>
+          <option value="badge">👑 2. Flagge & Wappen</option>
+          <option value="portrait">📸 3. Spieler-Porträt</option>
+          <option value="name">✍️ 4. Name & Spitzname</option>
+          <option value="divider">➖ 5. Trennlinie</option>
+          <option value="stats">📊 6. Stats-Block (6 Attribute)</option>
+          <option value="perk">⚡ 7. PlayStyle+ Perk</option>
+        </select>
+      </div>
+
+      <!-- Sliders for Active Element -->
+      <div class="space-y-4 text-xs" id="controls-container">
+        
+        <!-- X Position -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Horizontale Position (X)</span>
+            <span id="lbl-x" class="text-amber-400 font-bold">18%</span>
+          </div>
+          <input id="slider-x" type="range" min="0" max="100" step="0.5" value="18" oninput="updateActiveProperty('x', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Y Position -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Vertikale Position (Y)</span>
+            <span id="lbl-y" class="text-amber-400 font-bold">16%</span>
+          </div>
+          <input id="slider-y" type="range" min="0" max="100" step="0.5" value="16" oninput="updateActiveProperty('y', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Scale / Zoom -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Größe / Skalierung (Scale)</span>
+            <span id="lbl-scale" class="text-amber-400 font-bold">100%</span>
+          </div>
+          <input id="slider-scale" type="range" min="40" max="200" step="1" value="100" oninput="updateActiveProperty('scale', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Rotation -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Drehung (Rotation)</span>
+            <span id="lbl-rot" class="text-amber-400 font-bold">0°</span>
+          </div>
+          <input id="slider-rot" type="range" min="-30" max="30" step="0.5" value="0" oninput="updateActiveProperty('rot', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Width / Spacing -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Breite / Weite</span>
+            <span id="lbl-width" class="text-amber-400 font-bold">70%</span>
+          </div>
+          <input id="slider-width" type="range" min="10" max="100" step="1" value="70" oninput="updateActiveProperty('width', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Font Size Modifier -->
+        <div>
+          <div class="flex justify-between text-slate-300 mb-1">
+            <span>Schriftgröße (Font-Size)</span>
+            <span id="lbl-fontsize" class="text-amber-400 font-bold">24px</span>
+          </div>
+          <input id="slider-fontsize" type="range" min="10" max="60" step="1" value="24" oninput="updateActiveProperty('fontSize', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+        </div>
+
+      </div>
+
+      <!-- Action Row: Reset / Export -->
+      <div class="pt-4 border-t border-slate-800 flex flex-wrap gap-2 justify-between">
+        <button onclick="resetCurrentTemplate()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+          ↺ Diese Vorlage zurücksetzen
+        </button>
+        <button onclick="copyToClipboard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+          <span>📋</span>
+          <span>Konfiguration in Zwischenablage kopieren</span>
+        </button>
+      </div>
+
+      <!-- JSON Preview Box -->
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-1">Generierter Konfigurations-Code:</label>
+        <textarea id="json-output" rows="6" readonly class="w-full p-2.5 bg-slate-950 font-mono text-[11px] text-amber-300/90 border border-slate-800 rounded-xl focus:outline-none"></textarea>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    /* ======================================================== */
+    /* THE 7 EDITIONS                                           */
+    /* ======================================================== */
+    const EDITIONS = [
+      { id: 'img_bier', name: '🍺 Bierfest', file: 'vorlagen/karte_bier_gold.png' },
+      { id: 'img_krone', name: '👑 Prunkkrone', file: 'vorlagen/karte_lila_krone.png' },
+      { id: 'img_tracht', name: '🌸 Edelweiß', file: 'vorlagen/karte_blau_tracht.png' },
+      { id: 'img_glitzer', name: '✨ Glitzer', file: 'vorlagen/karte_glitzer_pink.png' },
+      { id: 'img_holz', name: '🪵 Eisenhütte', file: 'vorlagen/karte_holz_eisen.png' },
+      { id: 'img_schuetze', name: '🎯 Schütze', file: 'vorlagen/karte_gruen_gold.png' },
+      { id: 'img_chef', name: '👑 Chef (Ric)', file: 'vorlagen/karte_chef.png' }
+    ];
+
+    let currentEditionId = 'img_bier';
+    let activeElementKey = 'ovr';
+
+    /* Standard-Layout-Presets für jedes Element */
+    const DEFAULT_CONFIGS = {
+      img_bier: {
+        ovr: { x: 20, y: 19, scale: 100, rot: 0, width: 20, fontSize: 36 },
+        badge: { x: 20, y: 28, scale: 100, rot: 0, width: 15, fontSize: 20 },
+        portrait: { x: 62, y: 35, scale: 105, rot: 0, width: 62, fontSize: 16 },
+        name: { x: 50, y: 61, scale: 100, rot: 0, width: 90, fontSize: 22 },
+        divider: { x: 50, y: 65.5, scale: 100, rot: 0, width: 65, fontSize: 2 },
+        stats: { x: 50, y: 74, scale: 100, rot: 0, width: 68, fontSize: 13 },
+        perk: { x: 50, y: 88, scale: 100, rot: 0, width: 60, fontSize: 11 }
+      }
+    };
+
+    // Für die anderen Vorlagen als Kopie initialisieren
+    EDITIONS.forEach(e => {
+      if (!DEFAULT_CONFIGS[e.id]) {
+        DEFAULT_CONFIGS[e.id] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS.img_bier));
+      }
+    });
+
+    // Aus LocalStorage laden oder Default nehmen
+    let configs = JSON.parse(localStorage.getItem('gut_editor_configs') || 'null') || DEFAULT_CONFIGS;
+
+    function saveConfigs() {
+      localStorage.setItem('gut_editor_configs', JSON.stringify(configs));
+      updateJsonOutput();
+    }
+
+    /* Template Buttons rendern */
+    function renderTemplateButtons() {
+      const container = document.getElementById('template-buttons');
+      container.innerHTML = EDITIONS.map(ed => `
+        <button onclick="setEdition('${ed.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+          currentEditionId === ed.id 
+            ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/25' 
+            : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+        }">
+          ${ed.name}
+        </button>
+      `).join('');
+    }
+
+    function setEdition(id) {
+      currentEditionId = id;
+      renderTemplateButtons();
+      const ed = EDITIONS.find(e => e.id === id);
+      document.getElementById('stage-template-img').src = ed.file;
+      applyAllStyles();
+      syncSliders();
+    }
+
+    /* Element auswählen */
+    function selectElement(key) {
+      activeElementKey = key;
+      document.getElementById('element-dropdown').value = key;
+      
+      const titles = {
+        ovr: '🔢 1. OVR & Position',
+        badge: '👑 2. Flagge & Wappen',
+        portrait: '📸 3. Spieler-Porträt',
+        name: '✍️ 4. Name & Spitzname',
+        divider: '➖ 5. Trennlinie',
+        stats: '📊 6. Stats-Block (6 Attribute)',
+        perk: '⚡ 7. PlayStyle+ Perk'
+      };
+      document.getElementById('inspector-title').innerText = titles[key];
+
+      // Markierungsrahmen aktualisieren
+      document.querySelectorAll('#card-wrapper > div').forEach(el => el.classList.remove('selected-outline'));
+      const activeLayer = document.getElementById(`layer-${key}`);
+      if (activeLayer) activeLayer.classList.add('selected-outline');
+
+      syncSliders();
+    }
+
+    /* Schieberegler mit aktuellen Daten füllen */
+    function syncSliders() {
+      const cur = configs[currentEditionId][activeElementKey];
+      document.getElementById('slider-x').value = cur.x;
+      document.getElementById('lbl-x').innerText = `${cur.x}%`;
+
+      document.getElementById('slider-y').value = cur.y;
+      document.getElementById('lbl-y').innerText = `${cur.y}%`;
+
+      document.getElementById('slider-scale').value = cur.scale;
+      document.getElementById('lbl-scale').innerText = `${cur.scale}%`;
+
+      document.getElementById('slider-rot').value = cur.rot;
+      document.getElementById('lbl-rot').innerText = `${cur.rot}°`;
+
+      document.getElementById('slider-width').value = cur.width;
+      document.getElementById('lbl-width').innerText = `${cur.width}%`;
+
+      document.getElementById('slider-fontsize').value = cur.fontSize;
+      document.getElementById('lbl-fontsize').innerText = `${cur.fontSize}px`;
+    }
+
+    /* Slider-Änderung anwenden */
+    function updateActiveProperty(prop, value) {
+      const cur = configs[currentEditionId][activeElementKey];
+      cur[prop] = parseFloat(value);
+      
+      const labelMap = {
+        x: '%', y: '%', scale: '%', rot: '°', width: '%', fontSize: 'px'
+      };
+      document.getElementById(`lbl-${prop.toLowerCase()}`).innerText = `${value}${labelMap[prop]}`;
+
+      applyElementStyle(activeElementKey);
+      saveConfigs();
+    }
+
+    /* CSS-Styles auf DOM anwenden */
+    function applyElementStyle(key) {
+      const cur = configs[currentEditionId][key];
+      const layer = document.getElementById(`layer-${key}`);
+      if (!layer) return;
+
+      // Positionierung absolut in %
+      layer.style.left = `${cur.x}%`;
+      layer.style.top = `${cur.y}%`;
+      layer.style.transform = `translate(-50%, -50%) scale(${cur.scale / 100}) rotate(${cur.rot}deg)`;
+
+      // Breitenanpassung
+      if (key === 'stats' || key === 'name' || key === 'perk') {
+        layer.style.width = `${cur.width}%`;
+      }
+      if (key === 'divider') {
+        const line = document.getElementById('el-divider-line');
+        if (line) line.style.width = `${cur.width}%`;
+      }
+
+      // Font-Größen
+      if (key === 'ovr') {
+        document.getElementById('txt-ovr').style.fontSize = `${cur.fontSize}px`;
+        document.getElementById('txt-pos').style.fontSize = `${Math.round(cur.fontSize * 0.42)}px`;
+      }
+      if (key === 'name') {
+        document.getElementById('txt-name').style.fontSize = `${cur.fontSize}px`;
+        document.getElementById('txt-nickname').style.fontSize = `${Math.round(cur.fontSize * 0.45)}px`;
+      }
+      if (key === 'stats') {
+        layer.style.fontSize = `${cur.fontSize}px`;
+      }
+      if (key === 'perk') {
+        document.getElementById('el-perk-badge').style.fontSize = `${cur.fontSize}px`;
+      }
+    }
+
+    function applyAllStyles() {
+      Object.keys(configs[currentEditionId]).forEach(key => applyElementStyle(key));
+    }
+
+    function resetCurrentTemplate() {
+      configs[currentEditionId] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS.img_bier));
+      applyAllStyles();
+      syncSliders();
+      saveConfigs();
+    }
+
+    function updateJsonOutput() {
+      document.getElementById('json-output').value = JSON.stringify(configs[currentEditionId], null, 2);
+    }
+
+    function copyToClipboard() {
+      const json = JSON.stringify(configs, null, 2);
+      navigator.clipboard.writeText(json).then(() => {
+        alert('✅ Komplette Layout-Konfiguration für alle Vorlagen in die Zwischenablage kopiert! Schicke sie einfach hier in den Chat.');
+      });
+    }
+
+    function exportConfigJson() {
+      copyToClipboard();
+    }
+
+    // Init on Load
+    window.addEventListener('load', () => {
+      renderTemplateButtons();
+      setEdition('img_bier');
+      selectElement('ovr');
+      updateJsonOutput();
+    });
+  </script>
+
+</body>
+</html>
