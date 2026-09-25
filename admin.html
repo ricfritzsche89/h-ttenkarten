@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Turnier-Regie – Mobile Admin</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Barlow Condensed', 'Inter', 'sans-serif'],
+            fut: ['Barlow Condensed', 'sans-serif'],
+            cinzel: ['Barlow Condensed', 'sans-serif'],
+          },
+          colors: {
+            amber: {
+              300: '#F3E5AB',
+              400: '#E5C483',
+              500: '#D4AF37',
+              600: '#B89326',
+              700: '#94741B',
+            },
+            brand: {
+              gold: '#D4AF37',
+              goldLight: '#F3E5AB',
+              amber: '#B89326',
+              woodDark: '#090B0E',
+              woodMedium: '#11151F',
+              slateCard: '#0E121A',
+              borderGold: 'rgba(212, 175, 55, 0.35)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Mobile-first touch feel & prevent bouncing - Chrono Titanium & Champagne Gold */
+    html, body {
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+      background: #090B0E url('assets/volcanic_lodge_bg.jpg') no-repeat center bottom fixed;
+      background-size: cover;
+      background-attachment: fixed;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Precision Slate Cards */
+    .lodge-card {
+      background: rgba(14, 18, 26, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+      border-radius: 8px;
+    }
+
+    .lodge-card-amber {
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.85), 0 0 16px rgba(212, 175, 55, 0.08);
+    }
+
+    .lodge-inner {
+      background: rgba(8, 11, 16, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+    }
+
+    /* Active Touch States & Tactile Remote Feel */
+    .touch-btn {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      border-radius: 6px;
+      transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.15);
+    }
+
+    /* Floating Bottom Dock */
+    .nav-dock {
+      background: rgba(10, 13, 19, 0.98);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-100 select-none pb-24">
+
+  <!-- TOP HEADER (Compact for Mobile) -->
+  <header class="bg-[#090D14]/98 backdrop-blur-md border-b border-white/[0.08] px-4 py-2.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-2.5">
+      <span class="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+      <div>
+        <h1 class="font-fut font-bold text-base tracking-wider text-[#D4AF37] uppercase leading-none">
+          TURNIER-REGIE
+        </h1>
+      </div>
+    </div>
+
+    <!-- Connection Indicator -->
+    <div class="flex items-center space-x-2">
+      <span id="ws-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span id="ws-label" class="font-fut text-xs font-bold text-emerald-400 tracking-wider">LIVE</span>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="flex-1 p-3 max-w-2xl w-full mx-auto space-y-4">
+
+    <!-- TAB 0: REGIE & SPIELABLAUF (DEFAULT) -->
+    <section id="view-regie" class="space-y-4">
+      <!-- Regie Control Card -->
+      <div class="lodge-card lodge-card-amber p-4 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase leading-none">ABLAUF-REGIE</h2>
+            <span class="text-[11px] text-slate-400 font-medium">Spielablauf, Ankündigungen & Live-Matches</span>
+          </div>
+          <span id="regie-status-pill" class="text-[10px] px-2.5 py-0.5 rounded font-fut font-bold uppercase tracking-wider bg-white/5 text-slate-300 border border-white/10">
+            IDLE
+          </span>
+        </div>
+
+        <!-- TV-BILDSCHIRM DIREKT-STEUERUNG -->
+        <div class="lodge-inner p-3 space-y-2">
+          <div class="flex items-center justify-between text-[11px] font-fut font-bold text-amber-300 uppercase tracking-wider">
+            <span>TV-BILDSCHIRM ANSICHT</span>
+            <span id="regie-tv-mode-badge" class="text-[10px] px-2 py-0.5 rounded font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">SCOREBOARD</span>
+          </div>
+          <div class="grid grid-cols-5 gap-1.5">
+            <button id="btn-tv-view-scoreboard" onclick="setTvViewMode('scoreboard')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">Score</span>
+            </button>
+            <button id="btn-tv-view-announced" onclick="openTimerWizardModal()" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">Timer</span>
+            </button>
+            <button id="btn-tv-view-live" onclick="setTvViewMode('live')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">Arena</span>
+            </button>
+            <button id="btn-tv-view-slideshow" onclick="setTvViewMode('slideshow')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">Fotos</span>
+            </button>
+            <button id="btn-tv-view-ceremony" onclick="setTvViewMode('ceremony')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">Sieger</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Spiel auswählen -->
+        <div>
+          <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">AKTUELLES / NÄCHSTES SPIEL</label>
+          <select id="regie-game-select" onchange="onRegieGameChange(this.value)" class="w-full bg-[#0B0F17] border border-white/10 rounded-lg px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-amber-500">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <!-- Phasen Steuerung: Ankündigen (Timer), Starten, Pausieren, Beenden -->
+        <div class="pt-1 border-t border-white/10 space-y-2">
+          <div class="text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider">AKTIONEN</div>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="startLiveMatch()" class="touch-btn py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-sm tracking-wider uppercase flex items-center justify-center shadow">
+              <span>LIVE STARTEN</span>
+            </button>
+            
+            <button onclick="pauseEvent()" class="touch-btn py-2.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-fut font-bold text-sm tracking-wider uppercase flex items-center justify-center shadow">
+              <span>PAUSIEREN</span>
+            </button>
+          </div>
+
+
+          <!-- Ankündigung mit Countdown Timer & GO Button -->
+          <div id="regie-timer-card" class="lodge-inner p-3 space-y-2.5 transition-all duration-300">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-fut font-bold text-amber-300 uppercase tracking-wider">COUNTDOWN-TIMER (EVENT START):</span>
+              <span id="regie-timer-display" class="font-fut text-xs font-bold text-amber-400"></span>
+            </div>
+
+            <!-- Dauer auswählen (Klick wählt nur Zeit vor – Timer startet erst bei Klick auf GO) -->
+            <div id="regie-timer-selection-row" class="space-y-2">
+              <div class="grid grid-cols-4 gap-1.5">
+                <button type="button" id="btn-timer-1m" onclick="selectTimerMinutes(1)" class="timer-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition">
+                  1 Min
+                </button>
+                <button type="button" id="btn-timer-3m" onclick="selectTimerMinutes(3)" class="timer-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition">
+                  3 Min
+                </button>
+                <button type="button" id="btn-timer-5m" onclick="selectTimerMinutes(5)" class="timer-pill touch-btn py-1.5 bg-amber-500 text-slate-950 rounded text-xs font-fut font-black tracking-wider uppercase border border-amber-400 shadow ring-1 ring-amber-400 transition">
+                  5 Min
+                </button>
+                <button type="button" id="btn-timer-10m" onclick="selectTimerMinutes(10)" class="timer-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition">
+                  10 Min
+                </button>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1.5 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 flex-1">
+                  <span class="text-[10px] font-fut font-bold text-slate-400 uppercase">ZEIT:</span>
+                  <input type="number" id="regie-custom-minutes" placeholder="Min" min="1" max="60" value="5" oninput="onCustomMinutesChange(this.value)" class="w-14 bg-black border border-white/20 rounded py-0.5 px-1.5 text-xs text-center font-bold text-amber-300 focus:outline-none focus:border-amber-500">
+                  <span class="text-[10px] text-slate-400 font-fut font-bold">MIN</span>
+                </div>
+
+                <!-- DER GO-BUTTON: ERST BEI KLICK WIRD GESTARTET! -->
+                <button type="button" id="btn-timer-go" onclick="startAnnounceTimer()" class="touch-btn px-4 py-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-fut font-black text-xs tracking-wider uppercase rounded-lg shadow-lg flex items-center space-x-1.5 transition">
+                  <span>GO: TIMER STARTEN (5 MIN)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Wenn Timer aktiv ist: Steuerleiste für laufenden Timer -->
+            <div id="regie-timer-active-row" class="hidden space-y-2 pt-1">
+              <div class="flex items-center justify-between bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                  <span class="text-xs font-fut font-bold text-amber-300 uppercase tracking-wider">COUNTDOWN LÄUFT:</span>
+                </div>
+                <span id="regie-timer-clock-badge" class="font-fut text-lg font-black text-amber-400">--:--</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="startLiveMatch()" class="touch-btn py-2 px-2 bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+                  SOFORT LIVE STARTEN
+                </button>
+                <button type="button" onclick="cancelTimer()" class="touch-btn py-2 px-2 bg-slate-800 hover:bg-rose-950 text-rose-300 border border-rose-500/30 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+                  TIMER ABBRECHEN
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="stopEvent()" class="touch-btn w-full py-2 bg-slate-800/60 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 rounded-lg text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition flex items-center justify-center">
+            <span>SPIEL BEENDEN (NORMALES SCOREBOARD)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DYNAMIC GAME MANAGER SECTION -->
+      <div id="regie-dynamic-container" class="space-y-4">
+        <!-- Dynamically rendered depending on game.type: team_match (Bierpong) or single-turn (Schießen Sterne/Zielscheibe/Maßkrug) -->
+      </div>
+    </section>
+
+    <!-- TAB 1: LIVE SCORING -->
+    <section id="view-scoring" class="space-y-4 hidden">
+      
+      <!-- Game Selector Card -->
+      <div class="lodge-card p-3.5 shadow-md">
+        <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <span>AKTIVES SPIEL AUSWÄHLEN</span>
+          <span id="game-type-badge" class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold"></span>
+        </label>
+        <select id="active-game-select" onchange="onGameSelected(this.value)" class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-amber-500">
+          <!-- Filled dynamically -->
+        </select>
+      </div>
+
+      <!-- Quick Scoring Grid for Players -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-400">PUNKTEVERGABE</span>
+          <span id="scoring-hint" class="text-xs text-amber-400 font-medium">Tippe auf Buttons</span>
+        </div>
+
+        <div id="player-score-list" class="space-y-2">
+          <!-- Filled with player score cards dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SPIELE VERWALTEN (GAME STUDIO) -->
+    <section id="view-games" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase">
+          ALLE SPIELE
+        </h2>
+        <button onclick="openNewGameModal()" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
+          NEUES SPIEL
+        </button>
+      </div>
+
+      <div id="games-manage-list" class="space-y-2.5">
+        <!-- Filled dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: TEILNEHMER (PLAYERS) -->
+    <section id="view-players" class="space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase">
+            TEILNEHMER & KARTEN
+          </h2>
+          <span class="text-[11px] text-slate-400">Erstellte Karten importieren oder manuell anlegen</span>
+        </div>
+        <div class="flex space-x-1.5">
+          <!-- Import / Upload Card Button -->
+          <button onclick="document.getElementById('card-file-input').click()" class="touch-btn px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
+            KARTE IMPORTIEREN
+          </button>
+          <!-- Hidden file input for card upload -->
+          <input type="file" id="card-file-input" accept="image/*,application/json" onchange="handleCardUpload(event)" class="hidden">
+          
+          <button onclick="openNewPlayerModal()" class="touch-btn px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
+            MANUELL
+          </button>
+        </div>
+      </div>
+
+      <!-- KARTEN-EINGANG (INBOX) VON GÄSTEN -->
+      <div id="inbox-section" class="lodge-card p-3 space-y-2 hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-fut font-bold tracking-wider uppercase text-amber-400">
+            EINGEGANGENE GAST-KARTEN
+          </span>
+          <div class="flex items-center space-x-2">
+            <button onclick="syncDrive()" class="touch-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-[10px] font-fut font-bold tracking-wider uppercase rounded shadow">
+              DRIVE SYNC
+            </button>
+            <span id="inbox-count" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black font-black">0</span>
+          </div>
+        </div>
+        <div id="inbox-cards-list" class="space-y-2">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- AKTIVE TURNIER-TEILNEHMER -->
+      <div class="space-y-2">
+        <span class="text-xs font-fut font-bold uppercase tracking-wider text-slate-400 px-1">AKTIVE TURNIER-SPIELER</span>
+        <div id="players-manage-list" class="space-y-2">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: TV-STEUERUNG & EXTRAS -->
+    <section id="view-tv" class="space-y-4 hidden">
+      <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase">
+        TV-STEUERUNG
+      </h2>
+
+      <!-- 1. SIEGEREHRUNG SPECIAL CARD -->
+      <div class="lodge-card lodge-card-amber p-4 space-y-3 shadow-lg border border-amber-500/40">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider">
+              SIEGEREHRUNG
+            </h3>
+            <p class="text-[11px] text-slate-400">Das 3er-Treppchen der Gewinner auf dem TV anzeigen</p>
+          </div>
+          <span class="text-[10px] font-fut font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">PODEST</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="setTvViewMode('ceremony')" class="touch-btn py-2.5 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs tracking-wider uppercase flex flex-col items-center justify-center shadow">
+            <span>SIEGEREHRUNG STARTEN</span>
+          </button>
+          <button onclick="setTvViewMode('scoreboard')" class="touch-btn py-2.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs tracking-wider uppercase flex flex-col items-center justify-center border border-white/10 shadow">
+            <span>SCOREBOARD ANZEIGEN</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. FOTO-SLIDESHOW CARD -->
+      <div class="lodge-card p-4 space-y-3.5 shadow-lg border border-white/10">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider">
+              GÄSTE-FOTOS & SLIDESHOW
+            </h3>
+            <p class="text-[11px] text-slate-400">Party-Fotos live in Vollbild auf den TV streamen</p>
+          </div>
+          <span id="tv-photos-badge" class="text-xs px-2.5 py-0.5 rounded font-fut font-bold uppercase bg-amber-500 text-black shadow">0 Fotos</span>
+        </div>
+
+        <!-- Slideshow TV Controls -->
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="setTvViewMode('slideshow')" class="touch-btn py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs tracking-wider uppercase flex items-center justify-center shadow">
+            <span>SLIDESHOW STARTEN</span>
+          </button>
+          <button onclick="setTvViewMode('scoreboard')" class="touch-btn py-2.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs tracking-wider uppercase flex items-center justify-center border border-white/10 shadow">
+            <span>STOPPEN</span>
+          </button>
+        </div>
+
+        <!-- Guest Upload Info Box -->
+        <div class="lodge-inner p-3 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-fut font-bold text-amber-300 uppercase tracking-wider">
+              FOTO-UPLOAD FÜR GÄSTE
+            </span>
+            <button onclick="copyGuestUploadLink()" class="text-[10px] text-amber-400 hover:underline font-fut font-bold tracking-wider uppercase">
+              Link kopieren
+            </button>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input type="text" id="admin-guest-url-input" readonly value="Lade..." class="flex-1 bg-black border border-white/10 rounded px-2.5 py-1.5 text-xs text-slate-300 font-mono focus:outline-none">
+            <button onclick="openGuestUploadPage()" class="touch-btn px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-white/15 text-xs font-fut font-bold tracking-wider uppercase rounded shadow">
+              Öffnen
+            </button>
+          </div>
+        </div>
+
+        <!-- Uploaded Photos Gallery Preview -->
+        <div class="space-y-2 pt-1 border-t border-white/10">
+          <div class="flex items-center justify-between text-xs font-fut font-bold uppercase tracking-wider text-slate-400">
+            <span>HOCHGELADENE FOTOS</span>
+            <span id="admin-gallery-count" class="text-[10px] text-amber-400">0 BILDER</span>
+          </div>
+          <div id="admin-photos-grid" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Network Info Card -->
+      <div class="lodge-inner p-4 space-y-3">
+        <h3 class="text-xs font-fut font-bold text-slate-400 uppercase tracking-wider">VERBINDUNGS-INFOS</h3>
+        <div class="text-xs text-slate-300 space-y-1">
+          <div><strong class="text-white">Laptop TV-URL:</strong> <span id="info-tv-url">http://localhost:3000/tv.html</span></div>
+          <div><strong class="text-white">Mobile Admin URL:</strong> <span id="info-mobile-url">Lade...</span></div>
+        </div>
+      </div>
+
+      <!-- Reset Tournament Option -->
+      <div class="pt-4 border-t border-rose-900/30">
+        <button onclick="confirmResetAll()" class="touch-btn w-full py-2.5 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 font-fut font-bold tracking-wider uppercase text-xs rounded-lg transition">
+          ALLE PUNKTE ZURÜCKSETZEN
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FLOATING BOTTOM NAVIGATION BAR (Mobile First - Precision Segment Dock) -->
+  <nav class="fixed bottom-0 inset-x-0 nav-dock py-1.5 px-3 z-40">
+    <div class="max-w-md mx-auto grid grid-cols-5 gap-1 text-center">
+      <button onclick="switchTab('regie')" id="nav-regie" class="nav-btn flex flex-col items-center justify-center py-1 text-[#D4AF37] font-bold border-t-2 border-[#D4AF37] transition-all bg-white/[0.02]">
+        <span class="text-xs font-fut font-bold tracking-widest uppercase">REGIE</span>
+        <span class="text-[9px] text-slate-400 font-medium">Ablauf</span>
+      </button>
+
+      <button onclick="switchTab('scoring')" id="nav-scoring" class="nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all">
+        <span class="text-xs font-fut font-bold tracking-widest uppercase">PUNKTE</span>
+        <span class="text-[9px] text-slate-400 font-medium">Scoring</span>
+      </button>
+
+      <button onclick="switchTab('games')" id="nav-games" class="nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all">
+        <span class="text-xs font-fut font-bold tracking-widest uppercase">SPIELE</span>
+        <span class="text-[9px] text-slate-400 font-medium">Setup</span>
+      </button>
+
+      <button onclick="switchTab('players')" id="nav-players" class="nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all relative">
+        <span class="text-xs font-fut font-bold tracking-widest uppercase relative">
+          SPIELER
+          <span id="nav-inbox-badge" class="absolute -top-1 -right-3 px-1.5 py-0.5 bg-[#D4AF37] text-black text-[9px] font-black rounded leading-none hidden">0</span>
+        </span>
+        <span class="text-[9px] text-slate-400 font-medium">Kader</span>
+      </button>
+
+      <button onclick="switchTab('tv')" id="nav-tv" class="nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all">
+        <span class="text-xs font-fut font-bold tracking-widest uppercase">TV</span>
+        <span class="text-[9px] text-slate-400 font-medium">Tools</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODAL: NEUES SPIEL ANLEGEN -->
+  <div id="modal-game" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-2">
+        <h3 id="modal-game-title" class="font-display font-extrabold text-lg text-amber-400 uppercase">NEUES SPIEL ANLEGEN</h3>
+        <button onclick="closeModal('modal-game')" class="text-gray-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">SPIELNAME</label>
+          <input type="text" id="input-game-name" placeholder="z. B. Bierpong, Schießen..." class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">KÜRZEL / NUMMER</label>
+            <input type="text" id="input-game-icon" value="" placeholder="z. B. 01" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-center text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">EINHEIT</label>
+            <input type="text" id="input-game-unit" value="Punkte" placeholder="Treffer, Ringe..." class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">PUNKTE-MODUS</label>
+          <select id="input-game-type" onchange="onGameTypeChange(this.value)" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="team_match">Bierpong / Team-Match (Zufallsteams 2v2, Sieg = 1 Pkt)</option>
+            <option value="attempts_stars">Sterneschießen / Ballons (z. B. 10 Schuss = 0-10 Pkt)</option>
+            <option value="target_ring">Zielscheibe (5 Schuss • 0 bis 12 Punkte)</option>
+            <option value="attempts_target">Maßkrugschieben (z. B. 5 Durchgänge = 0-5 Treffer)</option>
+            <option value="counter">Klassischer Zähler (+1, +5 etc.)</option>
+            <option value="placement">Platzierungs-Punkte (1. = X, 2. = Y...)</option>
+          </select>
+        </div>
+
+        <div id="counter-options" class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">SCHRITTWEITE (+)</label>
+            <input type="number" id="input-game-step" value="1" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">FAKTOR / MULTI</label>
+            <input type="number" id="input-game-multi" value="1" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeModal('modal-game')" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded font-fut font-bold text-xs uppercase tracking-wider">ABBRECHEN</button>
+        <button onclick="submitNewGame()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold uppercase tracking-wider rounded text-xs">SPEICHERN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEUER SPIELER ANLEGEN -->
+  <!-- MODAL: NEUER SPIELER ANLEGEN -->
+  <div id="modal-player" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-white/15 rounded-xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-2">
+        <h3 class="font-fut font-bold text-lg text-amber-400 uppercase tracking-wider">NEUER SPIELER</h3>
+        <button onclick="closeModal('modal-player')" class="text-slate-400 hover:text-white font-fut text-sm font-bold uppercase">X</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">NAME</label>
+          <input type="text" id="input-player-name" placeholder="z. B. Maximilian" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">SPITZNAME (OPTIONAL)</label>
+          <input type="text" id="input-player-nick" placeholder="z. B. The Hammer" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">OVR WERTUNG</label>
+            <input type="number" id="input-player-ovr" value="88" min="50" max="99" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">POSITION</label>
+            <select id="input-player-pos" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+              <option value="ST">ST</option>
+              <option value="CAM">CAM</option>
+              <option value="CM">CM</option>
+              <option value="RW">RW</option>
+              <option value="LW">LW</option>
+              <option value="CB">CB</option>
+              <option value="GK">GK</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 mb-1">KARTEN-EDITION</label>
+          <select id="input-player-edition" class="w-full bg-[#0B0F17] border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="img_bier">Goldenes Bierfest</option>
+            <option value="img_brauhaus">Brauerei & Sudhaus</option>
+            <option value="img_werkstatt">Schrauber & Werkstatt</option>
+            <option value="img_carbon">Carbon & Munition</option>
+            <option value="img_leder">Leder & Schnallen</option>
+            <option value="img_holz">Eisenhütte</option>
+            <option value="img_tracht">Edelweiß-Wappen</option>
+            <option value="img_wald">Eichenlaub & Wald</option>
+            <option value="img_glitzer">Glitzer-Glamour</option>
+            <option value="img_krone">Kaiserliche Prunkkrone</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeModal('modal-player')" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded font-fut font-bold text-xs uppercase tracking-wider">ABBRECHEN</button>
+        <button onclick="submitNewPlayer()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold uppercase tracking-wider rounded text-xs">HINZUFÜGEN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TV-COUNTDOWN & ANKÜNDIGUNG WIZARD -->
+  <div id="modal-timer-wizard" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+    <div class="lodge-card p-4 max-w-md w-full space-y-4 shadow-2xl border border-amber-500/40 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+        <div>
+          <h3 class="font-fut font-bold text-base text-amber-300 uppercase tracking-wider flex items-center space-x-2">
+            <span>TV-COUNTDOWN STARTEN</span>
+          </h3>
+          <p class="text-[11px] text-slate-400">Spiel & Dauer wählen • TV schaltet erst nach [GO] um</p>
+        </div>
+        <button onclick="closeModal('modal-timer-wizard')" class="touch-btn text-slate-400 hover:text-white font-fut text-lg font-bold px-2 py-0.5">✕</button>
+      </div>
+
+      <!-- Banner if Timer is already running -->
+      <div id="wizard-running-banner" class="hidden bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+            <span class="text-xs font-fut font-bold text-amber-300 uppercase tracking-wider">LÄUFT AKTUELL AUF DEM TV:</span>
+          </div>
+          <span id="wizard-running-clock" class="font-fut text-lg font-black text-amber-400">--:--</span>
+        </div>
+        <div id="wizard-running-game-title" class="text-xs text-white font-bold tracking-wide"></div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="startLiveMatch(); closeModal('modal-timer-wizard');" class="touch-btn py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+            SOFORT LIVE STARTEN
+          </button>
+          <button type="button" onclick="cancelTimer(); closeModal('modal-timer-wizard');" class="touch-btn py-1.5 px-2 bg-slate-800 hover:bg-rose-950 text-rose-300 border border-rose-500/30 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+            TIMER ABBRECHEN
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 1: Game / Action Selection -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+          <span>1. NÄCHSTES SPIEL / AKTION WÄHLEN</span>
+          <span class="text-[10px] text-amber-400 lowercase font-sans">Tippe auf ein Spiel</span>
+        </label>
+        <div id="wizard-games-grid" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+          <!-- Dynamically filled with game chips -->
+        </div>
+      </div>
+
+      <!-- STEP 2: Lineup & Team Setup -->
+      <div id="wizard-lineup-container" class="space-y-2">
+        <!-- Dynamically filled with team matchup or shooter selection -->
+      </div>
+
+      <!-- STEP 3: Timer Duration Selection -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400">
+          3. DAUER DES COUNTDOWNS
+        </label>
+        <div class="grid grid-cols-6 gap-1.5">
+          <button type="button" id="wizard-pill-1" onclick="selectWizardMinutes(1)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">1M</button>
+          <button type="button" id="wizard-pill-2" onclick="selectWizardMinutes(2)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">2M</button>
+          <button type="button" id="wizard-pill-3" onclick="selectWizardMinutes(3)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">3M</button>
+          <button type="button" id="wizard-pill-5" onclick="selectWizardMinutes(5)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">5M</button>
+          <button type="button" id="wizard-pill-10" onclick="selectWizardMinutes(10)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">10M</button>
+          <button type="button" id="wizard-pill-15" onclick="selectWizardMinutes(15)" class="touch-btn py-1.5 rounded text-xs font-fut font-bold uppercase border transition">15M</button>
+        </div>
+        <div class="flex items-center space-x-2 pt-1">
+          <div class="flex items-center space-x-1.5 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 flex-1">
+            <span class="text-[10px] font-fut font-bold text-slate-400 uppercase">EIGENE MINUTEN:</span>
+            <input type="number" id="wizard-custom-minutes" placeholder="Min" min="1" max="60" value="5" oninput="selectWizardMinutes(this.value)" class="w-14 bg-black border border-white/20 rounded py-0.5 px-1.5 text-xs text-center font-bold text-amber-300 focus:outline-none focus:border-amber-500">
+            <span class="text-[10px] text-slate-400 font-fut font-bold">MIN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Preview -->
+      <div class="lodge-inner p-3 space-y-1 text-xs">
+        <span class="text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider">4. VORSCHAU FÜR DEN TV-BILDSCHIRM:</span>
+        <div id="wizard-preview-summary" class="text-amber-300 font-bold text-xs leading-snug">
+          <!-- Text filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex space-x-2 pt-2 border-t border-white/10">
+        <button type="button" onclick="closeModal('modal-timer-wizard')" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-fut font-bold text-xs uppercase tracking-wider border border-white/10">
+          ABBRECHEN
+        </button>
+        <button type="button" id="wizard-btn-go" onclick="executeWizardGo()" class="flex-1 py-2.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 rounded-lg font-fut font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center space-x-1">
+          <span>GO: JETZT AUF TV STARTEN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let tournament = { players: [], games: [] };
+    let activeGameId = null;
+    let ws = null;
+    let localTurnShots = Array(10).fill(false);
+    let localTargetShots = [null, null, null, null, null];
+    let activeTargetShotIdx = 0;
+    let selectedRingScore = 0;
+
+    function playAdminSound() {}
+
+    /* ============================================================ */
+    /* WEBSOCKET CONNECTION                                         */
+    /* ============================================================ */
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('ws-dot').className = 'w-2 h-2 rounded-full bg-emerald-500';
+        document.getElementById('ws-label').textContent = 'LIVE';
+        document.getElementById('ws-label').className = 'font-fut text-xs font-bold text-emerald-400 tracking-wider';
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-dot').className = 'w-2 h-2 rounded-full bg-rose-500';
+        document.getElementById('ws-label').textContent = 'OFFLINE';
+        document.getElementById('ws-label').className = 'font-fut text-xs font-bold text-rose-400 tracking-wider';
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'STATE_INIT' || msg.type === 'STATE_UPDATE') {
+            tournament = msg.data || msg.payload;
+            renderAll();
+          } else if (msg.type === 'SCORE_CHANGED') {
+            tournament = msg.payload.tournamentData;
+            renderScoringList();
+          } else if (msg.type === 'MATCH_WIN_AWARDED') {
+            playAdminSound('gong');
+          } else if (msg.type === 'TEKKEN_CLASH') {
+            playAdminSound('clash');
+          } else if (msg.type === 'EFFECT_TRIGGERED') {
+            if (msg.payload && (msg.payload.effect === 'chime' || msg.payload.effect === 'gong')) {
+              playAdminSound('gong');
+            }
+          } else if (msg.type === 'NEW_PHOTO') {
+            showToast(`Neues Foto von ${(msg.payload.sender || 'Gast')} erhalten`);
+            haptic();
+            if (!tournament.photos) tournament.photos = [];
+            tournament.photos.unshift(msg.payload);
+            renderPhotosAdmin();
+          } else if (msg.type === 'CARD_RECEIVED') {
+            showToast(`Neue Karte eingetroffen: ${msg.payload.name} (${msg.payload.ovr} OVR)`);
+            haptic();
+            playAdminSound('gong');
+          } else if (msg.type === 'DRIVE_SYNC_DONE') {
+            if (msg.payload && msg.payload.newCards > 0) {
+              showToast(`${msg.payload.newCards} neue Karte(n) aus Google Drive geladen`);
+            } else {
+              showToast('Google Drive ist synchron (keine neuen Karten)');
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+    }
+
+    function sendWs(type, payload) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type, payload }));
+      }
+    }
+
+    function syncDrive() {
+      haptic();
+      showToast('Synchronisiere mit Google Drive...');
+      sendWs('SYNC_DRIVE', {});
+    }
+
+    function haptic() {
+      if (navigator.vibrate) navigator.vibrate(35);
+    }
+
+    /* ============================================================ */
+    /* UI TABS SWITCHING                                            */
+    /* ============================================================ */
+    function switchTab(tabId) {
+      const tabs = ['regie', 'scoring', 'games', 'players', 'tv'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const navEl = document.getElementById(`nav-${t}`);
+        if (t === tabId) {
+          viewEl.classList.remove('hidden');
+          navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-[#D4AF37] font-bold border-t-2 border-[#D4AF37] transition-all bg-white/[0.02]';
+        } else {
+          viewEl.classList.add('hidden');
+          navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all';
+        }
+      });
+      haptic();
+    }
+
+    /* ============================================================ */
+    /* REGIE & TOURNAMENT FLOW ENGINE                               */
+    /* ============================================================ */
+    let regieTimerInterval = null;
+
+    function renderRegieView() {
+      const ev = tournament.activeEvent || { status: 'idle', gameId: null };
+      const games = tournament.games || [];
+      const players = tournament.players || [];
+
+      // Update Regie Game Select dropdown
+      const select = document.getElementById('regie-game-select');
+      if (select) {
+        if (!games.length) {
+          select.innerHTML = '<option value="">Keine Spiele vorhanden</option>';
+        } else {
+          const selectedGameId = ev.gameId || (games[0] && games[0].id);
+          select.innerHTML = games.map((g, idx) => `
+            <option value="${g.id}" ${g.id === selectedGameId ? 'selected' : ''}>
+              ${String(idx + 1).padStart(2, '0')} ${g.name} (${g.type === 'team_match' ? 'Team-Duell' : (g.unit || 'Punkte')})
+            </option>
+          `).join('');
+        }
+      }
+
+      // Update Status Pill
+      const pill = document.getElementById('regie-status-pill');
+      if (pill) {
+        if (ev.status === 'announced') {
+          pill.className = 'text-[10px] px-2.5 py-0.5 rounded font-fut font-bold uppercase tracking-wider bg-amber-500 text-slate-950';
+          pill.textContent = 'ANGEKÜNDIGT';
+        } else if (ev.status === 'live') {
+          pill.className = 'text-[10px] px-2.5 py-0.5 rounded font-fut font-bold uppercase tracking-wider bg-emerald-500 text-slate-950';
+          pill.textContent = 'LIVE MATCH';
+        } else if (ev.status === 'paused') {
+          pill.className = 'text-[10px] px-2.5 py-0.5 rounded font-fut font-bold uppercase tracking-wider bg-amber-900/60 text-amber-300 border border-amber-500/30';
+          pill.textContent = 'PAUSIERT';
+        } else {
+          pill.className = 'text-[10px] px-2.5 py-0.5 rounded font-fut font-bold uppercase tracking-wider bg-white/5 text-slate-400 border border-white/10';
+          pill.textContent = 'IDLE';
+        }
+      }
+
+      // Highlight TV view mode buttons and badge
+      const curTvView = ev.tvView || (ev.status === 'announced' ? 'announced' : (ev.status === 'live' ? 'live' : 'scoreboard'));
+      const btnScoreboard = document.getElementById('btn-tv-view-scoreboard');
+      const btnAnnounced = document.getElementById('btn-tv-view-announced');
+      const btnLive = document.getElementById('btn-tv-view-live');
+      const btnSlideshow = document.getElementById('btn-tv-view-slideshow');
+      const btnCeremony = document.getElementById('btn-tv-view-ceremony');
+      const tvBadge = document.getElementById('regie-tv-mode-badge');
+      
+      const activeBtnClass = 'touch-btn py-2 px-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-[11px] font-black shadow-lg flex flex-col items-center justify-center ring-2 ring-amber-300';
+      const inactiveBtnClass = 'touch-btn py-2 px-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 text-[11px] font-bold border border-white/10 flex flex-col items-center justify-center transition';
+
+      if (btnScoreboard) btnScoreboard.className = (curTvView === 'scoreboard') ? activeBtnClass : inactiveBtnClass;
+      if (btnAnnounced) btnAnnounced.className = (curTvView === 'announced') ? activeBtnClass : inactiveBtnClass;
+      if (btnLive) btnLive.className = (curTvView === 'live') ? activeBtnClass : inactiveBtnClass;
+      if (btnSlideshow) btnSlideshow.className = (curTvView === 'slideshow') ? activeBtnClass : inactiveBtnClass;
+      if (btnCeremony) btnCeremony.className = (curTvView === 'ceremony') ? activeBtnClass : inactiveBtnClass;
+      
+      if (tvBadge) {
+        let badgeText = 'SCOREBOARD';
+        if (curTvView === 'announced') badgeText = 'COUNTDOWN';
+        else if (curTvView === 'live') badgeText = 'LIVE ARENA';
+        else if (curTvView === 'slideshow') badgeText = 'SLIDESHOW';
+        else if (curTvView === 'ceremony') badgeText = 'SIEGEREHRUNG';
+        tvBadge.textContent = badgeText;
+      }
+
+      updateRegieTimerDisplay();
+
+      // Render Dynamic Controls depending on game type
+      const activeGame = games.find(g => g.id === (ev.gameId || (games[0] && games[0].id)));
+      const dynContainer = document.getElementById('regie-dynamic-container');
+      if (!dynContainer) return;
+
+      if (!activeGame) {
+        dynContainer.innerHTML = '<div class="text-center text-gray-500 py-6">Kein Spiel ausgewählt.</div>';
+        return;
+      }
+
+      if (activeGame.type === 'team_match') {
+        // Bierpong: Team Rot vs Team Blau
+        const teamA = ev.teamA || { name: 'Team Rot', playerIds: [] };
+        const teamB = ev.teamB || { name: 'Team Blau', playerIds: [] };
+
+        const teamAPlayers = teamA.playerIds.map(id => players.find(p => p.id === id)).filter(Boolean);
+        const teamBPlayers = teamB.playerIds.map(id => players.find(p => p.id === id)).filter(Boolean);
+
+        dynContainer.innerHTML = `
+          <!-- BIERPONG MATCH CONTROLS -->
+          <div class="lodge-card p-4 border border-red-500/40 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <div>
+                <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider">
+                  BIERPONG • TEAM-DUELL (RUNDE ${ev.round || 1})
+                </h3>
+                <p class="text-[11px] text-slate-400">Zufällige Teams 2v2 oder 2v1 mit automatischem Handicap</p>
+              </div>
+              <button onclick="generateRandomTeams('${activeGame.id}')" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs rounded uppercase tracking-wider shadow">
+                TEAMS AUSLOSEN
+              </button>
+            </div>
+
+            <!-- TEAMS DISPLAY -->
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Team Rot (A) -->
+              <div class="bg-red-950/30 border border-red-500/40 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-fut font-bold uppercase tracking-wider text-red-300">TEAM ROT</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-200 font-fut font-bold">${teamAPlayers.length} Spieler</span>
+                </div>
+                <div class="space-y-1.5">
+                  ${teamAPlayers.length > 0 ? teamAPlayers.map(p => `
+                    <div class="flex items-center space-x-2 bg-black/40 px-2 py-1.5 rounded border border-red-500/20">
+                      <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-6 h-6 rounded object-cover">
+                      <span class="font-bold text-xs text-white truncate">${p.name}</span>
+                    </div>
+                  `).join('') : '<div class="text-[11px] text-slate-500 py-2">Noch keine Spieler</div>'}
+                </div>
+              </div>
+
+              <!-- Team Blau (B) -->
+              <div class="bg-blue-950/30 border border-blue-500/40 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-fut font-bold uppercase tracking-wider text-blue-300">TEAM BLAU</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200 font-fut font-bold">${teamBPlayers.length} Spieler</span>
+                </div>
+                <div class="space-y-1.5">
+                  ${teamBPlayers.length > 0 ? teamBPlayers.map(p => `
+                    <div class="flex items-center space-x-2 bg-black/40 px-2 py-1.5 rounded border border-blue-500/20">
+                      <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-6 h-6 rounded object-cover">
+                      <span class="font-bold text-xs text-white truncate">${p.name}</span>
+                    </div>
+                  `).join('') : '<div class="text-[11px] text-slate-500 py-2">Noch keine Spieler</div>'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Handicap Note -->
+            ${ev.note ? `
+              <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 text-center text-xs font-fut font-bold text-amber-300 uppercase tracking-wider">
+                ${ev.note}
+              </div>
+            ` : ''}
+
+            <!-- SIEGVERGABE BUTTONS -->
+            <div class="pt-2 border-t border-white/10 space-y-2">
+              <div class="text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider">MATCH-ERGEBNIS (SIEG = +1 PUNKT):</div>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="awardTeamWin('${activeGame.id}', 'A')" class="touch-btn py-3 px-2 bg-red-700 hover:bg-red-600 text-white font-fut font-bold text-sm tracking-wider uppercase rounded-lg shadow flex flex-col items-center justify-center">
+                  <span>SIEG TEAM ROT</span>
+                  <span class="text-[10px] opacity-80 font-normal mt-0.5">+1 Pkt für Sieger</span>
+                </button>
+                <button onclick="awardTeamWin('${activeGame.id}', 'B')" class="touch-btn py-3 px-2 bg-blue-700 hover:bg-blue-600 text-white font-fut font-bold text-sm tracking-wider uppercase rounded-lg shadow flex flex-col items-center justify-center">
+                  <span>SIEG TEAM BLAU</span>
+                  <span class="text-[10px] opacity-80 font-normal mt-0.5">+1 Pkt für Sieger</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Pool / Teilnehmer-Auswahl für Bierpong -->
+            <div class="pt-2 border-t border-white/10">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider">TEILNEHMER-POOL FÜR AUSLOSUNG:</span>
+                <button onclick="toggleSelectAllPlayersPool()" class="text-[10px] text-amber-400 underline font-fut font-bold uppercase tracking-wider">Alle an-/abwählen</button>
+              </div>
+              <div class="grid grid-cols-2 gap-2" id="bierpong-player-pool">
+                ${players.map(p => `
+                  <label class="flex items-center space-x-2 bg-slate-800/80 px-2.5 py-1.5 rounded border border-white/10 text-xs font-semibold text-gray-200 cursor-pointer">
+                    <input type="checkbox" name="pool-player" value="${p.id}" checked class="rounded border-gray-600 text-amber-500 focus:ring-0">
+                    <span class="truncate">${p.name}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Single-Player Turn Mode (Sterne 0-10, Ringe 0-12, Maßkrug 0-5, oder freier Zähler)
+        const activePId = ev.activePlayerId || (players[0] && players[0].id);
+        const activeP = players.find(p => p.id === activePId) || players[0];
+
+        let modeTitle = 'EINZEL-DURCHGANG';
+        let buttonsHtml = '';
+
+        if (activeGame.type === 'attempts_stars') {
+          const max = activeGame.maxAttempts || 10;
+          modeTitle = `${max} SCHUSS AUF STERNE`;
+
+          if (!Array.isArray(localTurnShots) || localTurnShots.length !== max) {
+            localTurnShots = (ev.turnShots && ev.turnShots.length === max) ? [...ev.turnShots] : Array(max).fill(false);
+          }
+
+          const currentHits = localTurnShots.filter(Boolean).length;
+
+          buttonsHtml = `
+            <div class="space-y-3 pt-1">
+              <!-- Summary & Reset Bar -->
+              <div class="flex items-center justify-between bg-black/40 px-3 py-2 rounded-lg border border-white/10">
+                <div class="text-xs font-fut font-bold text-slate-300 uppercase tracking-wider">
+                  TREFFER: <span class="text-base text-amber-400 font-bold">${currentHits}</span> / ${max}
+                </div>
+                <div class="flex items-center space-x-1.5">
+                  <button onclick="setAllStarShots(true, '${activeGame.id}')" class="touch-btn px-2.5 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 text-[10px] font-fut font-bold uppercase tracking-wider">
+                    ALLE TREFFER
+                  </button>
+                  <button onclick="setAllStarShots(false, '${activeGame.id}')" class="touch-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-white/10 text-[10px] font-fut font-bold uppercase tracking-wider">
+                    ZURÜCKSETZEN
+                  </button>
+                </div>
+              </div>
+
+              <!-- 10 Touch-Friendly Star Chips (2 rows of 5) -->
+              <div class="grid grid-cols-5 gap-2">
+                ${Array.from({ length: max }, (_, i) => {
+                  const isHit = !!localTurnShots[i];
+                  return `
+                    <button onclick="toggleStarShot(${i}, '${activeGame.id}')" class="touch-btn py-3 px-1 rounded-lg flex flex-col items-center justify-center border transition-all duration-150 font-fut ${
+                      isHit 
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 shadow ring-1 ring-amber-300' 
+                        : 'bg-[#090d14] border-white/10 text-slate-400 hover:border-slate-500'
+                    }">
+                      <span class="text-base font-bold leading-none">${isHit ? 'TREFFER' : '—'}</span>
+                      <span class="text-[10px] font-bold mt-1 ${isHit ? 'text-black' : 'text-slate-400'}">Schuss ${i + 1}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- COMMIT BUTTON -->
+              <button onclick="commitAndAdvanceStarsTurn('${activeGame.id}', '${activeP ? activeP.id : ''}')" class="touch-btn w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs tracking-wider uppercase flex items-center justify-center shadow">
+                <span>DURCHGANG SPEICHERN (+${currentHits} TREFFER) & WEITER</span>
+              </button>
+            </div>
+          `;
+        } else if (activeGame.type === 'target_ring') {
+          modeTitle = 'ZIELSCHEIBE (5 SCHUSS • 0 BIS 12 PUNKTE)';
+          if (Array.isArray(ev.targetShots) && ev.targetShots.length === 5) {
+            localTargetShots = [...ev.targetShots];
+          }
+          if (ev.activeShotIdx !== undefined && ev.activeShotIdx >= 0 && ev.activeShotIdx < 5) {
+            activeTargetShotIdx = ev.activeShotIdx;
+          }
+
+          const validShots = localTargetShots.filter(s => s !== null && s !== undefined);
+          const currentTotal = validShots.reduce((a, b) => a + Number(b), 0);
+          const shotsCount = validShots.length;
+
+          buttonsHtml = `
+            <div class="space-y-3 pt-1">
+              <!-- 5 Shot Chips (Row of 5) -->
+              <div class="grid grid-cols-5 gap-2">
+                ${[0, 1, 2, 3, 4].map(idx => {
+                  const val = localTargetShots[idx];
+                  const isSelected = (activeTargetShotIdx === idx);
+                  const hasVal = (val !== null && val !== undefined);
+                  const isCenter = (val === 12);
+                  return `
+                    <button onclick="setActiveTargetShotIdx(${idx}, '${activeGame.id}')" class="touch-btn py-2 px-1 rounded-lg flex flex-col items-center justify-center border transition-all ${
+                      isSelected 
+                        ? 'border-amber-400 bg-amber-500/25 ring-1 ring-amber-400' 
+                        : isCenter
+                          ? 'bg-black border-amber-400 text-yellow-300'
+                          : hasVal 
+                            ? 'bg-slate-900 border-white/20' 
+                            : 'bg-black/50 border-white/5 opacity-50'
+                    }">
+                      <span class="text-[10px] font-fut font-bold uppercase tracking-wider ${isSelected ? 'text-amber-300' : 'text-slate-400'}">#${idx + 1}</span>
+                      <span class="text-2xl font-fut font-black my-0.5 ${isCenter ? 'text-amber-300' : hasVal ? 'text-white' : 'text-slate-600'}">
+                        ${hasVal ? val : '—'}
+                      </span>
+                      <span class="text-[9px] font-fut font-bold uppercase ${isSelected ? 'text-amber-400' : (isCenter ? 'text-amber-400' : hasVal ? 'text-slate-300' : 'text-slate-500')}">
+                        ${isSelected ? 'AKTIV' : (isCenter ? 'MITTE' : hasVal ? `${val} Pkt` : 'Bereit')}
+                      </span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Number Pad (0 bis 12) for Active Shot -->
+              <div class="space-y-1.5 bg-black/40 p-2.5 rounded-lg border border-white/10">
+                <div class="flex items-center justify-between text-[11px] font-fut font-bold uppercase tracking-wider">
+                  <span class="text-amber-300">TREFFER FÜR SCHUSS #${activeTargetShotIdx + 1} EINGEBEN:</span>
+                  <span class="text-xs ${localTargetShots[activeTargetShotIdx] !== null ? 'text-amber-400' : 'text-slate-500'}">
+                    ${localTargetShots[activeTargetShotIdx] !== null ? `${localTargetShots[activeTargetShotIdx]} Punkte` : 'Noch leer'}
+                  </span>
+                </div>
+
+                <!-- Row 1: 0 (Vorbei) bis 6 -->
+                <div class="grid grid-cols-7 gap-1">
+                  ${[0, 1, 2, 3, 4, 5, 6].map(pt => `
+                    <button onclick="setTargetShotScore(${pt}, '${activeGame.id}')" class="touch-btn py-2 rounded font-fut font-bold text-base flex items-center justify-center border transition-all ${
+                      localTargetShots[activeTargetShotIdx] === pt
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 ring-1 ring-amber-300'
+                        : pt === 0
+                          ? 'bg-black text-slate-500 border-white/5'
+                          : 'bg-[#0B0F17] text-slate-200 border-white/10 hover:border-white/20'
+                    }">
+                      ${pt === 0 ? '0' : pt}
+                    </button>
+                  `).join('')}
+                </div>
+
+                <!-- Row 2: 7 bis 12 (12 = Schwarz in der Mitte) -->
+                <div class="grid grid-cols-6 gap-1">
+                  ${[7, 8, 9, 10, 11].map(pt => `
+                    <button onclick="setTargetShotScore(${pt}, '${activeGame.id}')" class="touch-btn py-2 rounded font-fut font-bold text-base flex items-center justify-center border transition-all ${
+                      localTargetShots[activeTargetShotIdx] === pt
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 ring-1 ring-amber-300'
+                        : 'bg-[#0B0F17] text-slate-200 border-white/10 hover:border-white/20'
+                    }">
+                      ${pt}
+                    </button>
+                  `).join('')}
+                  <button onclick="setTargetShotScore(12, '${activeGame.id}')" class="touch-btn py-2 rounded font-fut font-bold text-sm flex flex-col items-center justify-center border transition-all ${
+                    localTargetShots[activeTargetShotIdx] === 12
+                      ? 'bg-amber-500 text-slate-950 border-amber-300 ring-1 ring-amber-300'
+                      : 'bg-black text-amber-300 border-amber-500/40 hover:border-amber-400'
+                  }">
+                    <span class="leading-none text-base font-bold">12</span>
+                    <span class="text-[7px] font-fut font-bold -mt-0.5 tracking-tighter uppercase">MITTE</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Round Total Bar -->
+              <div class="flex items-center justify-between bg-black/60 px-3 py-2 rounded-lg border border-white/10">
+                <div>
+                  <div class="text-[10px] text-slate-400 font-fut font-bold uppercase tracking-wider">GESAMTSUMME DIESES DURCHGANGS:</div>
+                  <div class="font-fut text-2xl font-bold text-amber-300">
+                    ${currentTotal} <span class="text-xs font-fut font-bold text-slate-400 uppercase">PUNKTE</span>
+                    <span class="text-[11px] text-slate-400 font-normal ml-2">(${shotsCount}/5 Schuss)</span>
+                  </div>
+                </div>
+                <button onclick="resetTargetShots('${activeGame.id}')" class="touch-btn px-2.5 py-1 rounded bg-slate-800 text-slate-400 hover:text-white border border-white/10 text-xs font-fut font-bold uppercase tracking-wider">
+                  ZURÜCKSETZEN
+                </button>
+              </div>
+
+              <!-- Commit Button -->
+              <button onclick="commitAndAdvanceTargetShots('${activeGame.id}', '${activeP ? activeP.id : ''}')" class="touch-btn w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs tracking-wider uppercase flex items-center justify-center shadow">
+                <span>DURCHGANG SPEICHERN (+${currentTotal} PUNKTE) & WEITER</span>
+              </button>
+            </div>
+          `;
+        } else if (activeGame.type === 'attempts_target') {
+          const max = activeGame.maxAttempts || 5;
+          modeTitle = `MAẞKRUGSCHIEBEN (${max} VERSUCHE)`;
+
+          if (!Array.isArray(localTurnShots) || localTurnShots.length !== max) {
+            localTurnShots = (ev.turnShots && ev.turnShots.length === max) ? [...ev.turnShots] : Array(max).fill(false);
+          }
+          const currentHits = localTurnShots.filter(Boolean).length;
+
+          buttonsHtml = `
+            <div class="space-y-3 pt-1">
+              <div class="flex items-center justify-between bg-black/40 px-3 py-2 rounded-lg border border-white/10 text-xs">
+                <span class="font-fut font-bold text-slate-300 uppercase tracking-wider">TREFFER: <span class="font-bold text-amber-400 text-sm">${currentHits}</span> / ${max}</span>
+                <button onclick="setAllStarShots(false, '${activeGame.id}')" class="text-[10px] text-slate-400 underline font-fut font-bold uppercase tracking-wider">Zurücksetzen</button>
+              </div>
+              <div class="grid grid-cols-5 gap-2">
+                ${Array.from({ length: max }, (_, i) => {
+                  const isHit = !!localTurnShots[i];
+                  return `
+                    <button onclick="toggleStarShot(${i}, '${activeGame.id}')" class="touch-btn py-3 rounded-lg flex flex-col items-center justify-center border font-fut transition-all duration-150 ${
+                      isHit 
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 ring-1 ring-amber-300' 
+                        : 'bg-[#090d14] border-white/10 text-slate-400'
+                    }">
+                      <span class="text-base font-bold leading-none">${isHit ? 'TREFFER' : '—'}</span>
+                      <span class="text-[10px] font-bold mt-1 ${isHit ? 'text-black font-bold' : 'text-slate-400'}">Wurf ${i + 1}</span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+              <button onclick="commitAndAdvanceStarsTurn('${activeGame.id}', '${activeP ? activeP.id : ''}')" class="touch-btn w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs tracking-wider uppercase flex items-center justify-center shadow">
+                <span>DURCHGANG SPEICHERN (+${currentHits} TREFFER) & WEITER</span>
+              </button>
+            </div>
+          `;
+        } else {
+          // Fallback Counter
+          modeTitle = `PUNKTEVERGABE (${activeGame.unit || 'Punkte'})`;
+          buttonsHtml = `
+            <div class="grid grid-cols-4 gap-2 pt-1 font-fut font-bold text-sm uppercase tracking-wider">
+              <button onclick="submitTurnScore('${activeGame.id}', '${activeP ? activeP.id : ''}', 1)" class="touch-btn py-2.5 rounded bg-amber-500 text-slate-950 shadow">+1</button>
+              <button onclick="submitTurnScore('${activeGame.id}', '${activeP ? activeP.id : ''}', 5)" class="touch-btn py-2.5 rounded bg-amber-500 text-slate-950 shadow">+5</button>
+              <button onclick="submitTurnScore('${activeGame.id}', '${activeP ? activeP.id : ''}', 10)" class="touch-btn py-2.5 rounded bg-amber-500 text-slate-950 shadow">+10</button>
+              <button onclick="submitTurnScore('${activeGame.id}', '${activeP ? activeP.id : ''}', -1)" class="touch-btn py-2.5 rounded bg-slate-800 text-slate-300 border border-white/10 shadow">-1</button>
+            </div>
+          `;
+        }
+
+        const curScore = (activeP && activeGame.scores && activeGame.scores[activeP.id]) || 0;
+
+        dynContainer.innerHTML = `
+          <!-- SINGLE TURN CONTROLS -->
+          <div class="lodge-card lodge-card-amber p-4 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <div>
+                <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider">
+                  ${activeGame.name}
+                </h3>
+                <p class="text-[11px] text-slate-400 font-fut tracking-wider uppercase">${modeTitle}</p>
+              </div>
+              <button onclick="advanceNextPlayer('${activeGame.id}')" class="touch-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
+                <span>NÄCHSTER</span>
+              </button>
+            </div>
+
+            <!-- WHO IS UP (ACTIVE PLAYER) -->
+            <div class="lodge-inner p-3 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <img src="${activeP ? (activeP.portrait || 'chef.jfif') : 'chef.jfif'}" alt="" class="w-12 h-12 rounded object-cover border border-amber-400/60">
+                <div>
+                  <span class="text-[9px] font-fut font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">AM ZUG</span>
+                  <div class="font-bold text-base text-white">${activeP ? activeP.name : 'Kein Spieler'}</div>
+                  <div class="text-[10px] text-amber-400 font-fut font-bold uppercase tracking-wider">${activeP && activeP.nickname ? `"${activeP.nickname}"` : ''}</div>
+                </div>
+              </div>
+
+              <!-- Current Score in this game -->
+              <div class="text-right">
+                <div class="text-[9px] text-slate-400 font-fut font-bold uppercase">BISHER</div>
+                <div class="font-fut text-2xl font-bold text-amber-400">${curScore} <span class="text-xs font-fut font-bold text-slate-400 uppercase">${activeGame.unit || 'Pkt'}</span></div>
+              </div>
+            </div>
+
+            <!-- QUICK-TAP BUTTONS -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-[11px] font-fut font-bold text-slate-400 uppercase tracking-wider">
+                <span>PUNKTE FÜR DURCHGANG EINGEBEN:</span>
+              </div>
+              ${buttonsHtml}
+            </div>
+
+            <!-- Player Select Carousel / Dropdown -->
+            <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+              <label class="text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400">SPIELER WECHSELN:</label>
+              <select onchange="selectActivePlayer(this.value)" class="bg-[#0B0F17] border border-white/10 rounded px-2.5 py-1 text-xs font-bold text-white focus:outline-none focus:border-amber-500">
+                ${players.map(p => `
+                  <option value="${p.id}" ${activeP && p.id === activeP.id ? 'selected' : ''}>
+                    ${p.name} (${(activeGame.scores && activeGame.scores[p.id]) || 0} ${activeGame.unit || 'Pkt'})
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function onRegieGameChange(gameId) {
+      if (!tournament.activeEvent) tournament.activeEvent = {};
+      tournament.activeEvent.gameId = gameId;
+      sendWs('SET_ACTIVE_EVENT', { gameId });
+      renderRegieView();
+    }
+
+    function setTvViewMode(viewMode) {
+      haptic();
+      if (viewMode === 'announced') {
+        openTimerWizardModal();
+        return;
+      }
+
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      if (!tournament.activeEvent) tournament.activeEvent = {};
+      tournament.activeEvent.tvView = viewMode;
+      sendWs('SET_ACTIVE_EVENT', {
+        tvView: viewMode,
+        gameId: gId
+      });
+      renderRegieView();
+      let modeText = 'Normales Scoreboard';
+      if (viewMode === 'live') modeText = 'Live Match Arena';
+      if (viewMode === 'slideshow') modeText = 'Fullscreen Foto-Slideshow';
+      if (viewMode === 'ceremony') modeText = 'Große Siegerehrung';
+      showToast(`TV zeigt jetzt: ${modeText}!`);
+    }
+
+    /* ============================================================ */
+    /* TIMER WIZARD MODAL LOGIC                                     */
+    /* ============================================================ */
+    let wizardSelectedGameId = null;
+    let wizardSelectedMinutes = 5;
+    let wizardActivePlayerId = null;
+    let wizardTeamA = { name: 'Team Rot', playerIds: [] };
+    let wizardTeamB = { name: 'Team Blau', playerIds: [] };
+    let wizardTeamNote = '';
+
+    function openTimerWizardModal() {
+      haptic();
+      const ev = tournament.activeEvent;
+      const select = document.getElementById('regie-game-select');
+
+      if (!wizardSelectedGameId) {
+        wizardSelectedGameId = (ev && ev.gameId) || (select && select.value) || (tournament.games && tournament.games[0] && tournament.games[0].id) || null;
+      }
+
+      // Initialize teams from activeEvent or roll initial setup
+      if (ev && ev.teamA && Array.isArray(ev.teamA.playerIds) && ev.teamA.playerIds.length > 0) {
+        wizardTeamA = JSON.parse(JSON.stringify(ev.teamA));
+        wizardTeamB = JSON.parse(JSON.stringify(ev.teamB || { name: 'Team Blau', playerIds: [] }));
+        wizardTeamNote = ev.note || '';
+      } else {
+        rollWizardRandomTeams(false);
+      }
+
+      // Initialize active player
+      wizardActivePlayerId = (ev && ev.activePlayerId) || (tournament.players && tournament.players[0] && tournament.players[0].id) || null;
+
+      // Check if a timer is currently actively running on TV
+      const isRunning = ev && ev.status === 'announced' && ev.timerEndsAt && ev.timerEndsAt > Date.now();
+      const runningBanner = document.getElementById('wizard-running-banner');
+      if (runningBanner) {
+        if (isRunning) {
+          runningBanner.classList.remove('hidden');
+          const runningGame = (tournament.games || []).find(g => g.id === ev.gameId);
+          const titleEl = document.getElementById('wizard-running-game-title');
+          if (titleEl) titleEl.textContent = `Aktiv: ${runningGame ? runningGame.name : 'Turnierspiel'}`;
+        } else {
+          runningBanner.classList.add('hidden');
+        }
+      }
+
+      renderWizardGames();
+      renderWizardLineup();
+      selectWizardMinutes(wizardSelectedMinutes);
+
+      const modal = document.getElementById('modal-timer-wizard');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function renderWizardGames() {
+      const grid = document.getElementById('wizard-games-grid');
+      if (!grid) return;
+
+      const games = tournament.games || [];
+      grid.innerHTML = games.map((g, idx) => {
+        const isSel = (g.id === wizardSelectedGameId);
+        let typeBadge = 'Wettkampf';
+        if (g.type === 'team_match') typeBadge = 'Team-Duell (2v2)';
+        else if (g.type === 'attempts_stars') typeBadge = '10 Schuss Sterne';
+        else if (g.type === 'target_ring') typeBadge = 'Zielscheibe (Ringe)';
+        else if (g.type === 'attempts_target') typeBadge = 'Maßkrugschieben';
+
+        return `
+          <button type="button" onclick="selectWizardGame('${g.id}')" class="touch-btn p-2 rounded-xl border text-left flex flex-col justify-between transition ${
+            isSel
+              ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400 text-amber-200 shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+              : 'bg-[#0B0F17] hover:bg-slate-800/80 border-white/10 text-slate-300'
+          }">
+            <div class="flex items-center justify-between w-full mb-0.5">
+              <span class="text-[9px] px-1.5 py-0.2 rounded font-fut font-bold uppercase tracking-wider ${isSel ? 'bg-amber-400 text-black' : 'bg-white/10 text-slate-400'}">${g.icon || '0' + (idx + 1)}</span>
+              <span class="text-[9px] font-fut font-bold uppercase tracking-wider ${isSel ? 'text-amber-300' : 'text-slate-400'}">${typeBadge}</span>
+            </div>
+            <div class="font-fut font-bold text-xs tracking-wide uppercase truncate w-full ${isSel ? 'text-white font-black' : 'text-slate-200'}">
+              ${g.name}
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectWizardGame(gameId) {
+      haptic();
+      wizardSelectedGameId = gameId;
+      const select = document.getElementById('regie-game-select');
+      if (select && select.value !== gameId) {
+        select.value = gameId;
+        onRegieGameChange(gameId);
+      }
+      renderWizardGames();
+      renderWizardLineup();
+      updateWizardPreview();
+    }
+
+    function rollWizardRandomTeams(showFeedback = true) {
+      if (showFeedback) {
+        haptic();
+        playAdminSound('clash');
+      }
+
+      const players = tournament.players || [];
+      if (players.length < 2) {
+        if (showFeedback) showToast('Zu wenige Spieler für Teams vorhanden!');
+        return;
+      }
+
+      const playerPool = players.map(p => p.id);
+      // Fisher-Yates shuffle
+      for (let i = playerPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [playerPool[i], playerPool[j]] = [playerPool[j], playerPool[i]];
+      }
+
+      let teamAIds = [];
+      let teamBIds = [];
+      let note = '';
+
+      if (playerPool.length === 3) {
+        teamAIds = [playerPool[0], playerPool[1]];
+        teamBIds = [playerPool[2]];
+        const pAlone = players.find(p => p.id === playerPool[2]);
+        note = `2 gegen 1: ${pAlone ? pAlone.name : 'Einzelspieler'} hat Ausgleichswürfe!`;
+      } else if (playerPool.length === 2) {
+        teamAIds = [playerPool[0]];
+        teamBIds = [playerPool[1]];
+      } else if (playerPool.length >= 4) {
+        const half = Math.ceil(playerPool.length / 2);
+        teamAIds = playerPool.slice(0, half);
+        teamBIds = playerPool.slice(half);
+        if (teamAIds.length !== teamBIds.length) {
+          note = `Ungleiche Teams: Ausgleichswürfe für das kleinere Team!`;
+        }
+      } else {
+        teamAIds = [playerPool[0]];
+        teamBIds = [];
+      }
+
+      wizardTeamA = { name: 'Team Rot', playerIds: teamAIds };
+      wizardTeamB = { name: 'Team Blau', playerIds: teamBIds };
+      wizardTeamNote = note;
+
+      renderWizardLineup();
+      updateWizardPreview();
+      if (showFeedback) showToast('Teams zufällig gewürfelt!');
+    }
+
+    function swapWizardPlayerTeam(playerId) {
+      haptic();
+      if (!wizardTeamA.playerIds) wizardTeamA.playerIds = [];
+      if (!wizardTeamB.playerIds) wizardTeamB.playerIds = [];
+
+      if (wizardTeamA.playerIds.includes(playerId)) {
+        wizardTeamA.playerIds = wizardTeamA.playerIds.filter(id => id !== playerId);
+        if (!wizardTeamB.playerIds.includes(playerId)) wizardTeamB.playerIds.push(playerId);
+      } else if (wizardTeamB.playerIds.includes(playerId)) {
+        wizardTeamB.playerIds = wizardTeamB.playerIds.filter(id => id !== playerId);
+        if (!wizardTeamA.playerIds.includes(playerId)) wizardTeamA.playerIds.push(playerId);
+      }
+      renderWizardLineup();
+      updateWizardPreview();
+    }
+
+    function selectWizardPlayer(playerId) {
+      haptic();
+      wizardActivePlayerId = playerId;
+      renderWizardLineup();
+      updateWizardPreview();
+    }
+
+    function renderWizardLineup() {
+      const container = document.getElementById('wizard-lineup-container');
+      if (!container) return;
+
+      const game = (tournament.games || []).find(g => g.id === wizardSelectedGameId) || { type: 'team_match' };
+      const players = tournament.players || [];
+
+      if (game.type === 'team_match') {
+        const teamAPlayers = (wizardTeamA.playerIds || []).map(id => players.find(p => p.id === id)).filter(Boolean);
+        const teamBPlayers = (wizardTeamB.playerIds || []).map(id => players.find(p => p.id === id)).filter(Boolean);
+
+        container.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400">
+                2. AUFSTELLUNG / TEAMS FÜR BIERPONG
+              </label>
+              <button type="button" onclick="rollWizardRandomTeams()" class="touch-btn px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-black text-[11px] rounded uppercase tracking-wider shadow flex items-center space-x-1">
+                <span>🎲 TEAMS ZUFÄLLIG WÜRFELN</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <!-- Team Rot (A) -->
+              <div class="bg-red-950/40 border border-red-500/50 rounded-xl p-2 space-y-1 shadow-[inset_0_0_15px_rgba(239,68,68,0.2)]">
+                <div class="flex items-center justify-between border-b border-red-500/30 pb-1">
+                  <span class="text-xs font-fut font-bold text-red-400 uppercase tracking-wider">TEAM ROT</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-200 font-fut font-bold">${teamAPlayers.length} Spieler</span>
+                </div>
+                <div class="space-y-1">
+                  ${teamAPlayers.length > 0 ? teamAPlayers.map(p => `
+                    <div onclick="swapWizardPlayerTeam('${p.id}')" title="Tippen zum Tauschen" class="touch-btn flex items-center space-x-2 bg-black/60 px-2 py-1 rounded-lg border border-red-500/30 cursor-pointer hover:border-red-400 transition">
+                      <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-5 h-5 rounded-full object-cover">
+                      <span class="font-fut font-bold text-xs text-white truncate flex-1">${p.name}</span>
+                      <span class="text-[9px] text-slate-500">⇄</span>
+                    </div>
+                  `).join('') : '<div class="text-[10px] text-slate-500 py-1 italic">Keine Spieler</div>'}
+                </div>
+              </div>
+
+              <!-- Team Blau (B) -->
+              <div class="bg-blue-950/40 border border-blue-500/50 rounded-xl p-2 space-y-1 shadow-[inset_0_0_15px_rgba(59,130,246,0.2)]">
+                <div class="flex items-center justify-between border-b border-blue-500/30 pb-1">
+                  <span class="text-xs font-fut font-bold text-blue-400 uppercase tracking-wider">TEAM BLAU</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-200 font-fut font-bold">${teamBPlayers.length} Spieler</span>
+                </div>
+                <div class="space-y-1">
+                  ${teamBPlayers.length > 0 ? teamBPlayers.map(p => `
+                    <div onclick="swapWizardPlayerTeam('${p.id}')" title="Tippen zum Tauschen" class="touch-btn flex items-center space-x-2 bg-black/60 px-2 py-1 rounded-lg border border-blue-500/30 cursor-pointer hover:border-blue-400 transition">
+                      <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-5 h-5 rounded-full object-cover">
+                      <span class="font-fut font-bold text-xs text-white truncate flex-1">${p.name}</span>
+                      <span class="text-[9px] text-slate-500">⇄</span>
+                    </div>
+                  `).join('') : '<div class="text-[10px] text-slate-500 py-1 italic">Keine Spieler</div>'}
+                </div>
+              </div>
+            </div>
+
+            ${wizardTeamNote ? `
+              <div class="text-[10px] text-amber-300 font-fut font-bold uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1 text-center">
+                ${wizardTeamNote}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-fut font-bold uppercase tracking-wider text-slate-400">
+                2. WELCHER SCHÜTZE / SPIELER IST AM START?
+              </label>
+              <span class="text-[10px] text-amber-400 font-fut font-bold uppercase">Spieler wählen</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto pr-1">
+              ${players.map(p => {
+                const isSel = (p.id === wizardActivePlayerId);
+                const score = (game.scores && game.scores[p.id]) || 0;
+                return `
+                  <button type="button" onclick="selectWizardPlayer('${p.id}')" class="touch-btn p-1.5 rounded-xl border flex items-center space-x-2 text-left transition ${
+                    isSel
+                      ? 'bg-amber-500/25 border-amber-400 ring-2 ring-amber-400 text-amber-200 shadow-[0_0_15px_rgba(212,175,55,0.35)]'
+                      : 'bg-[#0B0F17] hover:bg-slate-800 border-white/10 text-slate-300'
+                  }">
+                    <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-7 h-7 rounded-lg object-cover border ${isSel ? 'border-amber-400' : 'border-white/10'}">
+                    <div class="truncate flex-1 min-w-0">
+                      <div class="font-fut font-bold text-xs uppercase truncate ${isSel ? 'text-white' : 'text-slate-200'}">${p.name}</div>
+                      <div class="text-[9px] text-slate-400">${score} ${game.unit || 'Pkt'}</div>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function selectWizardMinutes(mins) {
+      haptic();
+      wizardSelectedMinutes = Math.max(1, Math.min(60, Number(mins) || 5));
+      
+      const customInput = document.getElementById('wizard-custom-minutes');
+      if (customInput) customInput.value = wizardSelectedMinutes;
+
+      // Sync with regie pill values too
+      selectedTimerMinutes = wizardSelectedMinutes;
+      const regieCustom = document.getElementById('regie-custom-minutes');
+      if (regieCustom) regieCustom.value = wizardSelectedMinutes;
+
+      const pills = [1, 2, 3, 5, 10, 15];
+      pills.forEach(p => {
+        const el = document.getElementById(`wizard-pill-${p}`);
+        if (el) {
+          if (p === wizardSelectedMinutes) {
+            el.className = 'touch-btn py-1.5 bg-amber-500 text-slate-950 rounded text-xs font-fut font-black tracking-wider uppercase border border-amber-400 shadow ring-1 ring-amber-400 transition';
+          } else {
+            el.className = 'touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition';
+          }
+        }
+      });
+
+      updateWizardPreview();
+    }
+
+    function updateWizardPreview() {
+      const summaryEl = document.getElementById('wizard-preview-summary');
+      const goBtn = document.getElementById('wizard-btn-go');
+      const game = (tournament.games || []).find(g => g.id === wizardSelectedGameId) || { name: 'Gewähltes Spiel', type: 'team_match' };
+      const players = tournament.players || [];
+
+      let matchupDesc = '';
+      if (game.type === 'team_match') {
+        const pNamesA = (wizardTeamA.playerIds || []).map(id => players.find(p => p.id === id)?.name || id).join(', ') || 'Team Rot';
+        const pNamesB = (wizardTeamB.playerIds || []).map(id => players.find(p => p.id === id)?.name || id).join(', ') || 'Team Blau';
+        matchupDesc = `<span class="text-red-400 font-bold">${pNamesA}</span> <span class="text-amber-300 font-bold">VS</span> <span class="text-blue-400 font-bold">${pNamesB}</span>`;
+      } else {
+        const activeP = players.find(p => p.id === wizardActivePlayerId) || players[0];
+        matchupDesc = `Schütze: <strong class="text-white">${activeP ? activeP.name : 'Kein Spieler'}</strong>`;
+      }
+
+      if (summaryEl) {
+        summaryEl.innerHTML = `
+          <div class="text-white text-xs font-bold uppercase tracking-wider">${game.name} • ${wizardSelectedMinutes} MINUTEN COUNTDOWN</div>
+          <div class="text-slate-300 text-xs mt-0.5">${matchupDesc}</div>
+          <div class="text-amber-400 text-[10px] mt-1 font-fut font-bold uppercase tracking-wider">TV schaltet erst bei Klick auf GO um!</div>
+        `;
+      }
+
+      if (goBtn) {
+        goBtn.innerHTML = `<span>GO: JETZT AUF TV STARTEN (${wizardSelectedMinutes} MIN)</span>`;
+      }
+    }
+
+    function executeWizardGo() {
+      haptic();
+      playAdminSound('tekken');
+
+      if (!wizardSelectedGameId) {
+        wizardSelectedGameId = (tournament.games && tournament.games[0] && tournament.games[0].id) || 'g_bierpong';
+      }
+
+      const game = (tournament.games || []).find(g => g.id === wizardSelectedGameId);
+      const gameName = game ? game.name : 'Spiel';
+
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'announced',
+        gameId: wizardSelectedGameId,
+        timerMinutes: wizardSelectedMinutes,
+        teamA: wizardTeamA,
+        teamB: wizardTeamB,
+        note: wizardTeamNote,
+        activePlayerId: wizardActivePlayerId,
+        tvView: 'announced'
+      });
+
+      closeModal('modal-timer-wizard');
+      renderRegieView();
+      showToast(`Countdown gestartet! TV zeigt ${gameName} (${wizardSelectedMinutes} Min).`);
+    }
+
+    let selectedTimerMinutes = 5;
+
+    function selectTimerMinutes(mins) {
+      haptic();
+      selectedTimerMinutes = Math.max(1, Math.min(60, Number(mins) || 5));
+      
+      const customInput = document.getElementById('regie-custom-minutes');
+      if (customInput) customInput.value = selectedTimerMinutes;
+
+      const pills = [
+        { id: 'btn-timer-1m', val: 1 },
+        { id: 'btn-timer-3m', val: 3 },
+        { id: 'btn-timer-5m', val: 5 },
+        { id: 'btn-timer-10m', val: 10 }
+      ];
+      pills.forEach(p => {
+        const el = document.getElementById(p.id);
+        if (el) {
+          if (p.val === selectedTimerMinutes) {
+            el.className = 'timer-pill touch-btn py-1.5 bg-amber-500 text-slate-950 rounded text-xs font-fut font-black tracking-wider uppercase border border-amber-400 shadow ring-1 ring-amber-400 transition';
+          } else {
+            el.className = 'timer-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition';
+          }
+        }
+      });
+
+      const goBtn = document.getElementById('btn-timer-go');
+      if (goBtn) {
+        goBtn.innerHTML = `<span>GO: TIMER STARTEN (${selectedTimerMinutes} MIN)</span>`;
+      }
+    }
+
+    function onCustomMinutesChange(val) {
+      const mins = Math.max(1, Math.min(60, Number(val) || 5));
+      selectedTimerMinutes = mins;
+      
+      const pills = ['btn-timer-1m', 'btn-timer-3m', 'btn-timer-5m', 'btn-timer-10m'];
+      pills.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.className = 'timer-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10 transition';
+        }
+      });
+      const matchingPill = document.getElementById(`btn-timer-${mins}m`);
+      if (matchingPill) {
+        matchingPill.className = 'timer-pill touch-btn py-1.5 bg-amber-500 text-slate-950 rounded text-xs font-fut font-black tracking-wider uppercase border border-amber-400 shadow ring-1 ring-amber-400 transition';
+      }
+
+      const goBtn = document.getElementById('btn-timer-go');
+      if (goBtn) {
+        goBtn.innerHTML = `<span>GO: TIMER STARTEN (${selectedTimerMinutes} MIN)</span>`;
+      }
+    }
+
+    function startAnnounceTimer() {
+      haptic();
+      playAdminSound('tekken');
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'announced',
+        gameId: gId,
+        timerMinutes: selectedTimerMinutes,
+        tvView: 'announced'
+      });
+      showToast(`Countdown über ${selectedTimerMinutes} Min gestartet! TV zeigt Teams & Timer.`);
+    }
+
+    function cancelTimer() {
+      haptic();
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'idle',
+        gameId: gId,
+        timerEndsAt: null,
+        tvView: 'scoreboard'
+      });
+      showToast('Countdown abgebrochen – Scoreboard aktiv.');
+    }
+
+    function triggerTekkenClashWs() {
+      haptic();
+      playAdminSound('clash');
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'live',
+        gameId: gId,
+        tvView: 'live'
+      });
+      sendWs('TRIGGER_TEKKEN_CLASH', { gameId: gId });
+      showToast('Tekken 8 Versus-Intro gestartet!');
+    }
+
+    function startLiveMatch() {
+      haptic();
+      playAdminSound('clash');
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'live',
+        gameId: gId,
+        tvView: 'live'
+      });
+      showToast('▶ Live-Match gestartet!');
+    }
+
+    function pauseEvent() {
+      haptic();
+      const select = document.getElementById('regie-game-select');
+      const gId = select ? select.value : (tournament.activeEvent?.gameId || (tournament.games[0] && tournament.games[0].id));
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'paused',
+        gameId: gId
+      });
+      showToast('⏸ Spiel pausiert.');
+    }
+
+    function stopEvent() {
+      haptic();
+      sendWs('SET_ACTIVE_EVENT', {
+        status: 'idle',
+        gameId: null,
+        timerEndsAt: null,
+        tvView: 'scoreboard'
+      });
+      showToast('⏹ Event beendet – Scoreboard im Normalmodus.');
+    }
+
+    function toggleSelectAllPlayersPool() {
+      const cbs = document.querySelectorAll('input[name="pool-player"]');
+      const someUnchecked = Array.from(cbs).some(cb => !cb.checked);
+      cbs.forEach(cb => cb.checked = someUnchecked);
+    }
+
+    function generateRandomTeams(gameId) {
+      haptic();
+      const cbs = document.querySelectorAll('input[name="pool-player"]:checked');
+      const playerIds = Array.from(cbs).map(cb => cb.value);
+      if (playerIds.length < 2) {
+        showToast('Bitte wähle mindestens 2 Spieler für Teams aus!');
+        return;
+      }
+      sendWs('GENERATE_TEAMS', { gameId, playerIds });
+      showToast(`Teams neu aus ${playerIds.length} Spielern generiert!`);
+    }
+
+    function awardTeamWin(gameId, winningTeam) {
+      haptic();
+      sendWs('AWARD_TEAM_WIN', { gameId, winningTeam, winPoints: 1 });
+      showToast(`Sieg für Team ${winningTeam === 'A' ? 'Rot' : 'Blau'} verbucht (+1)!`);
+    }
+
+    function toggleStarShot(index, gameId) {
+      haptic();
+      const max = (tournament.games.find(g => g.id === gameId)?.maxAttempts) || 10;
+      if (!Array.isArray(localTurnShots) || localTurnShots.length !== max) {
+        localTurnShots = Array(max).fill(false);
+      }
+      localTurnShots[index] = !localTurnShots[index];
+      sendWs('UPDATE_TURN_SHOTS', { turnShots: localTurnShots });
+      renderRegieView();
+    }
+
+    function setAllStarShots(val, gameId) {
+      haptic();
+      const max = (tournament.games.find(g => g.id === gameId)?.maxAttempts) || 10;
+      localTurnShots = Array(max).fill(!!val);
+      sendWs('UPDATE_TURN_SHOTS', { turnShots: localTurnShots });
+      renderRegieView();
+    }
+
+    function commitAndAdvanceStarsTurn(gameId, playerId) {
+      haptic();
+      const hits = (localTurnShots || []).filter(Boolean).length;
+      submitTurnScore(gameId, playerId, hits);
+      localTurnShots = Array(10).fill(false);
+      sendWs('UPDATE_TURN_SHOTS', { turnShots: [] });
+    }
+
+    function setTargetShotScore(points, gameId) {
+      haptic();
+      localTargetShots[activeTargetShotIdx] = Number(points);
+      
+      let nextIdx = activeTargetShotIdx + 1;
+      if (nextIdx > 4) {
+        const firstUnfilled = localTargetShots.findIndex(s => s === null || s === undefined);
+        nextIdx = firstUnfilled !== -1 ? firstUnfilled : 4;
+      }
+      activeTargetShotIdx = nextIdx;
+
+      sendWs('UPDATE_TARGET_SHOTS', {
+        targetShots: localTargetShots,
+        activeShotIdx: activeTargetShotIdx
+      });
+      renderRegieView();
+    }
+
+    function setActiveTargetShotIdx(idx, gameId) {
+      haptic();
+      activeTargetShotIdx = idx;
+      sendWs('UPDATE_TARGET_SHOTS', {
+        targetShots: localTargetShots,
+        activeShotIdx: activeTargetShotIdx
+      });
+      renderRegieView();
+    }
+
+    function resetTargetShots(gameId) {
+      haptic();
+      localTargetShots = [null, null, null, null, null];
+      activeTargetShotIdx = 0;
+      sendWs('UPDATE_TARGET_SHOTS', {
+        targetShots: localTargetShots,
+        activeShotIdx: 0
+      });
+      renderRegieView();
+    }
+
+    function commitAndAdvanceTargetShots(gameId, playerId) {
+      haptic();
+      const sum = localTargetShots.reduce((a, b) => a + (Number(b) || 0), 0);
+      submitTurnScore(gameId, playerId, sum);
+      localTargetShots = [null, null, null, null, null];
+      activeTargetShotIdx = 0;
+      sendWs('UPDATE_TARGET_SHOTS', { targetShots: [], activeShotIdx: 0 });
+    }
+
+    function selectRingScorePreview(score) {
+      haptic();
+      selectedRingScore = Number(score);
+      sendWs('SET_ACTIVE_EVENT', { ringScore: selectedRingScore });
+      renderRegieView();
+    }
+
+    function commitAndAdvanceRingTurn(gameId, playerId) {
+      haptic();
+      submitTurnScore(gameId, playerId, selectedRingScore);
+      selectedRingScore = 0;
+      sendWs('SET_ACTIVE_EVENT', { ringScore: null });
+    }
+
+    function selectActivePlayer(playerId) {
+      localTurnShots = Array(10).fill(false);
+      localTargetShots = [null, null, null, null, null];
+      activeTargetShotIdx = 0;
+      selectedRingScore = 0;
+      sendWs('UPDATE_TURN_SHOTS', { turnShots: [] });
+      sendWs('UPDATE_TARGET_SHOTS', { targetShots: [], activeShotIdx: 0 });
+      sendWs('SET_ACTIVE_EVENT', { activePlayerId: playerId, ringScore: null });
+      if (!tournament.activeEvent) tournament.activeEvent = {};
+      tournament.activeEvent.activePlayerId = playerId;
+      tournament.activeEvent.ringScore = null;
+      renderRegieView();
+    }
+
+    function advanceNextPlayer(gameId) {
+      haptic();
+      localTurnShots = Array(10).fill(false);
+      localTargetShots = [null, null, null, null, null];
+      activeTargetShotIdx = 0;
+      selectedRingScore = 0;
+      sendWs('UPDATE_TURN_SHOTS', { turnShots: [] });
+      sendWs('UPDATE_TARGET_SHOTS', { targetShots: [], activeShotIdx: 0 });
+      sendWs('SET_ACTIVE_EVENT', { ringScore: null });
+      const players = tournament.players || [];
+      if (!players.length) return;
+      const curId = tournament.activeEvent?.activePlayerId;
+      const curIdx = players.findIndex(p => p.id === curId);
+      const nextIdx = (curIdx + 1) % players.length;
+      const nextId = players[nextIdx].id;
+      selectActivePlayer(nextId);
+      showToast(`Am Zug: ${players[nextIdx].name}`);
+    }
+
+    function submitTurnScore(gameId, playerId, scoreDelta) {
+      haptic();
+      localTurnShots = Array(10).fill(false);
+      localTargetShots = [null, null, null, null, null];
+      activeTargetShotIdx = 0;
+      selectedRingScore = 0;
+      sendWs('SET_ACTIVE_EVENT', { ringScore: null });
+      sendWs('UPDATE_TARGET_SHOTS', { targetShots: [], activeShotIdx: 0 });
+      const players = tournament.players || [];
+      const curIdx = players.findIndex(p => p.id === playerId);
+      const nextIdx = (curIdx >= 0) ? (curIdx + 1) % players.length : 0;
+      const nextId = players.length > 0 ? players[nextIdx].id : null;
+
+      sendWs('RECORD_PLAYER_TURN', {
+        gameId,
+        playerId,
+        scoreDelta: Number(scoreDelta),
+        nextPlayerId: nextId
+      });
+
+      const p = players.find(x => x.id === playerId);
+      showToast(`+${scoreDelta} Punkte für ${p ? p.name : 'Spieler'} verbucht!`);
+    }
+
+    function updateRegieTimerDisplay() {
+      const display = document.getElementById('regie-timer-display');
+      const clockBadge = document.getElementById('regie-timer-clock-badge');
+      const selRow = document.getElementById('regie-timer-selection-row');
+      const actRow = document.getElementById('regie-timer-active-row');
+      const wizBanner = document.getElementById('wizard-running-banner');
+      const wizClock = document.getElementById('wizard-running-clock');
+      const ev = tournament.activeEvent;
+
+      if (!ev || ev.status !== 'announced' || !ev.timerEndsAt) {
+        if (display) display.textContent = '';
+        if (selRow) selRow.classList.remove('hidden');
+        if (actRow) actRow.classList.add('hidden');
+        if (wizBanner) wizBanner.classList.add('hidden');
+        if (regieTimerInterval) { clearInterval(regieTimerInterval); regieTimerInterval = null; }
+        return;
+      }
+
+      const rem = Math.max(0, Math.floor((ev.timerEndsAt - Date.now()) / 1000));
+      const mins = String(Math.floor(rem / 60)).padStart(2, '0');
+      const secs = String(rem % 60).padStart(2, '0');
+      const timeStr = `${mins}:${secs}`;
+
+      if (display) display.textContent = `(Rest: ${timeStr})`;
+      if (clockBadge) clockBadge.textContent = timeStr;
+      if (wizClock) wizClock.textContent = timeStr;
+      if (selRow) selRow.classList.add('hidden');
+      if (actRow) actRow.classList.remove('hidden');
+
+      if (!regieTimerInterval) {
+        regieTimerInterval = setInterval(updateRegieTimerDisplay, 500);
+      }
+    }
+
+    /* ============================================================ */
+    /* SCORING ENGINE                                               */
+    /* ============================================================ */
+    function renderAll() {
+      renderRegieView();
+      updateGameDropdown();
+      renderScoringList();
+      renderGamesManageList();
+      renderPlayersManageList();
+      renderPhotosAdmin();
+    }
+
+    function updateGameDropdown() {
+      const select = document.getElementById('active-game-select');
+      const games = tournament.games || [];
+      if (!games.length) {
+        select.innerHTML = '<option value="">Keine Spiele vorhanden</option>';
+        activeGameId = null;
+        return;
+      }
+
+      if (!activeGameId || !games.some(g => g.id === activeGameId)) {
+        activeGameId = games[0].id;
+      }
+
+      select.innerHTML = games.map((g, idx) => `
+        <option value="${g.id}" ${g.id === activeGameId ? 'selected' : ''}>
+          0${idx + 1} ${g.name}
+        </option>
+      `).join('');
+
+      const curGame = games.find(g => g.id === activeGameId);
+      if (curGame) {
+        document.getElementById('game-type-badge').textContent = curGame.unit || 'Punkte';
+      }
+    }
+
+    function onGameSelected(gameId) {
+      activeGameId = gameId;
+      const curGame = (tournament.games || []).find(g => g.id === activeGameId);
+      if (curGame) {
+        document.getElementById('game-type-badge').textContent = curGame.unit || 'Punkte';
+      }
+      renderScoringList();
+    }
+
+    function renderScoringList() {
+      const container = document.getElementById('player-score-list');
+      container.innerHTML = '';
+
+      const game = (tournament.games || []).find(g => g.id === activeGameId);
+      if (!game) {
+        container.innerHTML = '<div class="text-sm text-gray-500 text-center py-6">Kein Spiel ausgewählt.</div>';
+        return;
+      }
+
+      const step = Number(game.step) || 1;
+      const players = tournament.players || [];
+
+      // Sort by current score in this game
+      const sorted = [...players].sort((a, b) => {
+        const sA = (game.scores && game.scores[a.id]) || 0;
+        const sB = (game.scores && game.scores[b.id]) || 0;
+        return sB - sA;
+      });
+
+      sorted.forEach((p, index) => {
+        const score = (game.scores && game.scores[p.id]) || 0;
+        const row = document.createElement('div');
+        row.className = 'bg-[#0E121A] border border-white/[0.08] rounded-md p-3 flex items-center justify-between shadow-sm';
+
+        row.innerHTML = `
+          <!-- Player Info -->
+          <div class="flex items-center space-x-3 min-w-0">
+            <span class="w-6 text-xs font-fut font-bold text-gray-400 text-center">${index + 1}.</span>
+            <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-10 h-10 rounded-full object-cover border border-[#D4AF37]/60">
+            <div class="min-w-0">
+              <div class="font-bold text-sm text-white truncate">${p.name}</div>
+              <div class="text-[11px] text-[#D4AF37]/90 font-medium">OVR ${p.ovr || 85} • ${p.nickname || ''}</div>
+            </div>
+          </div>
+
+          <!-- Quick Steppers & Current Score -->
+          <div class="flex items-center space-x-2">
+            <!-- Minus Button -->
+            <button onclick="changeScore('${game.id}', '${p.id}', -${step})" class="touch-btn w-9 h-9 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-black text-base flex items-center justify-center border border-white/10 shadow">
+              −
+            </button>
+
+            <!-- Score Display -->
+            <div class="w-14 text-center">
+              <span class="font-fut text-2xl font-black text-[#D4AF37]">${score}</span>
+              <div class="text-[9px] text-gray-400 uppercase -mt-1">${game.unit || 'Pkt'}</div>
+            </div>
+
+            <!-- Plus Button -->
+            <button onclick="changeScore('${game.id}', '${p.id}', +${step})" class="touch-btn w-9 h-9 rounded bg-[#D4AF37] hover:bg-[#C5A059] text-black font-black text-lg flex items-center justify-center border border-[#E5C483]/50 shadow">
+              +
+            </button>
+
+            <!-- Extra Big Point Button (+5 or +10) -->
+            <button onclick="changeScore('${game.id}', '${p.id}', +${step * 5})" class="touch-btn px-2.5 h-9 rounded bg-[#8A6F1D] hover:bg-[#786017] text-white font-extrabold text-xs flex items-center justify-center border border-[#D4AF37]/30 shadow">
+              +${step * 5}
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function changeScore(gameId, playerId, delta) {
+      haptic();
+      sendWs('UPDATE_SCORE', { gameId, playerId, delta });
+    }
+
+    /* ============================================================ */
+    /* SPIELE VERWALTEN (GAME MANAGEMENT)                           */
+    /* ============================================================ */
+    function renderGamesManageList() {
+      const container = document.getElementById('games-manage-list');
+      container.innerHTML = '';
+
+      (tournament.games || []).forEach((g, idx) => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-900 border border-white/10 rounded-xl p-3 flex items-center justify-between shadow-sm';
+        item.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-slate-800 border border-white/10 flex items-center justify-center font-fut text-sm font-bold text-amber-400">0${idx + 1}</span>
+            <div>
+              <div class="font-bold text-sm text-white">${g.name}</div>
+              <div class="text-xs text-gray-400">Typ: ${g.type || 'Zähler'} • Einheit: ${g.unit || 'Punkte'} • Faktor: ×${g.multiplier || 1}</div>
+            </div>
+          </div>
+          <button onclick="deleteGame('${g.id}')" class="touch-btn text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 font-bold text-[11px] tracking-wider">
+            LÖSCHEN
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function onGameTypeChange(type) {
+      const counterOpt = document.getElementById('counter-options');
+      const unitInput = document.getElementById('input-game-unit');
+      if (type === 'counter') {
+        if (counterOpt) counterOpt.classList.remove('hidden');
+        if (unitInput) unitInput.value = 'Punkte';
+      } else if (type === 'team_match') {
+        if (counterOpt) counterOpt.classList.add('hidden');
+        if (unitInput) unitInput.value = 'Siege';
+      } else if (type === 'attempts_stars') {
+        if (counterOpt) counterOpt.classList.add('hidden');
+        if (unitInput) unitInput.value = 'Sterne';
+      } else if (type === 'target_ring') {
+        if (counterOpt) counterOpt.classList.add('hidden');
+        if (unitInput) unitInput.value = 'Punkte';
+      } else if (type === 'attempts_target') {
+        if (counterOpt) counterOpt.classList.add('hidden');
+        if (unitInput) unitInput.value = 'Treffer';
+      } else {
+        if (counterOpt) counterOpt.classList.add('hidden');
+      }
+    }
+
+    function openNewGameModal() {
+      document.getElementById('modal-game').classList.remove('hidden');
+    }
+
+    function submitNewGame() {
+      const name = document.getElementById('input-game-name').value.trim();
+      if (!name) return alert('Bitte einen Namen eingeben');
+
+      const icon = (document.getElementById('input-game-icon')?.value || '').trim();
+      const unit = document.getElementById('input-game-unit').value.trim() || 'Punkte';
+      const type = document.getElementById('input-game-type').value;
+      const step = Number(document.getElementById('input-game-step').value) || 1;
+      const multiplier = Number(document.getElementById('input-game-multi').value) || 1;
+      let maxAttempts = 10;
+      if (type === 'target_ring') maxAttempts = 5;
+      else if (type === 'attempts_target') maxAttempts = 5;
+
+      sendWs('ADD_GAME', { name, icon, unit, type, step, multiplier, maxAttempts, winPoints: 1 });
+      closeModal('modal-game');
+      document.getElementById('input-game-name').value = '';
+    }
+
+    function deleteGame(gameId) {
+      if (confirm('Möchtest du dieses Spiel wirklich löschen?')) {
+        sendWs('DELETE_GAME', { gameId });
+      }
+    }
+
+    /* ============================================================ */
+    /* SPIELER VERWALTEN (PLAYER MANAGEMENT & CARD IMPORT)          */
+    /* ============================================================ */
+    function renderPlayersManageList() {
+      // 1. Render Inbox Cards
+      const inbox = tournament.inbox || [];
+      const inboxSection = document.getElementById('inbox-section');
+      const inboxList = document.getElementById('inbox-cards-list');
+      const inboxCount = document.getElementById('inbox-count');
+      const navBadge = document.getElementById('nav-inbox-badge');
+
+      // Update Nav Badge
+      if (navBadge) {
+        if (inbox.length > 0) {
+          navBadge.textContent = inbox.length;
+          navBadge.classList.remove('hidden');
+        } else {
+          navBadge.classList.add('hidden');
+        }
+      }
+
+      if (inbox.length > 0) {
+        inboxSection.classList.remove('hidden');
+        inboxCount.textContent = inbox.length;
+        inboxList.innerHTML = `
+          <div class="flex justify-end pb-1">
+            <button onclick="importAllInbox()" class="touch-btn px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] rounded-lg shadow">
+              ALLE ÜBERNEHMEN (${inbox.length})
+            </button>
+          </div>
+        `;
+
+        inbox.forEach(c => {
+          const isAlreadyIn = (tournament.players || []).some(p => p.name.toLowerCase() === c.name.toLowerCase());
+          const item = document.createElement('div');
+          item.className = 'bg-slate-900 border border-amber-500/30 rounded-xl p-2.5 flex items-center justify-between shadow';
+          item.innerHTML = `
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <img src="${c.portrait || c.cardImage || 'chef.jfif'}" alt="${c.name}" class="w-10 h-10 rounded-full object-cover border-2 border-amber-400 flex-shrink-0">
+              <div class="min-w-0">
+                <div class="font-bold text-xs text-white truncate">${c.name} <span class="text-amber-400">(${c.ovr || 88} OVR)</span></div>
+                <div class="text-[10px] text-gray-400 truncate">${c.nickname ? `"${c.nickname}" • ` : ''}Pos: ${c.pos || 'ST'} • ${c.receivedAt || 'Neu'}</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1.5 flex-shrink-0 pl-2">
+              ${isAlreadyIn ? `
+                <span class="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-lg font-bold">
+                  ✓ IM TURNIER
+                </span>
+              ` : `
+                <button onclick="importInboxCard('${c.id}')" class="touch-btn px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-lg shadow">
+                  + ÜBERNEHMEN
+                </button>
+              `}
+              <button onclick="dismissInboxCard('${c.id}')" class="touch-btn text-gray-400 hover:text-rose-400 p-1 text-sm" title="Ablehnen">
+                ✕
+              </button>
+            </div>
+          `;
+          inboxList.appendChild(item);
+        });
+      } else {
+        inboxSection.classList.add('hidden');
+      }
+
+      // 2. Render Active Tournament Players
+      const container = document.getElementById('players-manage-list');
+      container.innerHTML = '';
+
+      const players = tournament.players || [];
+      if (players.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-500 text-center py-4">Noch keine Spieler angelegt.</div>';
+        return;
+      }
+
+      players.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-900 border border-white/10 rounded-xl p-3 flex items-center justify-between shadow-sm';
+        item.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <img src="${p.portrait || p.cardImage || 'chef.jfif'}" alt="${p.name}" class="w-10 h-10 rounded-full object-cover border border-amber-400/50">
+            <div>
+              <div class="font-bold text-sm text-white">${p.name} ${p.nickname ? `"${p.nickname}"` : ''}</div>
+              <div class="text-xs text-gray-400">OVR: ${p.ovr || 85} • Pos: ${p.pos || 'ST'} • Edition: ${p.editionName || p.edition}</div>
+            </div>
+          </div>
+          <button onclick="deletePlayer('${p.id}')" class="touch-btn text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 font-bold text-[11px] tracking-wider">
+            ENTFERNEN
+          </button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function importInboxCard(cardId) {
+      haptic();
+      sendWs('IMPORT_FROM_INBOX', { cardId });
+    }
+
+    function importAllInbox() {
+      haptic();
+      sendWs('IMPORT_ALL_INBOX', {});
+      showToast('Alle Karten ins Turnier übernommen!');
+    }
+
+    function dismissInboxCard(cardId) {
+      if (confirm('Möchtest du diese Karte aus der Inbox entfernen?')) {
+        haptic();
+        sendWs('DISMISS_INBOX_CARD', { cardId });
+      }
+    }
+
+    // Direct File Upload for Cards (PNG or JSON)
+    async function handleCardUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.name.endsWith('.json')) {
+        // Parse metadata JSON directly
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            sendWs('ADD_PLAYER', data);
+            showToast(`Karte ${data.name || 'Spieler'} importiert!`);
+          } catch (err) {
+            alert('Ungültige JSON-Datei');
+          }
+        };
+        reader.readAsText(file);
+      } else if (file.type.startsWith('image/')) {
+        // Image card file (PNG / JPG)
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target.result;
+          // Extract default name from filename (e.g. "Max_Mustermann.png")
+          const cleanBase = file.name.replace(/\.[^/.]+$/, "").replace(/^\d+[-_]/, "").replace(/[-_]/g, " ");
+          const playerName = prompt("Spielername für diese Karte eingeben:", cleanBase) || cleanBase;
+          if (!playerName) return;
+
+          const playerOvr = prompt("OVR Gesamtwertung (z. B. 90):", "88") || "88";
+
+          // Send to server receiver endpoint
+          try {
+            const res = await fetch('/api/submit_card', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: playerName.trim(),
+                ovr: Number(playerOvr) || 88,
+                pos: 'ST',
+                edition: 'img_bier',
+                file: base64
+              })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showToast(`Karte ${data.name} erfolgreich importiert!`);
+            }
+          } catch (err) {
+            alert('Fehler beim Upload der Karte');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+      event.target.value = ''; // Reset input
+    }
+
+    function showToast(text) {
+      let toast = document.getElementById('admin-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'admin-toast';
+        toast.className = 'fixed top-14 inset-x-4 max-w-sm mx-auto bg-amber-500 text-black font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-2xl z-50 text-center transition-all duration-300 transform -translate-y-4 opacity-0 pointer-events-none';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = text;
+      toast.classList.remove('-translate-y-4', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('-translate-y-4', 'opacity-0');
+      }, 3500);
+    }
+
+    function openNewPlayerModal() {
+      document.getElementById('modal-player').classList.remove('hidden');
+    }
+
+    function submitNewPlayer() {
+      const name = document.getElementById('input-player-name').value.trim();
+      if (!name) return alert('Bitte einen Spielernamen eingeben');
+
+      const nickname = document.getElementById('input-player-nick').value.trim();
+      const ovr = Number(document.getElementById('input-player-ovr').value) || 85;
+      const pos = document.getElementById('input-player-pos').value;
+      const edition = document.getElementById('input-player-edition').value;
+
+      sendWs('ADD_PLAYER', { name, nickname, ovr, pos, edition });
+      closeModal('modal-player');
+      document.getElementById('input-player-name').value = '';
+      document.getElementById('input-player-nick').value = '';
+    }
+
+    function deletePlayer(playerId) {
+      if (confirm('Möchtest du diesen Spieler wirklich entfernen?')) {
+        sendWs('DELETE_PLAYER', { playerId });
+      }
+    }
+
+    /* ============================================================ */
+    /* TV TOOLS & EFFECTS                                           */
+    /* ============================================================ */
+    function triggerEffect(effect) {
+      haptic();
+      if (effect === 'chime' || effect === 'gong') playAdminSound('gong');
+      sendWs('TRIGGER_EFFECT', { effect });
+      showToast(`TV-Effekt: ${effect.toUpperCase()} gesendet!`);
+    }
+
+    function confirmResetAll() {
+      if (confirm('Bist du sicher? Alle Punktestände aller Spiele werden auf 0 zurückgesetzt!')) {
+        sendWs('RESET_ALL', {});
+      }
+    }
+
+    /* ============================================================ */
+    /* PHOTO SLIDESHOW & GUEST STREAM MANAGEMENT                    */
+    /* ============================================================ */
+    let guestUploadPageUrl = '/fotos.html';
+
+    function renderPhotosAdmin() {
+      const photos = tournament.photos || [];
+      const badge = document.getElementById('tv-photos-badge');
+      const countEl = document.getElementById('admin-gallery-count');
+      const grid = document.getElementById('admin-photos-grid');
+
+      if (badge) badge.textContent = `${photos.length} Fotos`;
+      if (countEl) countEl.textContent = `${photos.length} Bilder`;
+
+      if (!grid) return;
+      if (photos.length === 0) {
+        grid.innerHTML = '<div class="col-span-3 text-center text-xs text-gray-500 py-6">Noch keine Fotos hochgeladen.</div>';
+        return;
+      }
+
+      grid.innerHTML = photos.map(p => `
+        <div class="relative bg-slate-900 rounded-xl overflow-hidden border border-white/10 shadow flex flex-col">
+          <div class="h-20 w-full bg-cover bg-center" style="background-image: url('${p.url}')"></div>
+          <div class="p-1.5 flex flex-col justify-between flex-1">
+            <div class="text-[11px] font-bold text-white truncate">${p.sender || 'Gast'}</div>
+            ${p.caption ? `<div class="text-[9px] text-amber-300/80 truncate">"${p.caption}"</div>` : ''}
+            <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
+              <span class="text-[8px] text-gray-500">${p.uploadedAt || ''}</span>
+              <button onclick="deletePhoto('${p.id}')" class="text-rose-400 hover:text-rose-300 font-bold text-[9px] px-1 tracking-wider">
+                LÖSCHEN
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function deletePhoto(photoId) {
+      if (!confirm('Dieses Foto wirklich aus dem Party-Stream löschen?')) return;
+      try {
+        const res = await fetch('/api/delete_photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photoId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Foto gelöscht!');
+          tournament.photos = (tournament.photos || []).filter(p => p.id !== photoId);
+          renderPhotosAdmin();
+        }
+      } catch (e) {
+        showToast('Fehler beim Löschen des Fotos.');
+      }
+    }
+
+    function openGuestUploadPage() {
+      window.open(guestUploadPageUrl, '_blank');
+    }
+
+    function copyGuestUploadLink() {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(guestUploadPageUrl);
+        showToast('Upload-Link in die Zwischenablage kopiert!');
+      } else {
+        showToast(`Link: ${guestUploadPageUrl}`);
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // Load Network information for TV tools
+    async function loadNetworkInfo() {
+      try {
+        const res = await fetch('/api/network');
+        const data = await res.json();
+        const tvEl = document.getElementById('info-tv-url');
+        const mobEl = document.getElementById('info-mobile-url');
+        if (tvEl) tvEl.textContent = data.tvUrl;
+        if (mobEl) mobEl.textContent = data.mobileAdminUrl;
+
+        if (data.guestFotosUrl) {
+          guestUploadPageUrl = data.guestFotosUrl;
+          const input = document.getElementById('admin-guest-url-input');
+          if (input) input.value = data.guestFotosUrl;
+        }
+      } catch (e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      connectWebSocket();
+      loadNetworkInfo();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hütten-Karten 2026 • Offizielle Sammelkarten-Editionen</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Montserrat / Oswald for FUT look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,900&family=Inter:wght@400;500;600;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            fut: ['Montserrat', 'sans-serif'],
+            oswald: ['Oswald', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Glowing lava / metallic effect accents */
+    .magma-text {
+      background: linear-gradient(135deg, #FFE885 0%, #F59E0B 45%, #EF4444 85%, #991B1B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gold-text {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FBBF24 50%, #D97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .titan-border {
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.12), inset 0 0 15px rgba(245, 158, 11, 0.05);
+    }
+    .card-pedestal {
+      perspective: 1000px;
+      transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .card-pedestal:hover {
+      transform: translateY(-8px) scale(1.02);
+    }
+    .holo-sheen {
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 45%, transparent 60%, rgba(245,158,11,0.15) 100%);
+      pointer-events: none;
+    }
+    /* Hide scrollbar for screenshot cleanliness */
+    body::-webkit-scrollbar {
+      display: none;
+    }
+    body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Clean screenshot mode */
+    .screenshot-hide {
+      transition: opacity 0.2s ease;
+    }
+    body.clean-mode .screenshot-hide {
+      display: none !important;
+    }
+  </style>
+</head>
+<body id="page-body" class="bg-slate-950 text-slate-100 min-h-screen relative font-sans selection:bg-amber-500 selection:text-black">
+
+  <!-- Background Wallpaper Layer -->
+  <div id="bg-layer" class="fixed inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-500"
+       style="background-image: url('assets/volcanic_lodge_bg.jpg'); background-repeat: no-repeat; background-attachment: fixed; background-size: cover;">
+    <!-- Dark Vignette & Lighting Overlay -->
+    <div id="bg-tint" class="absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] transition-colors duration-500"></div>
+  </div>
+
+  <!-- FLOATING SCREENSHOT TOOLBAR (CAN BE HIDDEN FOR 100% PURE ART SCREENSHOT) -->
+  <header id="toolbar" class="screenshot-hide sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/90 backdrop-blur-md px-4 py-3 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <a href="guest.html" class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-fut font-bold hover:bg-amber-500/30 transition flex items-center gap-1.5">
+          <span>←</span> <span>Gäste-Link</span>
+        </a>
+        <div class="border-l border-white/10 pl-3">
+          <h1 class="text-sm font-fut font-black uppercase tracking-wider text-white flex items-center gap-2">
+            <span>🃏 KARTEN-SHOWCASE</span>
+            <span class="px-2 py-0.5 rounded text-[10px] bg-red-600/30 border border-red-500/40 text-red-300 font-sans font-semibold">SCREENSHOT-TOOL</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">Erstelle hochauflösende Werbe-Screenshots für WhatsApp & Instagram</p>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        
+        <!-- Background Switcher -->
+        <div class="flex items-center bg-slate-900 border border-white/10 rounded-lg p-1">
+          <button onclick="setBg('volcanic')" id="btn-bg-volcanic" class="px-2.5 py-1 rounded font-bold text-amber-300 bg-amber-500/20 transition">🌋 Magma</button>
+          <button onclick="setBg('slate')" id="btn-bg-slate" class="px-2.5 py-1 rounded font-medium text-slate-400 hover:text-white transition">🪨 Hütte</button>
+          <button onclick="setBg('black')" id="btn-bg-black" class="px-2.5 py-1 rounded font-medium text-slate-400 hover:text-white transition">⬛ Studio</button>
+        </div>
+
+        <!-- Columns Switcher -->
+        <div class="flex items-center bg-slate-900 border border-white/10 rounded-lg p-1">
+          <span class="text-[10px] text-slate-400 px-1.5 font-mono">Spalten:</span>
+          <button onclick="setColumns(2)" id="btn-col-2" class="px-2 py-1 rounded font-bold text-slate-400 hover:text-white transition">2</button>
+          <button onclick="setColumns(3)" id="btn-col-3" class="px-2 py-1 rounded font-bold text-slate-400 hover:text-white transition">3</button>
+          <button onclick="setColumns(4)" id="btn-col-4" class="px-2 py-1 rounded font-bold text-amber-300 bg-amber-500/20 transition">4</button>
+          <button onclick="setColumns(5)" id="btn-col-5" class="px-2 py-1 rounded font-bold text-slate-400 hover:text-white transition">5</button>
+        </div>
+
+        <!-- Filter: Main 10 vs All 16 -->
+        <button onclick="toggleSpecials()" id="btn-toggle-specials"
+          class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 font-bold hover:border-amber-500/50 hover:text-white transition">
+          👑 Special-Karten: <span id="lbl-specials" class="text-amber-400 font-black">AN</span>
+        </button>
+
+        <!-- Header Banner Toggle -->
+        <button onclick="toggleHeaderBanner()" id="btn-toggle-header"
+          class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 font-bold hover:border-amber-500/50 hover:text-white transition">
+          Banner: <span id="lbl-header" class="text-emerald-400 font-black">AN</span>
+        </button>
+
+        <!-- Clean Screenshot Mode Button (Highlighted) -->
+        <button onclick="enterCleanMode()"
+          class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition transform active:scale-95">
+          <span>📸</span> <span>Screenshot-Modus</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- EXIT CLEAN MODE FLOATING PILL (Appears only in Clean Mode) -->
+  <div id="clean-mode-exit-pill" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <button onclick="exitCleanMode()"
+      class="px-4 py-2 rounded-full bg-slate-900/90 border border-amber-500/50 text-amber-300 text-xs font-bold uppercase tracking-wider shadow-2xl backdrop-blur-md flex items-center gap-2 hover:bg-slate-800 transition">
+      <span>✕</span> <span>Screenshot-Modus beenden (ESC)</span>
+    </button>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10">
+
+    <!-- PROMOTIONAL HERO BANNER (Optimized for Promo-Screenshots) -->
+    <section id="promo-banner" class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-amber-500/15 via-slate-900/90 to-slate-950 border border-amber-500/30 p-6 sm:p-10 text-center shadow-2xl backdrop-blur-md titan-border">
+      
+      <!-- Top Badge -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-fut font-black tracking-wider uppercase mb-4 shadow-md">
+        <span>🏆</span> <span>HÜTTEN-CUP 2026 • OFFIZIELL</span>
+      </div>
+
+      <!-- Main Catchy Title -->
+      <h2 class="text-3xl sm:text-5xl lg:text-6xl font-fut font-black tracking-wide uppercase leading-tight text-white">
+        WÄHLE DEINEN STYLE &amp;<br>
+        <span class="magma-text">ERSTELLE DEINE SAMMELKARTE!</span>
+      </h2>
+
+      <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto mt-3 mb-6 leading-relaxed">
+        Jeder Gast erhält seine persönliche <strong>FUT-Hütten-Sammelkarte</strong> als echtes Unikat! 
+        Wähle deinen Lieblings-Rohling, lade dein Selfie hoch und sichere dir deinen Platz im Turnier.
+      </p>
+
+      <!-- Guest URL & QR Code Card -->
+      <div class="inline-flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-950/80 border border-amber-400/30 shadow-xl backdrop-blur-md">
+        <!-- QR Code -->
+        <div class="w-24 h-24 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-inner">
+          <img id="promo-qr" src="" alt="QR Code zum Gäste-Link" class="w-full h-full object-contain">
+        </div>
+        
+        <!-- Link Text & Action -->
+        <div class="text-center sm:text-left space-y-1">
+          <span class="text-[10px] uppercase font-fut font-bold text-amber-400 tracking-wider block">Gäste-Link zum Erstellen:</span>
+          <div id="promo-url-text" class="font-mono text-xs sm:text-sm text-slate-100 font-bold bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800 break-all select-all">
+            .../guest.html
+          </div>
+          <div class="flex items-center justify-center sm:justify-start gap-2 pt-1 screenshot-hide">
+            <button onclick="copyGuestLink()" class="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 text-[11px] font-bold transition flex items-center gap-1">
+              <span>📋</span> <span id="copy-btn-label">Link kopieren</span>
+            </button>
+            <a href="guest.html" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition flex items-center gap-1">
+              <span>🚀</span> <span>Assistent öffnen</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- CARDS SHOWCASE GRID -->
+    <section>
+      <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-3">
+        <div>
+          <h3 class="text-xl sm:text-2xl font-fut font-black uppercase text-white tracking-wide flex items-center gap-2">
+            <span>✨ DIE OFFIZIELLEN ROHLINGE</span>
+          </h3>
+          <p class="text-xs text-slate-400">Alle Kartendesigns sind pixelperfekt freigestellt für scharfe Drucke und TV-Grafiken</p>
+        </div>
+        <div class="text-right">
+          <span id="card-counter" class="text-xs font-mono font-bold text-amber-400 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+            10 DESIGNS
+          </span>
+        </div>
+      </div>
+
+      <!-- THE GRID (Classes dynamically updated by setColumns) -->
+      <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+        <!-- Dynamically rendered by JavaScript -->
+      </div>
+    </section>
+
+    <!-- FOOTER PROMO WATERMARK -->
+    <footer class="pt-8 pb-12 border-t border-white/10 text-center text-xs text-slate-500 space-y-2">
+      <div class="flex items-center justify-center gap-2">
+        <span class="text-amber-500 font-fut font-black tracking-widest text-sm">GÜNSTENBERGE 2026</span>
+        <span>•</span>
+        <span class="font-fut font-semibold text-slate-400">DAS OFFIZIELLE TURNIER</span>
+      </div>
+      <p class="text-[11px] text-slate-500">Entwickelt für das perfekte Hüttenerlebnis • FUT-Karten-Engine v2.0</p>
+    </footer>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ALL CARD TEMPLATES DEFINITIONS */
+    const ALL_TEMPLATES = [
+      {
+        id: 'img_bier',
+        number: '01',
+        name: 'Goldenes Bierfest',
+        subtitle: 'Goldrahmen, Bernstein & Hopfenkrone',
+        file: 'vorlagen/karte_bier_gold.png',
+        tag: 'PARTY-HERO',
+        accentColor: '#FBBF24',
+        glowColor: 'rgba(251, 191, 36, 0.4)',
+        isSpecial: false
+      },
+      {
+        id: 'img_brauhaus',
+        number: '02',
+        name: 'Brauerei & Sudhaus',
+        subtitle: 'Kupferrohre, Hopfen & Manometer',
+        file: 'vorlagen/karte_brauerei_sudhaus.png',
+        tag: 'NEU',
+        accentColor: '#F59E0B',
+        glowColor: 'rgba(245, 158, 11, 0.4)',
+        isSpecial: false
+      },
+      {
+        id: 'img_werkstatt',
+        number: '03',
+        name: 'Schrauber & Werkstatt',
+        subtitle: 'Zahnräder, Kolben & Schraubenschlüssel',
+        file: 'vorlagen/karte_werkstatt_schrauber.png',
+        tag: 'NEU',
+        accentColor: '#E5C483',
+        glowColor: 'rgba(229, 196, 131, 0.4)',
+        isSpecial: false
+      },
+      {
+        id: 'img_carbon',
+        number: '04',
+        name: 'Carbon & Munition',
+        subtitle: 'Carbon, Patronen & Scharfschütze',
+        file: 'vorlagen/karte_carbon_munition.png',
+        tag: 'NEU',
+        accentColor: '#FBBF24',
+        glowColor: 'rgba(251, 191, 36, 0.4)',
+        isSpecial: false
+      },
+      {
+        id: 'img_leder',
+        number: '05',
+        name: 'Biker & Leder',
+        subtitle: 'Schwarzes Leder, Schnallen & Nieten',
+        file: 'vorlagen/karte_leder_schnallen.png',
+        tag: 'NEU',
+        accentColor: '#CBD5E1',
+        glowColor: 'rgba(203, 213, 225, 0.35)',
+        isSpecial: false
+      },
+      {
+        id: 'img_holz',
+        number: '06',
+        name: 'Eisenhütte & Holz',
+        subtitle: 'Altes Eichenholz & Schmiedeeisen',
+        file: 'vorlagen/karte_holz_eisen.png',
+        tag: 'RUSTIKAL',
+        accentColor: '#D97706',
+        glowColor: 'rgba(217, 119, 6, 0.35)',
+        isSpecial: false
+      },
+      {
+        id: 'img_tracht',
+        number: '07',
+        name: 'Edelweiß-Wappen',
+        subtitle: 'Salbeigrün, Roségold & Hirsch',
+        file: 'vorlagen/karte_blau_tracht.png',
+        tag: 'TRACHT',
+        accentColor: '#6EE7B7',
+        glowColor: 'rgba(110, 231, 183, 0.35)',
+        isSpecial: false
+      },
+      {
+        id: 'img_wald',
+        number: '08',
+        name: 'Eichenlaub & Wald',
+        subtitle: 'Jagdgrün, Eichenlaub & Gold',
+        file: 'vorlagen/karte_gruen_gold.png',
+        tag: 'WALDMEISTER',
+        accentColor: '#34D399',
+        glowColor: 'rgba(52, 211, 153, 0.35)',
+        isSpecial: false
+      },
+      {
+        id: 'img_glitzer',
+        number: '09',
+        name: 'Glitzer-Glamour',
+        subtitle: 'Pink, Rosé & Partyglanz',
+        file: 'vorlagen/karte_glitzer_pink.png',
+        tag: 'GLAMOUR',
+        accentColor: '#F472B6',
+        glowColor: 'rgba(244, 114, 182, 0.4)',
+        isSpecial: false
+      },
+      {
+        id: 'img_krone',
+        number: '10',
+        name: 'Kaiserliche Krone',
+        subtitle: 'Roségold & Kaiserlicher Samt',
+        file: 'vorlagen/karte_lila_krone.png',
+        tag: 'ROYAL',
+        accentColor: '#E9D5FF',
+        glowColor: 'rgba(233, 213, 255, 0.35)',
+        isSpecial: false
+      },
+
+      /* SPECIAL / EXCLUSIVE EDITIONS */
+      {
+        id: 'img_chef',
+        number: '★',
+        name: 'Boss / Gastgeber (Ric)',
+        subtitle: 'Gold, Krone & Vinyl – exklusiv reserviert',
+        file: 'vorlagen/karte_chef.png',
+        tag: 'EXKLUSIV',
+        accentColor: '#FDE68A',
+        glowColor: 'rgba(253, 230, 138, 0.45)',
+        isSpecial: true
+      },
+      {
+        id: 'img_feuer',
+        number: '11',
+        name: 'Grillmeister (Lava)',
+        subtitle: 'Glut, Magma & offene Flammen',
+        file: 'vorlagen/karte_feuer_lava.png',
+        tag: 'SPECIAL',
+        accentColor: '#F97316',
+        glowColor: 'rgba(249, 115, 22, 0.45)',
+        isSpecial: true
+      },
+      {
+        id: 'img_frost',
+        number: '12',
+        name: 'Eisbrecher (Après-Ski)',
+        subtitle: 'Gletscher, Frost & Eiswürfel',
+        file: 'vorlagen/karte_eis_frost.png',
+        tag: 'SPECIAL',
+        accentColor: '#38BDF8',
+        glowColor: 'rgba(56, 189, 248, 0.4)',
+        isSpecial: true
+      },
+      {
+        id: 'img_pechvogel',
+        number: '13',
+        name: 'Absturz-Kandidat',
+        subtitle: 'Panzertape, Risse & Pflaster',
+        file: 'vorlagen/karte_pechvogel_riss.png',
+        tag: 'SPECIAL',
+        accentColor: '#FACC15',
+        glowColor: 'rgba(250, 204, 21, 0.35)',
+        isSpecial: true
+      },
+      {
+        id: 'img_neon',
+        number: '14',
+        name: 'Neon-Nachtschicht',
+        subtitle: 'Rave, Laser & Discokugel',
+        file: 'vorlagen/karte_neon_rave.png',
+        tag: 'SPECIAL',
+        accentColor: '#22D3EE',
+        glowColor: 'rgba(34, 211, 238, 0.4)',
+        isSpecial: true
+      },
+      {
+        id: 'img_veteran',
+        number: '15',
+        name: 'Hütten-Veteran',
+        subtitle: 'Leder, Messing & Siegel',
+        file: 'vorlagen/karte_veteran_leder.png',
+        tag: 'SPECIAL',
+        accentColor: '#FBBF24',
+        glowColor: 'rgba(251, 191, 36, 0.35)',
+        isSpecial: true
+      }
+    ];
+
+    let showSpecials = true;
+    let showHeader = true;
+    let currentCols = 4;
+
+    /* Initialize page */
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Setup Guest Link & QR Code
+      const guestUrl = window.location.origin + window.location.pathname.replace('showcase.html', 'guest.html');
+      const urlDisplay = document.getElementById('promo-url-text');
+      if (urlDisplay) urlDisplay.innerText = guestUrl;
+      
+      const qrImg = document.getElementById('promo-qr');
+      if (qrImg) {
+        // High-res QR code generated via qrserver API
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=0B0F17&bgcolor=FFFFFF&data=${encodeURIComponent(guestUrl)}`;
+      }
+
+      // 2. Render Cards
+      renderCards();
+
+      // 3. Setup ESC listener for Clean Mode
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') exitCleanMode();
+        if (e.key === 'c' || e.key === 'C') toggleCleanMode();
+      });
+    });
+
+    /* Render Cards Grid */
+    function renderCards() {
+      const container = document.getElementById('cards-grid');
+      const list = showSpecials ? ALL_TEMPLATES : ALL_TEMPLATES.filter(t => !t.isSpecial);
+      
+      document.getElementById('card-counter').innerText = `${list.length} DESIGNS`;
+
+      container.innerHTML = list.map(item => `
+        <div class="card-pedestal group relative flex flex-col rounded-3xl p-4 bg-slate-900/80 border border-slate-800/90 shadow-2xl backdrop-blur-md hover:border-amber-400/40 transition-all duration-300">
+          
+          <!-- Top Card Header: Number & Tag -->
+          <div class="flex items-center justify-between mb-3 px-1">
+            <span class="font-fut font-black text-xs text-slate-400 group-hover:text-amber-400 transition-colors">
+              EDITION #${item.number}
+            </span>
+            <span class="text-[10px] font-fut font-bold px-2 py-0.5 rounded-full ${item.tag === 'NEU' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/30' : item.tag === 'EXKLUSIV' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-slate-800 text-slate-300'}">
+              ${item.tag}
+            </span>
+          </div>
+
+          <!-- Card Artwork Container with Glow -->
+          <div class="relative aspect-[3/4] w-full rounded-2xl overflow-hidden flex items-center justify-center p-2 mb-3 bg-gradient-to-b from-slate-950 to-slate-900 border border-white/5 shadow-inner">
+            
+            <!-- Under-Glow Radial Spotlight -->
+            <div class="absolute inset-0 opacity-40 group-hover:opacity-75 transition-opacity duration-300 pointer-events-none"
+                 style="background: radial-gradient(circle at 50% 60%, ${item.glowColor} 0%, transparent 68%);"></div>
+
+            <!-- Card Blank Image -->
+            <img src="${item.file}" alt="${item.name}" loading="lazy"
+                 class="relative z-10 w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)] group-hover:scale-105 transition-transform duration-300">
+
+            <!-- Holo sheen reflection overlay -->
+            <div class="holo-sheen absolute inset-0 z-20 opacity-30 group-hover:opacity-60 transition-opacity pointer-events-none"></div>
+          </div>
+
+          <!-- Card Title & Description -->
+          <div class="text-left px-1 mt-auto">
+            <h4 class="font-fut font-black text-base text-white tracking-wide group-hover:text-amber-300 transition-colors">
+              ${item.name}
+            </h4>
+            <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">
+              ${item.subtitle}
+            </p>
+          </div>
+
+          <!-- Subtle Accent Line -->
+          <div class="w-full h-1 rounded-full mt-3 opacity-70 group-hover:opacity-100 transition-opacity"
+               style="background: linear-gradient(90deg, ${item.accentColor}, transparent);"></div>
+        </div>
+      `).join('');
+    }
+
+    /* Columns Switcher */
+    function setColumns(cols) {
+      currentCols = cols;
+      const grid = document.getElementById('cards-grid');
+      grid.className = `grid gap-6 sm:gap-8 transition-all duration-300 ${
+        cols === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto' :
+        cols === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+        cols === 5 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' :
+        'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+      }`;
+
+      // Update button highlights
+      [2, 3, 4, 5].forEach(c => {
+        const btn = document.getElementById(`btn-col-${c}`);
+        if (btn) {
+          if (c === cols) {
+            btn.className = 'px-2 py-1 rounded font-bold text-amber-300 bg-amber-500/20 transition';
+          } else {
+            btn.className = 'px-2 py-1 rounded font-bold text-slate-400 hover:text-white transition';
+          }
+        }
+      });
+    }
+
+    /* Background Switcher */
+    function setBg(type) {
+      const bg = document.getElementById('bg-layer');
+      const tint = document.getElementById('bg-tint');
+      
+      ['volcanic', 'slate', 'black'].forEach(t => {
+        const btn = document.getElementById(`btn-bg-${t}`);
+        if (btn) {
+          btn.className = t === type ? 
+            'px-2.5 py-1 rounded font-bold text-amber-300 bg-amber-500/20 transition' : 
+            'px-2.5 py-1 rounded font-medium text-slate-400 hover:text-white transition';
+        }
+      });
+
+      if (type === 'volcanic') {
+        bg.style.backgroundImage = "url('assets/volcanic_lodge_bg.jpg')";
+        tint.className = 'absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] transition-colors duration-500';
+      } else if (type === 'slate') {
+        bg.style.backgroundImage = "url('assets/slate_lodge_bg.jpg')";
+        tint.className = 'absolute inset-0 bg-slate-950/75 backdrop-blur-[2px] transition-colors duration-500';
+      } else {
+        bg.style.backgroundImage = 'none';
+        bg.style.backgroundColor = '#04070D';
+        tint.className = 'absolute inset-0 bg-transparent';
+      }
+    }
+
+    /* Toggle Specials */
+    function toggleSpecials() {
+      showSpecials = !showSpecials;
+      const lbl = document.getElementById('lbl-specials');
+      if (lbl) {
+        lbl.innerText = showSpecials ? 'AN' : 'AUS';
+        lbl.className = showSpecials ? 'text-amber-400 font-black' : 'text-slate-500 font-black';
+      }
+      renderCards();
+    }
+
+    /* Toggle Header Banner */
+    function toggleHeaderBanner() {
+      showHeader = !showHeader;
+      const banner = document.getElementById('promo-banner');
+      const lbl = document.getElementById('lbl-header');
+      if (banner) banner.classList.toggle('hidden', !showHeader);
+      if (lbl) {
+        lbl.innerText = showHeader ? 'AN' : 'AUS';
+        lbl.className = showHeader ? 'text-emerald-400 font-black' : 'text-slate-500 font-black';
+      }
+    }
+
+    /* Clean Screenshot Mode */
+    function enterCleanMode() {
+      document.body.classList.add('clean-mode');
+      const exitPill = document.getElementById('clean-mode-exit-pill');
+      if (exitPill) exitPill.classList.remove('hidden');
+    }
+
+    function exitCleanMode() {
+      document.body.classList.remove('clean-mode');
+      const exitPill = document.getElementById('clean-mode-exit-pill');
+      if (exitPill) exitPill.classList.add('hidden');
+    }
+
+    function toggleCleanMode() {
+      if (document.body.classList.contains('clean-mode')) {
+        exitCleanMode();
+      } else {
+        enterCleanMode();
+      }
+    }
+
+    /* Copy Guest Link */
+    function copyGuestLink() {
+      const guestUrl = window.location.origin + window.location.pathname.replace('showcase.html', 'guest.html');
+      navigator.clipboard.writeText(guestUrl).then(() => {
+        const lbl = document.getElementById('copy-btn-label');
+        if (lbl) {
+          lbl.innerText = 'Kopiert! ✓';
+          setTimeout(() => lbl.innerText = 'Link kopieren', 2500);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

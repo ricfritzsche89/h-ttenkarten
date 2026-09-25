@@ -778,5 +778,265 @@
       "fontSize": 11,
       "color": "#FBBF24"
     }
+  },
+  "img_werkstatt": {
+    "ovr": {
+      "x": 30.3,
+      "y": 25.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#E5C483"
+    },
+    "badge": {
+      "x": 29.9,
+      "y": 38.7,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#E5C483"
+    },
+    "portrait": {
+      "x": 60.8,
+      "y": 36.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 52.5,
+      "y": 61.2,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#E5C483"
+    },
+    "stats": {
+      "x": 51.6,
+      "y": 75.5,
+      "scale": 92,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#E5C483"
+    },
+    "perk": {
+      "x": 52.1,
+      "y": 86.3,
+      "scale": 66,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#E5C483"
+    }
+  },
+  "img_brauhaus": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#F59E0B"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#F59E0B"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#F59E0B"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#F59E0B"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#F59E0B"
+    }
+  },
+  "img_leder": {
+    "ovr": {
+      "x": 24.2,
+      "y": 26.1,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 51,
+      "color": "#CBD5E1"
+    },
+    "badge": {
+      "x": 24.7,
+      "y": 43.4,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#CBD5E1"
+    },
+    "portrait": {
+      "x": 64.3,
+      "y": 37.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 50,
+      "y": 61,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#94A3B8"
+    },
+    "stats": {
+      "x": 51.2,
+      "y": 75.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#E2E8F0"
+    },
+    "perk": {
+      "x": 50,
+      "y": 88,
+      "scale": 100,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#CBD5E1"
+    }
+  },
+  "img_carbon": {
+    "ovr": {
+      "x": 30.3,
+      "y": 25.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 20,
+      "fontSize": 44,
+      "color": "#FBBF24"
+    },
+    "badge": {
+      "x": 29.9,
+      "y": 38.7,
+      "scale": 100,
+      "rot": 0,
+      "width": 15,
+      "fontSize": 20,
+      "color": "#FBBF24"
+    },
+    "portrait": {
+      "x": 60.8,
+      "y": 36.3,
+      "scale": 100,
+      "rot": 0,
+      "width": 62,
+      "fontSize": 16,
+      "color": "#FFFFFF"
+    },
+    "name": {
+      "x": 52.5,
+      "y": 61.2,
+      "scale": 100,
+      "rot": 0,
+      "width": 85,
+      "fontSize": 34,
+      "color": "#FFFFFF"
+    },
+    "divider": {
+      "x": 50,
+      "y": 65.5,
+      "scale": 100,
+      "rot": 0,
+      "width": 65,
+      "fontSize": 2,
+      "color": "#F59E0B"
+    },
+    "stats": {
+      "x": 51.6,
+      "y": 75.5,
+      "scale": 92,
+      "rot": 0,
+      "width": 68,
+      "fontSize": 19,
+      "color": "#FDE68A"
+    },
+    "perk": {
+      "x": 52.1,
+      "y": 86.3,
+      "scale": 66,
+      "rot": 0,
+      "width": 60,
+      "fontSize": 11,
+      "color": "#FBBF24"
+    }
   }
 }

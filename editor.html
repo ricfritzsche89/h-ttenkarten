@@ -156,6 +156,10 @@
       <!-- Template Selector Badges (Statisch im HTML, sofort klickbar!) -->
       <div class="w-full mb-4 flex flex-wrap gap-2 justify-center" id="template-buttons">
         <button id="btn-ed-img_bier" onclick="setEdition('img_bier')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shadow-md">🍺 Bierfest</button>
+        <button id="btn-ed-img_brauhaus" onclick="setEdition('img_brauhaus')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🍺 Sudhaus</button>
+        <button id="btn-ed-img_werkstatt" onclick="setEdition('img_werkstatt')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">⚙️ Werkstatt</button>
+        <button id="btn-ed-img_carbon" onclick="setEdition('img_carbon')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🎯 Carbon</button>
+        <button id="btn-ed-img_leder" onclick="setEdition('img_leder')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🖤 Leder</button>
         <button id="btn-ed-img_krone" onclick="setEdition('img_krone')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">👑 Prunkkrone</button>
         <button id="btn-ed-img_tracht" onclick="setEdition('img_tracht')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">🌸 Edelweiß</button>
         <button id="btn-ed-img_glitzer" onclick="setEdition('img_glitzer')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800">✨ Glitzer</button>
@@ -430,6 +434,10 @@
     /* ======================================================== */
     const EDITIONS = [
       { id: 'img_bier', name: '🍺 Bierfest', file: 'vorlagen/karte_bier_gold.png', ratio: '986 / 1200' },
+      { id: 'img_brauhaus', name: '🍺 Sudhaus', file: 'vorlagen/karte_brauerei_sudhaus.png', ratio: '874 / 1200' },
+      { id: 'img_werkstatt', name: '⚙️ Werkstatt', file: 'vorlagen/karte_werkstatt_schrauber.png', ratio: '1125 / 1200' },
+      { id: 'img_carbon', name: '🎯 Carbon', file: 'vorlagen/karte_carbon_munition.png', ratio: '847 / 1200' },
+      { id: 'img_leder', name: '🖤 Leder', file: 'vorlagen/karte_leder_schnallen.png', ratio: '796 / 1200' },
       { id: 'img_krone', name: '👑 Prunkkrone', file: 'vorlagen/karte_lila_krone.png', ratio: '931 / 1200' },
       { id: 'img_tracht', name: '🌸 Edelweiß', file: 'vorlagen/karte_blau_tracht.png', ratio: '780 / 1200' },
       { id: 'img_glitzer', name: '✨ Glitzer', file: 'vorlagen/karte_glitzer_pink.png', ratio: '857 / 1200' },

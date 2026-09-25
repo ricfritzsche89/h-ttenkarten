@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>GUT 26 – Dein Hüttenkarten Setup-Assistent</title>
+  <title>Hüttenkarten Setup-Assistent</title>
   
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2222%22 font-size=%2222%22>🥩</text></svg>">
@@ -101,22 +101,29 @@
 
     /* 3D Card Fan Deck Animation */
     @keyframes fan-float {
-      0%, 100% { transform: translateY(-8px) scale(1.05); }
-      50% { transform: translateY(-13px) scale(1.06); }
+      0%, 100% { transform: translateY(-4px) scale(1.06); }
+      50% { transform: translateY(-10px) scale(1.08); }
     }
     .animate-fan-hero {
       animation: fan-float 3.5s ease-in-out infinite;
     }
-    .card-fan-container {
-      perspective: 1000px;
+    .welcome-3d-stage {
+      perspective: 1200px;
+      perspective-origin: center center;
+      touch-action: pan-y;
     }
-    .card-fan-card {
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      transform-origin: 50% 120%;
+    .welcome-3d-card {
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease;
+      transform-style: preserve-3d;
+      will-change: transform, opacity, filter;
+      backface-visibility: hidden;
     }
-    .card-fan-container:hover .card-fan-card:not(:hover) {
-      opacity: 0.88;
-      filter: brightness(0.92);
+    .welcome-stage-dot {
+      transition: all 0.3s ease;
+    }
+    .welcome-stage-dot.active {
+      width: 1.5rem;
+      background-color: #F59E0B;
     }
   </style>
 </head>
@@ -143,14 +150,11 @@
         <span class="text-2xl drop-shadow">🥩</span>
         <div>
           <h1 class="text-sm font-black tracking-wider uppercase font-fut text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 leading-tight">
-            GUT 26 • GÄSTE-SETUP
+            HÜTTENKARTEN • GÄSTE-SETUP
           </h1>
           <p class="text-[10px] text-slate-400 font-semibold tracking-wide">Erstelle deine offizielle Hüttenkarte</p>
         </div>
       </div>
-      <a href="index.html" class="text-[11px] font-bold text-slate-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 transition">
-        Zur Haupt-App ↗
-      </a>
     </div>
 
     <!-- Stepper / Progress Bar -->
@@ -188,35 +192,37 @@
           Wie bei <strong>FIFA / FUT</strong> bekommt jeder Gast sein eigenes Sammelkarten-Unikat! Wähle deinen Style, bewerte deine Party-Skills und knipse ein schnelles Selfie.
         </p>
 
-        <!-- Interaktiver 3D-Kartenfächer -->
-        <div class="card-fan-container relative h-44 sm:h-52 max-w-sm mx-auto flex items-center justify-center my-3 select-none">
+        <!-- Interaktive 3D-Kartenbühne mit allen Editionen -->
+        <div class="relative max-w-sm sm:max-w-md mx-auto my-3 select-none">
+          <!-- 3D Bühne Container -->
+          <div id="welcome-carousel-stage" class="welcome-3d-stage relative h-48 sm:h-56 flex items-center justify-center overflow-visible">
+            <!-- Dynamisch befüllt per JS mit allen verfügbaren Editionen -->
+          </div>
+
+          <!-- Links/Rechts Pfeile für Desktop & Mobile Touch -->
+          <button type="button" onclick="prevWelcomeCard(event)" aria-label="Vorherige Karte"
+            class="absolute left-0 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-slate-900/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-slate-700 flex items-center justify-center shadow-xl backdrop-blur transition-all active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button type="button" onclick="nextWelcomeCard(event)" aria-label="Nächste Karte"
+            class="absolute right-0 top-1/2 -translate-y-1/2 z-40 w-9 h-9 rounded-full bg-slate-900/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border border-slate-700 flex items-center justify-center shadow-xl backdrop-blur transition-all active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- Titel & Subtitel der fokussierten Karte -->
+        <div class="flex flex-col items-center justify-center gap-1.5 mb-3">
+          <div id="welcome-card-badge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/90 border border-amber-500/40 text-center shadow-md backdrop-blur">
+            <span id="welcome-card-name" class="text-xs font-bold text-amber-300">Bierfest-Edition</span>
+            <span class="text-slate-600">•</span>
+            <span id="welcome-card-sub" class="text-[10px] text-slate-300">Goldrahmen & Bier-Aura</span>
+          </div>
+          <!-- Interaktive Dots für alle Karten -->
+          <div id="welcome-card-dots" class="flex items-center justify-center gap-1.5 pt-1"></div>
           
-          <!-- Karte 1 (Links außen: Tracht / Salbei) -->
-          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform -translate-x-20 sm:-translate-x-24 translate-y-3 -rotate-12 hover:-translate-y-5 hover:-rotate-12 hover:scale-110 hover:z-30 cursor-pointer">
-            <img src="vorlagen/karte_blau_tracht.png" alt="Tracht Edition" class="w-full h-full object-contain filter drop-shadow">
-          </div>
-
-          <!-- Karte 2 (Links innen: Pink Glitzer) -->
-          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform -translate-x-10 sm:-translate-x-12 translate-y-1 -rotate-6 hover:-translate-y-5 hover:-rotate-6 hover:scale-110 hover:z-30 cursor-pointer">
-            <img src="vorlagen/karte_glitzer_pink.png" alt="Glitzer Edition" class="w-full h-full object-contain filter drop-shadow">
-          </div>
-
-          <!-- Karte 3 (Mitte / Hero: Bier-Gold) -->
-          <div class="card-fan-card animate-fan-hero absolute w-28 sm:w-32 aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(245,158,11,0.45)] border-2 border-amber-400 transform translate-x-0 -translate-y-2 rotate-0 scale-105 z-20 hover:-translate-y-7 hover:scale-115 hover:z-30 cursor-pointer">
-            <img src="vorlagen/karte_bier_gold.png" alt="Bier Gold Edition" class="w-full h-full object-contain filter drop-shadow">
-            <div class="absolute inset-0 bg-gradient-to-tr from-amber-400/20 via-transparent to-white/20 pointer-events-none"></div>
-          </div>
-
-          <!-- Karte 4 (Rechts innen: Holz & Eisen) -->
-          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform translate-x-10 sm:translate-x-12 translate-y-1 rotate-6 hover:-translate-y-5 hover:rotate-6 hover:scale-110 hover:z-30 cursor-pointer">
-            <img src="vorlagen/karte_holz_eisen.png" alt="Holz & Eisen Edition" class="w-full h-full object-contain filter drop-shadow">
-          </div>
-
-          <!-- Karte 5 (Rechts außen: Kaiser-Krone) -->
-          <div class="card-fan-card absolute w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-xl border border-white/20 transform translate-x-20 sm:translate-x-24 translate-y-3 rotate-12 hover:-translate-y-5 hover:rotate-12 hover:scale-110 hover:z-30 cursor-pointer">
-            <img src="vorlagen/karte_lila_krone.png" alt="Krone Edition" class="w-full h-full object-contain filter drop-shadow">
-          </div>
-
+          <a href="showcase.html" target="_blank" class="mt-1 inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-400/90 hover:text-amber-300 hover:underline transition">
+            <span>🖼️</span> <span>Alle 10 Kartendesigns im Überblick ansehen</span> <span class="text-xs">↗</span>
+          </a>
         </div>
 
         <!-- 3 Feature Steps Badges -->
@@ -520,7 +526,7 @@
     <section id="step-5" class="wizard-step hidden space-y-6">
       <div class="text-center space-y-1">
         <span class="text-3xl">🏆</span>
-        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Deine offizielle GUT 26 Karte!</h2>
+        <h2 class="text-xl font-black text-white font-fut tracking-wide uppercase">Deine offizielle Hüttenkarte!</h2>
         <p class="text-xs text-slate-400">Berühre oder neige dein Smartphone für den 3D-Hologramm-Effekt</p>
       </div>
 
@@ -781,6 +787,42 @@
         ratio: '931 / 1200',
         badge: 'crown',
         accentColor: '#E9D5FF'
+      },
+      {
+        id: 'img_brauhaus',
+        name: '🍺 Brauerei & Sudhaus',
+        subtitle: 'Kupferrohre, Hopfen & Manometer',
+        imageUrl: 'vorlagen/karte_brauerei_sudhaus.png',
+        ratio: '874 / 1200',
+        badge: 'beer',
+        accentColor: '#F59E0B'
+      },
+      {
+        id: 'img_werkstatt',
+        name: '⚙️ Schrauber & Werkstatt',
+        subtitle: 'Zahnräder, Kolben & Schraubenschlüssel',
+        imageUrl: 'vorlagen/karte_werkstatt_schrauber.png',
+        ratio: '1125 / 1200',
+        badge: 'fire',
+        accentColor: '#E5C483'
+      },
+      {
+        id: 'img_carbon',
+        name: '🎯 Carbon & Munition',
+        subtitle: 'Carbon, Patronen & Scharfschütze',
+        imageUrl: 'vorlagen/karte_carbon_munition.png',
+        ratio: '847 / 1200',
+        badge: 'target',
+        accentColor: '#FBBF24'
+      },
+      {
+        id: 'img_leder',
+        name: '🖤 Biker & Leder',
+        subtitle: 'Schwarzes Leder, Schnallen & Nieten',
+        imageUrl: 'vorlagen/karte_leder_schnallen.png',
+        ratio: '796 / 1200',
+        badge: 'trophy',
+        accentColor: '#CBD5E1'
       }
       /* Voruebergehend ausgeblendet - darum kuemmern wir uns spaeter:
       ,
@@ -846,6 +888,7 @@
         selectedEditionId = 'img_bier';
       }
       renderGuestTemplateGrid();
+      initWelcomeCarousel();
       updateGuestCardPreview();
     }
 
@@ -901,6 +944,9 @@
       // 3. Render guest editions
       renderGuestTemplateGrid();
 
+      // 3b. Init 3D Welcome Carousel
+      initWelcomeCarousel();
+
       // 4. Load initial default photo
       loadInitialPhoto('assets/avatar_schuetze.png');
 
@@ -914,6 +960,202 @@
       updateGuestStats();
       updateGuestCardPreview();
     });
+
+    /* ======================================================== */
+    /* 3D WELCOME CAROUSEL (SHOWCASES ALL AVAILABLE EDITIONS)    */
+    /* ======================================================== */
+    let welcomeCards = [];
+    let welcomeIndex = 0;
+    let welcomeTimer = null;
+    let welcomeTouchStartX = 0;
+
+    function initWelcomeCarousel() {
+      const stage = document.getElementById('welcome-carousel-stage');
+      const dotsContainer = document.getElementById('welcome-card-dots');
+      if (!stage) return;
+
+      // Filter out 'img_chef' unless chef is unlocked
+      const chefUnlocked = isGuestChefUnlocked();
+      welcomeCards = GUEST_EDITIONS.filter(ed => ed.id !== 'img_chef' || chefUnlocked);
+
+      // Default index: find 'img_bier' or 0
+      const bIdx = welcomeCards.findIndex(e => e.id === 'img_bier');
+      welcomeIndex = bIdx >= 0 ? bIdx : 0;
+
+      // Render card elements
+      stage.innerHTML = welcomeCards.map((ed, idx) => `
+        <div id="welcome-stage-card-${idx}" onclick="onWelcomeCardClick(${idx})"
+          class="welcome-3d-card absolute w-28 sm:w-36 aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer select-none border border-white/20">
+          <img src="${ed.imageUrl}" alt="${ed.name}" class="w-full h-full object-contain filter drop-shadow">
+          <div class="holo-glare absolute inset-0 opacity-40 pointer-events-none"></div>
+        </div>
+      `).join('');
+
+      // Render dots
+      if (dotsContainer) {
+        dotsContainer.innerHTML = welcomeCards.map((_, idx) => `
+          <button type="button" onclick="goToWelcomeCard(${idx})" aria-label="Karte ${idx + 1}"
+            class="welcome-stage-dot w-2 h-2 rounded-full ${idx === welcomeIndex ? 'active' : 'bg-slate-700 hover:bg-slate-500'}"></button>
+        `).join('');
+      }
+
+      // Touch events for swiping
+      stage.addEventListener('touchstart', (e) => {
+        if (e.changedTouches && e.changedTouches[0]) {
+          welcomeTouchStartX = e.changedTouches[0].screenX;
+        }
+        pauseWelcomeAutoPlay();
+      }, { passive: true });
+
+      stage.addEventListener('touchend', (e) => {
+        if (e.changedTouches && e.changedTouches[0]) {
+          const diff = e.changedTouches[0].screenX - welcomeTouchStartX;
+          if (diff > 35) {
+            prevWelcomeCard();
+          } else if (diff < -35) {
+            nextWelcomeCard();
+          }
+        }
+        startWelcomeAutoPlay();
+      }, { passive: true });
+
+      stage.addEventListener('mouseenter', pauseWelcomeAutoPlay);
+      stage.addEventListener('mouseleave', startWelcomeAutoPlay);
+
+      updateWelcomeCarousel();
+      startWelcomeAutoPlay();
+    }
+
+    function updateWelcomeCarousel() {
+      if (!welcomeCards.length) return;
+      const count = welcomeCards.length;
+      const isMobile = window.innerWidth < 640;
+      const stepX = isMobile ? 68 : 88;
+      const farStepX = isMobile ? 122 : 155;
+
+      welcomeCards.forEach((ed, idx) => {
+        const el = document.getElementById(`welcome-stage-card-${idx}`);
+        if (!el) return;
+
+        let diff = (idx - welcomeIndex) % count;
+        if (diff > count / 2) diff -= count;
+        if (diff < -count / 2) diff += count;
+
+        if (diff === 0) {
+          // Center / Hero
+          el.style.transform = `translateX(0px) translateY(-6px) scale(1.1) rotateY(0deg)`;
+          el.style.zIndex = '30';
+          el.style.opacity = '1';
+          el.style.filter = `drop-shadow(0 15px 30px ${ed.accentColor}88)`;
+          el.classList.add('animate-fan-hero');
+        } else if (diff === 1) {
+          // Right 1
+          el.style.transform = `translateX(${stepX}px) translateY(4px) scale(0.88) rotateY(-25deg)`;
+          el.style.zIndex = '20';
+          el.style.opacity = '0.85';
+          el.style.filter = 'brightness(0.85) drop-shadow(0 8px 16px rgba(0,0,0,0.6))';
+          el.classList.remove('animate-fan-hero');
+        } else if (diff === -1) {
+          // Left 1
+          el.style.transform = `translateX(-${stepX}px) translateY(4px) scale(0.88) rotateY(25deg)`;
+          el.style.zIndex = '20';
+          el.style.opacity = '0.85';
+          el.style.filter = 'brightness(0.85) drop-shadow(0 8px 16px rgba(0,0,0,0.6))';
+          el.classList.remove('animate-fan-hero');
+        } else if (diff === 2) {
+          // Far Right
+          el.style.transform = `translateX(${farStepX}px) translateY(12px) scale(0.7) rotateY(-40deg)`;
+          el.style.zIndex = '10';
+          el.style.opacity = '0.45';
+          el.style.filter = 'brightness(0.6)';
+          el.classList.remove('animate-fan-hero');
+        } else if (diff === -2) {
+          // Far Left
+          el.style.transform = `translateX(-${farStepX}px) translateY(12px) scale(0.7) rotateY(40deg)`;
+          el.style.zIndex = '10';
+          el.style.opacity = '0.45';
+          el.style.filter = 'brightness(0.6)';
+          el.classList.remove('animate-fan-hero');
+        } else {
+          // Hidden
+          el.style.transform = `translateX(0px) translateY(30px) scale(0.4)`;
+          el.style.zIndex = '0';
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+          el.classList.remove('animate-fan-hero');
+        }
+      });
+
+      // Update badge & caption
+      const cur = welcomeCards[welcomeIndex];
+      if (cur) {
+        const nameEl = document.getElementById('welcome-card-name');
+        const subEl = document.getElementById('welcome-card-sub');
+        if (nameEl) nameEl.innerText = cur.name;
+        if (subEl) subEl.innerText = cur.subtitle;
+      }
+
+      // Update dots
+      const dotsContainer = document.getElementById('welcome-card-dots');
+      if (dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.welcome-stage-dot');
+        dots.forEach((d, i) => {
+          if (i === welcomeIndex) {
+            d.className = 'welcome-stage-dot w-6 h-2 rounded-full bg-amber-400 shadow-sm active';
+          } else {
+            d.className = 'welcome-stage-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500';
+          }
+        });
+      }
+    }
+
+    function onWelcomeCardClick(idx) {
+      if (idx === welcomeIndex) {
+        // Already active card clicked -> select this edition!
+        const cur = welcomeCards[welcomeIndex];
+        if (cur) {
+          selectGuestEdition(cur.id);
+          showToast(`Design gewählt: ${cur.name}! ✨`, 'info', 2000);
+        }
+      } else {
+        goToWelcomeCard(idx);
+      }
+    }
+
+    function nextWelcomeCard(e) {
+      if (e) e.stopPropagation();
+      if (!welcomeCards.length) return;
+      welcomeIndex = (welcomeIndex + 1) % welcomeCards.length;
+      updateWelcomeCarousel();
+    }
+
+    function prevWelcomeCard(e) {
+      if (e) e.stopPropagation();
+      if (!welcomeCards.length) return;
+      welcomeIndex = (welcomeIndex - 1 + welcomeCards.length) % welcomeCards.length;
+      updateWelcomeCarousel();
+    }
+
+    function goToWelcomeCard(idx) {
+      welcomeIndex = idx;
+      updateWelcomeCarousel();
+    }
+
+    function startWelcomeAutoPlay() {
+      pauseWelcomeAutoPlay();
+      if (!welcomeCards.length) return;
+      welcomeTimer = setInterval(() => {
+        welcomeIndex = (welcomeIndex + 1) % welcomeCards.length;
+        updateWelcomeCarousel();
+      }, 3400);
+    }
+
+    function pauseWelcomeAutoPlay() {
+      if (welcomeTimer) {
+        clearInterval(welcomeTimer);
+        welcomeTimer = null;
+      }
+    }
 
     /* Render Position Selectors */
     function renderPositionSelectors() {
@@ -1932,6 +2174,24 @@
         });
 
         let delivered = false;
+
+        // 1. Versuche lokalen GUT Studio Server
+        try {
+          const localUrl = (window.location.port === '3000') 
+            ? '/api/submit_card' 
+            : `http://${window.location.hostname || 'localhost'}:3000/api/submit_card`;
+          const localRes = await fetch(localUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload
+          });
+          const localJson = await localRes.json();
+          if (localJson && localJson.ok) delivered = true;
+        } catch (e) {
+          // Lokaler Server nicht erreichbar, nutze Google Apps Script
+        }
+
+        // 2. Google Apps Script als Backup / Online-Speicher
         try {
           const res = await fetch(GUT_SUBMIT_URL, {
             method: 'POST',

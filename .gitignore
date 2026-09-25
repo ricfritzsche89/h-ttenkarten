@@ -5,9 +5,11 @@ vorlagen/_kontrollbogen.png
 vorlagen_orig/
 fehler*
 
-# Falls die Seite schmaler werden soll, auskommentieren:
-# vorlagen/
-# apps-script/
+node_modules/
+data/
+photos/
+cards/
+*.log
 
 # Sonstiges
 Thumbs.db

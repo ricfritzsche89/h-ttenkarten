@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scoreboard – TV Live-Board</title>
+  
+  <!-- Tailwind CSS & Web Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Barlow Condensed', 'Inter', 'sans-serif'],
+            fut: ['Barlow Condensed', 'sans-serif'],
+            cinzel: ['Barlow Condensed', 'sans-serif'],
+          },
+          colors: {
+            amber: {
+              300: '#F3E5AB',
+              400: '#E5C483',
+              500: '#D4AF37',
+              600: '#B89326',
+              700: '#94741B',
+            },
+            brand: {
+              gold: '#D4AF37',
+              goldLight: '#F3E5AB',
+              amber: '#B89326',
+              woodDark: '#090B0E',
+              woodMedium: '#11151F',
+              slateCard: '#0E121A',
+              borderGold: 'rgba(212, 175, 55, 0.35)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Full TV screen optimization - Chrono Titanium & Champagne Gold */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #090B0E;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+
+    /* Volcanic Basalt, Magma Fissures & Charred Timber Lodge Texture */
+    .slate-lodge-bg {
+      background: #090B0E url('assets/volcanic_lodge_bg.jpg') no-repeat center bottom fixed;
+      background-size: cover;
+      background-attachment: fixed;
+    }
+
+    /* Subtle Outer Border Trim */
+    .alpine-wood-frame {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 0 50px rgba(0, 0, 0, 0.98);
+    }
+
+    /* Precision Magma Slate Panels - Subtle molten ember hairline border & ambient glow */
+    .game-panel {
+      background: rgba(12, 16, 24, 0.94);
+      border: 1px solid rgba(225, 105, 25, 0.38);
+      border-radius: 8px;
+      box-shadow: 0 10px 26px -4px rgba(0, 0, 0, 0.9), 
+                  0 0 16px -2px rgba(220, 75, 10, 0.12), 
+                  inset 0 1px 0 rgba(255, 175, 75, 0.22);
+      backdrop-filter: blur(14px);
+    }
+
+    /* Overall / Leaderboard Master Box: Champagner-Magma Frame */
+    .master-panel {
+      border: 1px solid rgba(212, 175, 55, 0.55) !important;
+      box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.9), 
+                  0 0 20px rgba(212, 175, 55, 0.18), 
+                  0 0 10px rgba(225, 90, 20, 0.12),
+                  inset 0 1px 0 rgba(243, 229, 171, 0.35) !important;
+    }
+
+    /* Top 3 Showcase Column on the Right (Precision Timing Column with Magma Edge) */
+    .showcase-column {
+      background: rgba(10, 13, 19, 0.98);
+      border-left: 1px solid rgba(225, 105, 25, 0.32);
+      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.85), -4px 0 14px rgba(220, 75, 10, 0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    /* Miniature GUT card shield in table rows */
+    .mini-card-shield {
+      width: 28px;
+      height: 38px;
+      border-radius: 3px;
+      clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
+      position: relative;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Score Change Highlight Pulse */
+    @keyframes score-pulse {
+      0% { background-color: rgba(212, 175, 55, 0.35); transform: scale(1.015); }
+      100% { background-color: transparent; transform: scale(1); }
+    }
+    .score-updated {
+      animation: score-pulse 1.2s ease-out;
+    }
+
+    /* Luxury Drop-Shadow for Cards */
+    .card-clean-shadow {
+      filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.9));
+    }
+
+    /* High-Precision Sports Timing Rank Badges (Chrono Titanium & Champagne) */
+    .rank-badge-1 {
+      background: #D4AF37;
+      color: #07090D;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+    }
+    .rank-badge-2 {
+      background: #1E2533;
+      color: #E2E8F0;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      border-radius: 4px;
+    }
+    .rank-badge-3 {
+      background: #1C1712;
+      color: #D97706;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      border: 1px solid rgba(180, 83, 9, 0.4);
+      border-radius: 4px;
+    }
+    .rank-badge-default {
+      background: rgba(255, 255, 255, 0.03);
+      color: #64748B;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+    }
+
+  </style>
+</head>
+<body class="slate-lodge-bg alpine-wood-frame w-screen h-screen select-none overflow-hidden text-gray-100 relative">
+  <!-- ============================================================ -->
+  <!-- SCREEN 1: COMPLETE SCOREBOARD (GAMES GRID + TOP 3 COLUMN)   -->
+  <!-- ============================================================ -->
+  <div id="screen-scoreboard" class="w-full h-full flex select-none overflow-hidden transition-opacity duration-500">
+    <!-- LEFT & CENTER: Individual Discipline Tables Grid (75% width) -->
+    <main class="flex-1 h-full p-3 flex flex-col min-w-0">
+      <!-- Edge-to-edge dynamic games grid: Auto-fits based on number of games -->
+      <div id="games-grid" class="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0 overflow-hidden">
+        <!-- Dynamically filled with individual game tables + Gesamtwertung -->
+      </div>
+    </main>
+
+    <!-- RIGHT: Top 3 Showcase Column (25% width) -->
+    <aside class="w-[26%] h-full showcase-column p-4 flex flex-col justify-between flex-shrink-0 z-10 relative">
+      <!-- Header of Top 3 -->
+      <div class="text-center pt-2 pb-2.5 border-b border-white/10 bg-white/[0.02] rounded-t-lg">
+        <h2 class="font-fut font-bold tracking-widest text-base text-amber-400 uppercase">
+          TOP 3 • LEADERBOARD
+        </h2>
+        <p class="text-[9px] font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
+          AKTUELLE GESAMTWERTUNG
+        </p>
+      </div>
+
+      <!-- Cards Container (3 Cards: 1st Gold with crown on top, 2nd Silver, 3rd Bronze) -->
+      <div id="podium-cards" class="flex-1 flex flex-col justify-around py-2 space-y-3">
+        <!-- 1. Platz Card -->
+        <div id="card-rank-1" class="relative flex flex-col items-center transition-all duration-500">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- 2. Platz Card -->
+        <div id="card-rank-2" class="relative flex flex-col items-center transition-all duration-500">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- 3. Platz Card -->
+        <div id="card-rank-3" class="relative flex flex-col items-center transition-all duration-500">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Live Status & Smartphone Quick-Connect Bar at bottom -->
+      <div class="pt-2.5 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center space-x-2">
+          <span id="ws-indicator" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="ws-status" class="font-fut text-xs tracking-wider uppercase text-slate-300">LIVE SYNC AKTIV</span>
+        </div>
+        <button onclick="toggleQrModal()" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-200 rounded border border-white/15 text-[10px] font-fut font-bold tracking-wider uppercase transition">
+          QR-CODE
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 2: DEDICATED FULLSCREEN EVENT ARENA                   -->
+  <!-- (100% Widescreen, NO background tables, Full Card Immersion!) -->
+  <div id="screen-event" class="w-full h-full flex flex-col select-none overflow-hidden hidden relative p-6 z-20 transition-opacity duration-500">
+
+    <!-- SUB-VIEW 1: FULLSCREEN ANNOUNCEMENT & COUNTDOWN (MATCHES ARENA PROPORTIONS) -->
+    <div id="event-announced-view" class="w-full h-full flex flex-col justify-between relative hidden">
+      <!-- Injected via renderFullscreenAnnounced() -->
+    </div>
+
+    <!-- SUB-VIEW 2: FULLSCREEN LIVE MATCH ARENA (BIERPONG & DISZIPLINEN) -->
+    <div id="event-live-view" class="w-full h-full flex flex-col justify-between relative hidden">
+      <!-- Injected via renderFullscreenLive() -->
+    </div>
+
+    <!-- Floating status bar at top right -->
+    <div class="absolute top-4 right-6 flex items-center space-x-3 text-xs text-gray-400 z-30">
+      <div class="flex items-center space-x-2 bg-black/70 px-3 py-1 rounded border border-white/10">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="font-fut font-bold text-xs tracking-wider text-slate-300 uppercase">LIVE SYNC</span>
+      </div>
+      <button onclick="toggleQrModal()" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-200 rounded border border-white/15 text-[10px] font-fut font-bold tracking-wider uppercase transition">
+        QR
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 3: DEDICATED FULLSCREEN PHOTO SLIDESHOW               -->
+  <!-- ============================================================ -->
+  <div id="screen-slideshow" class="fixed inset-0 w-screen h-screen bg-black z-30 select-none overflow-hidden hidden transition-opacity duration-700">
+    <!-- Dual-layer Crossfading Backgrounds for 100% Fullscreen Immersion -->
+    <div id="slide-layer-1" class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out opacity-100"></div>
+    <div id="slide-layer-2" class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out opacity-0"></div>
+
+    <!-- Soft cinematic vignette overlay -->
+    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.7) 100%);"></div>
+
+    <!-- Floating Bottom-Left Badge: Sender Name & Caption -->
+    <div id="slide-badge" class="absolute bottom-8 left-8 max-w-xl bg-black/85 backdrop-blur-md border border-white/15 rounded-xl px-5 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3.5 z-20">
+      <div class="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-400/50 flex items-center justify-center font-fut font-black text-amber-300 text-xs tracking-wider shadow">
+        LIVE
+      </div>
+      <div>
+        <div class="text-[10px] text-amber-400 font-fut font-bold uppercase tracking-widest" id="slide-sender">SCHNAPPSCHUSS</div>
+        <div class="text-lg font-bold text-white leading-tight truncate" id="slide-caption">Party-Fotos</div>
+      </div>
+    </div>
+
+    <!-- Floating Bottom-Right Badge: QR Code to Upload Photos -->
+    <div class="absolute bottom-8 right-8 bg-black/85 backdrop-blur-md border border-white/15 rounded-xl p-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3 z-20">
+      <img id="slideshow-qr" src="" alt="QR" class="w-16 h-16 rounded bg-white p-0.5 object-contain">
+      <div class="pr-2">
+        <div class="text-[11px] font-fut font-bold text-amber-300 uppercase tracking-wider">FOTO HOCHLADEN</div>
+        <div class="text-[10px] text-slate-300 font-medium">Scanne mit deinem Smartphone</div>
+      </div>
+    </div>
+
+    <!-- Empty State if no photos yet -->
+    <div id="slideshow-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 hidden">
+      <div class="game-panel p-10 max-w-lg space-y-4">
+        <div class="text-xs font-fut font-bold tracking-widest text-amber-400 uppercase py-1 px-3 border border-amber-500/30 rounded inline-block">FOTOGALERIE</div>
+        <h2 class="font-fut font-bold text-3xl text-white uppercase tracking-wider">NOCH KEINE FOTOS</h2>
+        <p class="text-xs text-slate-300">
+          Scanne den QR-Code mit deinem Smartphone und lade den ersten Schnappschuss direkt auf den TV!
+        </p>
+        <img id="slideshow-empty-qr" src="" alt="QR" class="w-44 h-44 mx-auto rounded bg-white p-1.5 shadow-2xl">
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 4: DEDICATED FULLSCREEN CHAMPIONS CEREMONY (PODIUM)   -->
+  <!-- ============================================================ -->
+  <div id="screen-ceremony" class="fixed inset-0 w-screen h-screen slate-lodge-bg z-30 select-none overflow-hidden hidden flex flex-col justify-between p-6 transition-opacity duration-700">
+    <!-- Top Plaque -->
+    <div class="text-center pt-2">
+      <div class="inline-flex items-center px-5 py-1 rounded bg-amber-500 text-slate-950 font-fut font-bold text-xs tracking-widest uppercase shadow">
+        SIEGEREHRUNG
+      </div>
+      <h1 class="font-fut font-black text-6xl tracking-wider text-amber-300 uppercase drop-shadow mt-1">
+        DAS PODIUM
+      </h1>
+    </div>
+
+    <!-- 3-Pedestal Podium in Fullscreen Glory -->
+    <div class="flex-1 flex items-end justify-center space-x-8 px-8 pb-4 max-w-7xl mx-auto w-full">
+      <!-- 2. PLATZ (SILVER) -->
+      <div id="ceremony-rank-2" class="flex-1 flex flex-col items-center">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- 1. PLATZ (GOLD CHAMPION) -->
+      <div id="ceremony-rank-1" class="flex-[1.25] flex flex-col items-center z-10">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- 3. PLATZ (BRONZE) -->
+      <div id="ceremony-rank-3" class="flex-1 flex flex-col items-center">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Bottom Banner -->
+    <div class="text-center py-2.5 bg-black/85 backdrop-blur-md rounded-xl border border-white/10 text-xs text-slate-300 font-fut font-bold tracking-widest uppercase shadow-xl flex items-center justify-center space-x-3">
+      <span>TURNIER-ABSCHLUSS • HERZLICHEN GLÜCKWUNSCH</span>
+    </div>
+  </div>
+
+  <!-- QR CODE MODAL FOR SMARTPHONES -->
+  <div id="qr-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center hidden" onclick="toggleQrModal()">
+    <div class="bg-[#0D1117] border border-white/15 rounded-xl p-8 max-w-md w-full text-center shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
+      <div class="text-[11px] font-fut font-bold tracking-widest text-amber-400 uppercase px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded mb-3">SMARTPHONE VERBINDUNG</div>
+      <h3 class="text-2xl font-bold font-fut text-white mb-1 uppercase tracking-wider">TURNIER-REGIE ÖFFNEN</h3>
+      <p class="text-xs text-slate-300 mb-6">
+        Scanne diesen QR-Code mit der Smartphone-Kamera, um das mobile Admin-Dashboard im Browser zu öffnen.
+      </p>
+
+      <div class="bg-white p-3 rounded-lg shadow-lg mb-4">
+        <img id="qr-image" src="" alt="Admin QR Code" class="w-64 h-64 mx-auto">
+      </div>
+
+      <div class="text-xs font-mono text-slate-300 bg-black/60 px-3 py-1.5 rounded border border-white/10 mb-6" id="qr-url-text">
+        Lade Verbindung...
+      </div>
+
+      <button onclick="toggleQrModal()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-sm tracking-wider uppercase rounded transition">
+        SCHLIESSEN (Oder 'Q' drücken)
+      </button>
+    </div>
+  </div>
+
+  <!-- Sound Audio Elements (Synthesized Web Audio API fallback) -->
+
+  <script>
+    /* ============================================================ */
+    /* STATE & WEBSOCKET ENGINE                                     */
+    /* ============================================================ */
+    let tournament = { players: [], games: [] };
+    let previousScores = {};
+    let ws = null;
+
+    function sendWs(type, payload = {}) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type, payload }));
+      }
+    }
+
+    // Edition styling and fallback assets
+    const EDITION_CONFIG = {
+      'img_bier': { name: 'Goldenes Bierfest', border: '#F59E0B', img: 'vorlagen/karte_bier_gold.png' },
+      'img_krone': { name: 'Kaiserliche Prunkkrone', border: '#C084FC', img: 'vorlagen/karte_lila_krone.png' },
+      'img_tracht': { name: 'Edelweiß-Wappen', border: '#34D399', img: 'vorlagen/karte_blau_tracht.png' },
+      'img_glitzer': { name: 'Glitzer-Glamour', border: '#F472B6', img: 'vorlagen/karte_glitzer_pink.png' },
+      'img_holz': { name: 'Eisenhütte', border: '#94A3B8', img: 'vorlagen/karte_holz_eisen.png' },
+      'img_wald': { name: 'Eichenlaub & Wald', border: '#34D399', img: 'vorlagen/karte_gruen_gold.png' },
+      'img_werkstatt': { name: 'Schrauber & Werkstatt', border: '#E5C483', img: 'vorlagen/karte_werkstatt_schrauber.png' },
+      'img_brauhaus': { name: 'Brauerei & Sudhaus', border: '#F59E0B', img: 'vorlagen/karte_brauerei_sudhaus.png' },
+      'img_leder': { name: 'Leder & Schnallen', border: '#94A3B8', img: 'vorlagen/karte_leder_schnallen.png' },
+      'img_carbon': { name: 'Carbon & Munition', border: '#FBBF24', img: 'vorlagen/karte_carbon_munition.png' },
+      'img_chef': { name: 'Der Chef', border: '#FBBF24', img: 'vorlagen/karte_chef.png' },
+    };
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+      
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('ws-indicator').className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+        document.getElementById('ws-status').textContent = 'LIVE SYNC AKTIV';
+        document.getElementById('ws-status').className = 'font-medium text-emerald-400';
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-indicator').className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+        document.getElementById('ws-status').textContent = 'VERBINDUNG WIRD ERNEUERT...';
+        document.getElementById('ws-status').className = 'font-medium text-rose-400';
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'STATE_INIT' || msg.type === 'STATE_UPDATE') {
+            tournament = msg.data || msg.payload;
+            renderAll();
+          } else if (msg.type === 'SCORE_CHANGED') {
+            tournament = msg.payload.tournamentData;
+            renderAll(msg.payload.gameId, msg.payload.playerId);
+          } else if (msg.type === 'MATCH_WIN_AWARDED') {
+            tournament = msg.payload.tournamentData;
+            renderAll();
+            const tName = msg.payload.winningTeam === 'A' ? 'TEAM ROT' : 'TEAM BLAU';
+            showTvBanner(`SIEG FÜR ${tName}! (+${msg.payload.pts} PKT)`);
+          } else if (msg.type === 'NEW_PHOTO') {
+            if (!tournament.photos) tournament.photos = [];
+            tournament.photos.unshift(msg.payload);
+            showTvBanner(`NEUES FOTO VON ${(msg.payload.sender || 'Gast').toUpperCase()}`);
+            const ev = tournament.activeEvent || {};
+            if (ev.tvView === 'slideshow') {
+              startSlideshowTicker();
+            }
+          } else if (msg.type === 'CARD_RECEIVED') {
+            showTvBanner(`NEUER SPIELER: ${msg.payload.name.toUpperCase()} (${msg.payload.ovr} OVR)`);
+          }
+        } catch (e) {
+          console.error('Error parsing WS message:', e);
+        }
+      };
+    }
+
+    // Audio & Visual Effects disabled (clean TV mode)
+    function playScoreChime() {}
+    function playFanfare() {}
+    function playAnnounceChime() {}
+    function playBuzzer() {}
+    function playGong() {}
+    function handleEffect(payload) {}
+    function playTekkenClashAudio() {}
+    function triggerTekkenClashAnimation() {}
+    function preloadAllEventAssets(ev) {}
+
+    /* ============================================================ */
+    /* FULLSCREEN CINEMATIC ARENA & COUNTDOWN TICKER ENGINE         */
+    /* ============================================================ */
+    let countdownInterval = null;
+    let lastBeepSecond = -1;
+    let lastAnnouncedEndsAt = null;
+
+    function playTekkenMusic() {}
+    function stopTekkenMusic() {}
+    function checkPlayTekkenSound(ev) {}
+    function play24CountdownAudio(secondsLeft) {}
+    function stop24CountdownAudio() {}
+
+    function startCountdownTicker(endsAt) {
+      if (countdownInterval) clearInterval(countdownInterval);
+      lastBeepSecond = -1;
+
+      const updateTicker = () => {
+        const rem = Math.max(0, Math.floor((endsAt - Date.now()) / 1000));
+        const mins = String(Math.floor(rem / 60)).padStart(2, '0');
+        const secs = String(rem % 60).padStart(2, '0');
+
+        const digitsEl = document.getElementById('fs-countdown-digits');
+        const alertEl = document.getElementById('fs-countdown-alert');
+
+        if (digitsEl) {
+          digitsEl.textContent = `${mins}:${secs}`;
+
+          if (rem <= 10 && rem > 0) {
+            digitsEl.className = 'font-fut text-6xl md:text-7xl leading-none font-black tracking-widest text-amber-400 animate-pulse';
+            if (alertEl) {
+              alertEl.textContent = `NOCH ${rem} SEKUNDEN`;
+              alertEl.className = 'text-[10px] font-fut font-bold tracking-widest text-amber-300 uppercase mt-1';
+            }
+          } else if (rem === 0) {
+            digitsEl.textContent = '00:00';
+            if (alertEl) {
+              alertEl.textContent = "LOS GEHT'S!";
+              alertEl.className = 'font-fut text-sm font-black tracking-widest text-amber-400 uppercase mt-1 animate-bounce';
+            }
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+
+            setTimeout(() => {
+              const curGameId = tournament.activeEvent?.gameId;
+              sendWs('SET_ACTIVE_EVENT', {
+                status: 'live',
+                tvView: 'live',
+                timerEndsAt: null,
+                gameId: curGameId
+              });
+              if (tournament.activeEvent) {
+                tournament.activeEvent.status = 'live';
+                tournament.activeEvent.tvView = 'live';
+                tournament.activeEvent.timerEndsAt = null;
+                updateScreenView();
+              }
+            }, 800);
+          }
+        }
+      };
+
+      updateTicker();
+      countdownInterval = setInterval(updateTicker, 250);
+    }
+
+    function stopCountdownTicker() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function updateScreenView() {
+      const ev = tournament.activeEvent || { status: 'idle' };
+      const viewMode = ev.tvView || 'auto';
+
+      let activeView = 'scoreboard';
+      if (viewMode === 'scoreboard') {
+        activeView = 'scoreboard';
+      } else if (viewMode === 'announced') {
+        if (ev.status === 'announced' && ev.timerEndsAt && ev.timerEndsAt > Date.now()) {
+          activeView = 'announced';
+        } else {
+          activeView = 'scoreboard';
+        }
+      } else if (viewMode === 'live') {
+        activeView = 'live';
+      } else if (viewMode === 'slideshow') {
+        activeView = 'slideshow';
+      } else if (viewMode === 'ceremony') {
+        activeView = 'ceremony';
+      } else {
+        if (ev.status === 'announced' && ev.timerEndsAt && ev.timerEndsAt > Date.now()) activeView = 'announced';
+        else if (ev.status === 'live') activeView = 'live';
+        else activeView = 'scoreboard';
+      }
+
+      const screenScoreboard = document.getElementById('screen-scoreboard');
+      const screenEvent = document.getElementById('screen-event');
+      const screenSlideshow = document.getElementById('screen-slideshow');
+      const screenCeremony = document.getElementById('screen-ceremony');
+      const viewAnnounced = document.getElementById('event-announced-view');
+      const viewLive = document.getElementById('event-live-view');
+
+      if (!screenScoreboard || !screenEvent) return;
+
+      // Hide all non-active main screens
+      screenScoreboard.classList.toggle('hidden', activeView !== 'scoreboard');
+      screenEvent.classList.toggle('hidden', activeView !== 'announced' && activeView !== 'live');
+      if (screenSlideshow) screenSlideshow.classList.toggle('hidden', activeView !== 'slideshow');
+      if (screenCeremony) screenCeremony.classList.toggle('hidden', activeView !== 'ceremony');
+
+      // Slideshow management
+      if (activeView === 'slideshow') {
+        startSlideshowTicker();
+      } else {
+        stopSlideshowTicker();
+      }
+
+      // Ceremony management
+      if (activeView === 'ceremony') {
+        renderFullscreenCeremony();
+      }
+
+      // Event screens management (Announced & Live)
+      if (activeView === 'scoreboard') {
+        stopCountdownTicker();
+        stopTekkenMusic();
+      } else if (activeView === 'announced') {
+        if (viewAnnounced) viewAnnounced.classList.remove('hidden');
+        if (viewLive) viewLive.classList.add('hidden');
+        checkPlayTekkenSound(ev);
+        renderFullscreenAnnounced(ev);
+      } else if (activeView === 'live') {
+        if (viewAnnounced) viewAnnounced.classList.add('hidden');
+        if (viewLive) viewLive.classList.remove('hidden');
+        stopCountdownTicker();
+        stopTekkenMusic();
+        renderFullscreenLive(ev);
+      }
+    }
+
+    function renderFullscreenAnnounced(ev) {
+      const container = document.getElementById('event-announced-view');
+      const game = (tournament.games || []).find(g => g.id === ev.gameId) || { name: 'Turnierspiel', type: 'match' };
+      const endsAt = ev.timerEndsAt;
+
+      if (game.type === 'team_match') {
+        // Bierpong: Show Team Rot VS Team Blau with Central Foreground Tekken VS & Countdown
+        const teamA = ev.teamA || { name: 'Team Rot', playerIds: [] };
+        const teamB = ev.teamB || { name: 'Team Blau', playerIds: [] };
+
+        let pAIds = (teamA.playerIds && teamA.playerIds.length > 0) ? teamA.playerIds : (tournament.players.slice(0, 2).map(p => p.id));
+        let pBIds = (teamB.playerIds && teamB.playerIds.length > 0) ? teamB.playerIds : (tournament.players.slice(2, 4).map(p => p.id));
+
+        const teamAPlayers = pAIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
+        const teamBPlayers = pBIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
+
+        container.innerHTML = `
+          <!-- Header Bar with Countdown Badge -->
+          <div class="flex items-center justify-between px-6 py-2.5 bg-black/80 rounded-xl border border-white/10 shadow-2xl">
+            <div class="px-4 py-1 bg-amber-500/20 text-amber-300 font-fut font-bold text-xs tracking-widest uppercase border border-amber-500/40 rounded animate-pulse">
+              COUNTDOWN • ANKÜNDIGUNG
+            </div>
+            <div class="flex items-center space-x-2 text-2xl font-fut font-bold tracking-wider text-amber-300 uppercase drop-shadow">
+              <span>${game.name} • RUNDE ${ev.round || 1}</span>
+            </div>
+            <div class="text-xs font-fut font-bold px-4 py-1 bg-white/5 text-slate-300 rounded border border-white/10 uppercase tracking-wider">
+              REGEL: SIEG = 1 PUNKT
+            </div>
+          </div>
+
+          <!-- Main Clash Stage: Team Rot VS Team Blau (2 Columns, Dominant Tekken Centerpiece) -->
+          <div class="flex-1 grid grid-cols-2 gap-8 items-center my-4 min-h-0 relative">
+            
+            <!-- TEAM ROT (LEFT - Glowing Red Border & Cards) -->
+            <div id="tekken-fighter-left" class="h-full bg-[#050608] rounded-3xl border-2 border-red-500 p-5 pr-14 flex flex-col justify-between shadow-[0_0_40px_rgba(239,68,68,0.7),inset_0_0_40px_rgba(239,68,68,0.35)] relative overflow-hidden">
+              <div class="flex items-center justify-between border-b border-red-500/40 pb-2">
+                <span class="font-fut font-black italic text-3xl tracking-wider text-red-400 uppercase drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">TEAM ROT</span>
+                <span class="text-xs px-3 py-1 rounded-full bg-red-500/30 text-red-100 font-fut font-bold border border-red-400 shadow">${teamAPlayers.length} Spieler</span>
+              </div>
+
+              <!-- Cards Showcase in Full Glory on Deep Black Background -->
+              <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
+                ${teamAPlayers.map(p => `
+                  <div class="flex flex-col items-center">
+                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mt-3">
+                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="text-center text-xs font-fut font-bold tracking-wider text-red-300 uppercase">
+                ${teamAPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              </div>
+            </div>
+
+            <!-- TEAM BLAU (RIGHT - Glowing Blue Border & Cards) -->
+            <div id="tekken-fighter-right" class="h-full bg-[#050608] rounded-3xl border-2 border-blue-500 p-5 pl-14 flex flex-col justify-between shadow-[0_0_40px_rgba(59,130,246,0.7),inset_0_0_40px_rgba(59,130,246,0.35)] relative overflow-hidden">
+              <div class="flex items-center justify-between border-b border-blue-500/40 pb-2">
+                <span class="font-fut font-black italic text-3xl tracking-wider text-blue-400 uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]">TEAM BLAU</span>
+                <span class="text-xs px-3 py-1 rounded-full bg-blue-500/30 text-blue-100 font-fut font-bold border border-blue-400 shadow">${teamBPlayers.length} Spieler</span>
+              </div>
+
+              <!-- Cards Showcase in Full Glory on Deep Black Background -->
+              <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
+                ${teamBPlayers.map(p => `
+                  <div class="flex flex-col items-center">
+                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mt-3">
+                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="text-center text-xs font-fut font-bold tracking-wider text-blue-300 uppercase">
+                ${teamBPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              </div>
+            </div>
+
+            <!-- DOMINANT TEKKEN 8 FOREGROUND CENTERPIECE (Z-40, OVERLAPPING IN FRONT OF CARDS) -->
+            <div id="tekken-vs-centerpiece" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none flex flex-col items-center justify-center select-none">
+              
+              <!-- Red/Blue Clash Energy Glow behind VS -->
+              <div class="absolute -inset-10 bg-gradient-to-r from-red-600/40 via-amber-500/50 to-blue-600/40 blur-3xl rounded-full scale-125 -z-10 animate-pulse"></div>
+
+              <!-- Countdown Timer Box (Prominent & Clear) -->
+              <div class="pointer-events-auto mb-2 px-6 py-3 rounded-2xl bg-black/95 border-2 border-amber-400/90 shadow-[0_0_40px_rgba(212,175,55,0.5)] flex flex-col items-center min-w-[240px]">
+                <span class="text-[10px] font-fut font-bold tracking-widest text-slate-400 uppercase">EVENT STARTET IN</span>
+                <div id="fs-countdown-digits" class="font-fut text-6xl md:text-7xl font-black tracking-wider text-amber-400 leading-none my-1">
+                  --:--
+                </div>
+                <div id="fs-countdown-alert" class="text-[9px] font-fut font-bold tracking-widest text-amber-300 uppercase">
+                  MINUTEN : SEKUNDEN
+                </div>
+              </div>
+
+              <!-- High-Resolution 3D Metallic Tekken VS Graphic from assets/vs.png -->
+              <div class="relative flex items-center justify-center">
+                <img src="assets/vs.png" alt="VS" class="w-[220px] md:w-[270px] lg:w-[310px] h-auto object-contain drop-shadow-[0_0_35px_rgba(245,158,11,0.7)] drop-shadow-[0_15px_30px_rgba(0,0,0,0.95)] select-none pointer-events-none">
+              </div>
+
+              <!-- Tekken Clash Steel Plate Badge -->
+              <div class="mt-[-20px] px-8 py-1.5 bg-black/95 border-2 border-amber-400 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.7),inset_0_0_15px_rgba(245,158,11,0.4)] flex items-center space-x-3 z-10">
+                <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
+                <span class="font-fut font-black italic text-xs tracking-[0.35em] uppercase text-amber-300 drop-shadow">VERSUS DUELL</span>
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Handicap or Rule Banner at Bottom -->
+          ${ev.note ? `
+            <div class="bg-gradient-to-r from-amber-600/30 via-amber-500/40 to-amber-600/30 border-2 border-amber-400 rounded-2xl py-2.5 px-6 text-center text-sm font-fut font-black text-amber-300 flex items-center justify-center space-x-3 shadow">
+              <span>${ev.note}</span>
+            </div>
+          ` : `
+            <div class="bg-black/60 border border-white/10 rounded-2xl py-2 px-6 text-center text-xs text-gray-400 font-medium">
+              Wer zuerst alle Becher versenkt, holt den Siegpunkt für sein Team!
+            </div>
+          `}
+        `;
+      } else {
+        // Single player discipline announcement
+        const activeP = tournament.players.find(p => p.id === ev.activePlayerId) || tournament.players[0] || null;
+        let modeHint = 'Wettkampf-Durchgang';
+        if (game.type === 'attempts_stars') modeHint = '10 Schuss auf Sterne (Treffer = 1 Pkt)';
+        else if (game.type === 'target_ring') modeHint = 'Zielscheibe (5 Schuss • 0 bis 12 Punkte)';
+        else if (game.type === 'attempts_target') modeHint = '5 Durchgänge Maßkrugschieben (Treffer = 1 Pkt)';
+
+        container.innerHTML = `
+          <!-- Header Bar -->
+          <div class="flex items-center justify-between px-6 py-2.5 bg-black/80 rounded-xl border border-white/10 shadow-xl">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              <span class="text-xs font-fut font-bold tracking-widest text-amber-300 uppercase">DISZIPLIN-ANKÜNDIGUNG</span>
+            </div>
+            <div class="text-2xl font-fut font-bold tracking-wider text-amber-300 uppercase drop-shadow">
+              <span>${game.name}</span>
+            </div>
+            <div class="text-xs font-fut font-bold px-3 py-1 bg-white/5 text-slate-300 rounded border border-white/10 uppercase tracking-wider">
+              ${modeHint}
+            </div>
+          </div>
+
+          <!-- Arena Body: Card on Left, Big Countdown on Right -->
+          <div class="flex-1 flex items-center justify-center space-x-12 my-6">
+            ${activeP ? `
+              <div class="flex flex-col items-center">
+                <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[440px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                <div class="text-center mt-3">
+                  <span class="px-3 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-fut font-bold uppercase tracking-wider border border-amber-500/30">ALS NÄCHSTES AM START</span>
+                  <div class="font-fut font-black italic text-3xl uppercase tracking-wider text-white mt-1 leading-tight">${activeP.name}</div>
+                  ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider">"${activeP.nickname}"</div>` : ''}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Large Digital Countdown Box -->
+            <div class="bg-[#0B0F17]/95 border border-amber-500/40 rounded-3xl p-8 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(212,175,55,0.25)] min-w-[440px] space-y-4">
+              <div class="inline-flex items-center px-4 py-1 rounded bg-amber-500/10 border border-amber-500/30">
+                <span class="font-fut font-bold text-xs tracking-widest text-amber-300 uppercase">
+                  STARTET IN:
+                </span>
+              </div>
+              <div class="bg-black/90 border border-white/15 rounded-2xl px-12 py-5 shadow-2xl flex flex-col items-center w-full">
+                <div id="fs-countdown-digits" class="font-fut text-[100px] leading-none font-black tracking-wider text-amber-400">
+                  --:--
+                </div>
+                <div id="fs-countdown-alert" class="text-xs font-fut font-bold tracking-widest text-slate-400 uppercase mt-2">
+                  MINUTEN : SEKUNDEN
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 font-medium text-center max-w-sm">
+                Bereitmachen! Nach Ablauf des Timers schaltet das System automatisch live.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-black/50 border border-white/10 rounded-xl py-2 px-6 text-center text-xs text-slate-400 font-fut tracking-wider uppercase">
+            Echtzeit-Synchronisation mit der Turnier-Regie
+          </div>
+        `;
+      }
+
+      if (endsAt && endsAt > Date.now()) {
+        startCountdownTicker(endsAt);
+      } else {
+        stopCountdownTicker();
+      }
+    }
+
+    let lastRenderedLiveSignature = null;
+
+    function renderFullscreenLive(ev, isPreRender = false) {
+      const container = document.getElementById('event-live-view');
+      if (!container) return;
+      const game = (tournament.games || []).find(g => g.id === ev.gameId) || { name: 'Bierpong', type: 'team_match' };
+
+      const teamAIds = (ev.teamA?.playerIds || []).join(',');
+      const teamBIds = (ev.teamB?.playerIds || []).join(',');
+      const shotsSig = (ev.turnShots || []).map(s => s ? '1' : '0').join('');
+      const targetShotsSig = (ev.targetShots || []).map(s => s !== null && s !== undefined ? String(s) : '-').join('');
+      const signature = `${ev.gameId}_${teamAIds}_${teamBIds}_${ev.round || 1}_${ev.activePlayerId || ''}_${shotsSig}_${targetShotsSig}`;
+
+      if (!isPreRender && lastRenderedLiveSignature === signature && container.children.length > 0) {
+        return;
+      }
+      lastRenderedLiveSignature = signature;
+
+      if (game.type === 'team_match') {
+        // Fullscreen Bierpong VS Arena
+        const teamA = ev.teamA || { name: 'Team Rot', playerIds: [] };
+        const teamB = ev.teamB || { name: 'Team Blau', playerIds: [] };
+
+        const teamAPlayers = teamA.playerIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
+        const teamBPlayers = teamB.playerIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
+
+        container.innerHTML = `
+          <!-- Header Bar -->
+          <div class="flex items-center justify-between px-6 py-2.5 bg-black/80 rounded-xl border border-white/10 shadow-2xl">
+            <div class="px-4 py-1 bg-red-950/90 text-red-300 font-fut font-bold text-xs tracking-widest uppercase border border-red-500/40 rounded">
+              LIVE-MATCH
+            </div>
+            <div class="flex items-center space-x-2 text-2xl font-fut font-bold tracking-wider text-amber-300 uppercase drop-shadow">
+              <span>${game.name} • RUNDE ${ev.round || 1}</span>
+            </div>
+            <div class="text-xs font-fut font-bold px-4 py-1 bg-white/5 text-slate-300 rounded border border-white/10 uppercase tracking-wider">
+              REGEL: SIEG = 1 PUNKT
+            </div>
+          </div>
+
+          <!-- Main Clash Stage: Team Rot VS Team Blau (2 Columns, Dominant Tekken Centerpiece) -->
+          <div class="flex-1 grid grid-cols-2 gap-8 items-center my-4 min-h-0 relative">
+            
+            <!-- TEAM ROT (LEFT - Glowing Red Border & Cards) -->
+            <div id="tekken-fighter-left" class="h-full bg-[#050608] rounded-3xl border-2 border-red-500 p-5 pr-14 flex flex-col justify-between shadow-[0_0_40px_rgba(239,68,68,0.7),inset_0_0_40px_rgba(239,68,68,0.35)] relative overflow-hidden">
+              <div class="flex items-center justify-between border-b border-red-500/40 pb-2">
+                <span class="font-fut font-black italic text-3xl tracking-wider text-red-400 uppercase drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">TEAM ROT</span>
+                <span class="text-xs px-3 py-1 rounded-full bg-red-500/30 text-red-100 font-fut font-bold border border-red-400 shadow">${teamAPlayers.length} Spieler</span>
+              </div>
+
+              <!-- Cards Showcase in Full Glory on Deep Black Background -->
+              <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
+                ${teamAPlayers.map(p => `
+                  <div class="flex flex-col items-center">
+                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mt-3">
+                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="text-center text-xs font-fut font-bold tracking-wider text-red-300 uppercase">
+                ${teamAPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              </div>
+            </div>
+
+            <!-- TEAM BLAU (RIGHT - Glowing Blue Border & Cards) -->
+            <div id="tekken-fighter-right" class="h-full bg-[#050608] rounded-3xl border-2 border-blue-500 p-5 pl-14 flex flex-col justify-between shadow-[0_0_40px_rgba(59,130,246,0.7),inset_0_0_40px_rgba(59,130,246,0.35)] relative overflow-hidden">
+              <div class="flex items-center justify-between border-b border-blue-500/40 pb-2">
+                <span class="font-fut font-black italic text-3xl tracking-wider text-blue-400 uppercase drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]">TEAM BLAU</span>
+                <span class="text-xs px-3 py-1 rounded-full bg-blue-500/30 text-blue-100 font-fut font-bold border border-blue-400 shadow">${teamBPlayers.length} Spieler</span>
+              </div>
+
+              <!-- Cards Showcase in Full Glory on Deep Black Background -->
+              <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
+                ${teamBPlayers.map(p => `
+                  <div class="flex flex-col items-center">
+                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mt-3">
+                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="text-center text-xs font-fut font-bold tracking-wider text-blue-300 uppercase">
+                ${teamBPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              </div>
+            </div>
+
+            <!-- DOMINANT TEKKEN 8 FOREGROUND CENTERPIECE (Z-40, OVERLAPPING IN FRONT OF CARDS) -->
+            <div id="tekken-vs-centerpiece" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none flex flex-col items-center justify-center select-none">
+              
+              <!-- Red/Blue Clash Energy Glow behind VS -->
+              <div class="absolute -inset-12 bg-gradient-to-r from-red-600/40 via-amber-500/50 to-blue-600/40 blur-3xl rounded-full scale-125 -z-10 animate-pulse"></div>
+
+              <!-- High-Resolution 3D Metallic Tekken VS Graphic from assets/vs.png -->
+              <div class="relative flex items-center justify-center">
+                <img src="assets/vs.png" alt="VS" class="w-[280px] md:w-[340px] lg:w-[380px] h-auto object-contain drop-shadow-[0_0_40px_rgba(245,158,11,0.7)] drop-shadow-[0_20px_35px_rgba(0,0,0,0.95)] select-none pointer-events-none">
+              </div>
+
+              <!-- Tekken Clash Steel Plate Badge -->
+              <div class="mt-[-25px] px-8 py-1.5 bg-black/95 border-2 border-amber-400 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.7),inset_0_0_15px_rgba(245,158,11,0.4)] flex items-center space-x-3 z-10">
+                <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
+                <span class="font-fut font-black italic text-xs tracking-[0.35em] uppercase text-amber-300 drop-shadow">VERSUS DUELL</span>
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Handicap or Rule Banner at Bottom -->
+          ${ev.note ? `
+            <div class="bg-gradient-to-r from-amber-600/30 via-amber-500/40 to-amber-600/30 border-2 border-amber-400 rounded-2xl py-2.5 px-6 text-center text-sm font-fut font-black text-amber-300 flex items-center justify-center space-x-3 shadow">
+              <span>${ev.note}</span>
+            </div>
+          ` : `
+            <div class="bg-black/60 border border-white/10 rounded-2xl py-2 px-6 text-center text-xs text-gray-400 font-medium">
+              Wer zuerst alle Becher versenkt, holt den Siegpunkt für sein Team!
+            </div>
+          `}
+        `;
+      } else {
+        // Fullscreen Single Player Stage (Alpine Lodge Shooting Arena)
+        const activeP = tournament.players.find(p => p.id === ev.activePlayerId) || tournament.players[0] || null;
+        let modeHint = 'Wettkampf-Durchgang aktiv';
+        if (game.type === 'attempts_stars') modeHint = '10 Schuss auf Sterne (Treffer = 1 Pkt)';
+        else if (game.type === 'target_ring') modeHint = 'Zielscheibe (5 Schuss • 0 bis 12 Punkte)';
+        else if (game.type === 'attempts_target') modeHint = '5 Durchgänge Maßkrugschieben (Treffer = 1 Pkt)';
+
+        const curScore = (activeP && game.scores && game.scores[activeP.id]) || 0;
+
+        let liveTurnTrackerHtml = '';
+        if (game.type === 'attempts_stars') {
+          const shots = ev.turnShots || [];
+          const hits = shots.filter(Boolean).length;
+          liveTurnTrackerHtml = `
+            <div class="bg-[#0B0F17]/95 p-4 rounded-xl border border-white/10 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between text-xs uppercase tracking-wider">
+                <span class="text-slate-300 font-fut font-bold text-sm tracking-widest">
+                  LIVE-SCHIESSSTAND • 10 SCHUSS
+                </span>
+                <span class="font-fut text-sm font-bold text-amber-400 bg-amber-500/10 px-3 py-0.5 rounded border border-amber-500/30">
+                  ${hits} / 10 GETROFFEN
+                </span>
+              </div>
+              <div class="grid grid-cols-5 gap-2.5">
+                ${Array.from({ length: 10 }, (_, i) => {
+                  const hit = !!shots[i];
+                  return `
+                    <div class="py-2.5 px-1.5 rounded-lg flex flex-col items-center justify-center border font-fut transition-all duration-300 ${
+                      hit
+                        ? 'bg-amber-500/20 border-amber-400/80 text-amber-200'
+                        : 'bg-black/40 border-white/5 text-slate-500'
+                    }">
+                      <span class="text-lg font-black leading-none ${hit ? 'text-amber-300' : 'text-slate-600'}">${hit ? 'TREFFER' : '—'}</span>
+                      <span class="text-[10px] font-bold mt-1 ${hit ? 'text-white' : 'text-slate-400'}">Schuss ${i + 1}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        } else if (game.type === 'attempts_target') {
+          const shots = ev.turnShots || [];
+          const hits = shots.filter(Boolean).length;
+          liveTurnTrackerHtml = `
+            <div class="bg-[#0B0F17]/95 p-4 rounded-xl border border-white/10 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between text-xs uppercase tracking-wider">
+                <span class="text-slate-300 font-fut font-bold text-sm tracking-widest">
+                  MAẞKRUGSCHIEBEN • 5 VERSUCHE
+                </span>
+                <span class="font-fut text-sm font-bold text-amber-400 bg-amber-500/10 px-3 py-0.5 rounded border border-amber-500/30">
+                  ${hits} / 5 TREFFER
+                </span>
+              </div>
+              <div class="grid grid-cols-5 gap-2.5">
+                ${Array.from({ length: 5 }, (_, i) => {
+                  const hit = !!shots[i];
+                  return `
+                    <div class="py-2.5 px-1.5 rounded-lg flex flex-col items-center justify-center border font-fut transition-all duration-300 ${
+                      hit
+                        ? 'bg-amber-500/20 border-amber-400/80 text-amber-200'
+                        : 'bg-black/40 border-white/5 text-slate-500'
+                    }">
+                      <span class="text-lg font-black leading-none ${hit ? 'text-amber-300' : 'text-slate-600'}">${hit ? 'TREFFER' : '—'}</span>
+                      <span class="text-[10px] font-bold mt-1 ${hit ? 'text-white' : 'text-slate-400'}">#${i + 1}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        } else if (game.type === 'target_ring') {
+          const shots = ev.targetShots || [];
+          const validShots = shots.filter(s => s !== null && s !== undefined);
+          const currentTotal = validShots.reduce((a, b) => a + Number(b), 0);
+          const shotsCount = validShots.length;
+
+          liveTurnTrackerHtml = `
+            <div class="bg-[#0B0F17]/95 p-4 rounded-xl border border-white/10 space-y-3.5 shadow-xl">
+              <div class="flex items-center justify-between text-xs uppercase tracking-wider">
+                <span class="text-slate-300 font-fut font-bold text-sm tracking-widest">
+                  ZIELSCHEIBE • 5 SCHUSS (0 BIS 12 PUNKTE)
+                </span>
+                <span class="font-fut text-sm font-bold text-amber-400 bg-amber-500/10 px-3.5 py-0.5 rounded border border-amber-500/30">
+                  ${currentTotal} PUNKTE (${shotsCount}/5 SCHUSS)
+                </span>
+              </div>
+
+              <!-- 5 Shot Displays -->
+              <div class="grid grid-cols-5 gap-2.5">
+                ${Array.from({ length: 5 }, (_, i) => {
+                  const val = shots[i];
+                  const hasVal = (val !== null && val !== undefined);
+                  const isBlackCenter = (val === 12);
+                  return `
+                    <div class="py-3 px-2 rounded-xl flex flex-col items-center justify-center border font-fut transition-all duration-300 ${
+                      isBlackCenter
+                        ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
+                        : hasVal
+                          ? 'bg-white/[0.04] border-white/20 text-white'
+                          : 'bg-black/40 border-white/5 text-slate-600'
+                    }">
+                      <span class="text-[10px] font-bold uppercase tracking-wider ${hasVal ? 'text-slate-400' : 'text-slate-600'}">Schuss ${i + 1}</span>
+                      <div class="text-3xl font-black my-0.5 leading-none ${isBlackCenter ? 'text-amber-300 font-black' : hasVal ? 'text-white' : 'text-slate-700'}">
+                        ${hasVal ? val : '—'}
+                      </div>
+                      <span class="text-[9px] font-bold uppercase tracking-wider ${isBlackCenter ? 'text-amber-400 font-black' : hasVal ? 'text-slate-300' : 'text-slate-700'}">
+                        ${isBlackCenter ? 'ZENTRUM' : (hasVal ? `${val} Pkt` : 'Bereit')}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Summary & Formula -->
+              <div class="flex items-center justify-between bg-black/60 px-3.5 py-2 rounded-lg border border-white/10">
+                <div class="text-[11px] font-medium text-slate-400">
+                  <span class="text-amber-400 font-bold uppercase">Skala:</span> 1 bis 11 Punkte, Zentrum = 12 Punkte. 0 = Fehlwurf.
+                </div>
+                <div class="font-fut text-sm font-bold text-amber-300 uppercase tracking-wider">
+                  ${validShots.length > 0 ? validShots.join(' + ') + ' = ' + currentTotal + ' Pkt' : 'Warte auf Treffer...'}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        container.innerHTML = `
+          <!-- Header Bar (Alpine Elite Lodge Style) -->
+          <div class="flex items-center justify-between px-6 py-2 bg-black/80 rounded-xl border border-white/10 shadow-xl">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-xs font-fut font-bold tracking-widest text-emerald-400 uppercase">EINZEL-DISZIPLIN • LIVE</span>
+            </div>
+            <div class="text-2xl font-fut font-bold tracking-wider text-amber-300 uppercase drop-shadow">
+              <span>${game.name}</span>
+            </div>
+            <div class="text-xs font-fut font-bold px-3 py-1 bg-white/5 text-slate-300 rounded border border-white/10 uppercase tracking-wider">
+              ${modeHint}
+            </div>
+          </div>
+
+          <!-- Arena Body: Huge Card on Left, Big Shooter Info on Right -->
+          <div class="flex-1 flex items-center justify-center space-x-12 my-6">
+            ${activeP ? `
+              <!-- Giant Card with Hearth Plinth -->
+              <div class="flex flex-col items-center">
+                <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                <div class="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full mt-3"></div>
+              </div>
+
+              <!-- Big Shooter Display -->
+              <div class="bg-[#0B0F17]/95 border border-white/15 rounded-2xl p-6 flex flex-col justify-between shadow-2xl min-w-[480px] max-w-xl space-y-4">
+                <div>
+                  <span class="px-3 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-fut font-bold uppercase tracking-wider">
+                    AKTUELL AM STAND
+                  </span>
+                  <h2 class="font-fut font-bold text-4xl text-white tracking-wide mt-1 uppercase">
+                    ${activeP.name}
+                  </h2>
+                  ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider mt-0.5">"${activeP.nickname}"</div>` : ''}
+                </div>
+
+                <!-- Live Shots Tracker (if applicable) -->
+                ${liveTurnTrackerHtml}
+
+                <div class="bg-black/50 p-3.5 rounded-xl border border-white/10 space-y-0.5">
+                  <div class="text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider">GESAMTER STAND IN DIESEM SPIEL</div>
+                  <div class="font-fut text-3xl font-black text-amber-300">
+                    ${curScore} <span class="text-sm font-fut font-bold text-slate-400 uppercase">${game.unit || 'Punkte'}</span>
+                  </div>
+                </div>
+
+                <div class="text-xs text-slate-400 font-medium">
+                  Echtzeit-Synchronisation mit dem Kampfgericht am Smartphone
+                </div>
+              </div>
+            ` : `
+              <div class="text-base text-slate-400 font-fut font-bold uppercase tracking-wider">Warte auf nächsten Teilnehmer...</div>
+            `}
+          </div>
+
+          <div class="bg-black/50 border border-white/10 rounded-xl py-2 px-6 text-center text-xs text-slate-400 font-fut tracking-wider uppercase">
+            Disziplin läuft live • Treffer werden in Echtzeit synchronisiert
+          </div>
+        `;
+      }
+    }
+
+    function renderAll(highlightGameId = null, highlightPlayerId = null) {
+      updateScreenView();
+      renderTablesGrid(highlightGameId, highlightPlayerId);
+      renderTop3Podium();
+    }
+
+    // Calculate total scores per player across all games
+    function calculatePlayerTotals() {
+      const totals = {};
+      tournament.players.forEach(p => {
+        totals[p.id] = { player: p, total: 0, byGame: {} };
+      });
+
+      tournament.games.forEach(g => {
+        const factor = Number(g.multiplier) || 1;
+        tournament.players.forEach(p => {
+          const rawScore = Number((g.scores && g.scores[p.id]) || 0);
+          const pts = rawScore * factor;
+          totals[p.id].byGame[g.id] = pts;
+          totals[p.id].total += pts;
+        });
+      });
+
+      // Convert to sorted array
+      return Object.values(totals).sort((a, b) => b.total - a.total);
+    }
+
+    function renderTablesGrid(highlightGameId, highlightPlayerId) {
+      const grid = document.getElementById('games-grid');
+      grid.innerHTML = '';
+
+      const games = tournament.games || [];
+      const totalsList = calculatePlayerTotals();
+
+      // Configure Grid based on count: e.g. 1 game = 2 cols (Game + Total), 2-3 games = 2x2 grid, 4+ = 2x3 or 3x2
+      const totalBoxes = games.length + 1; // +1 for Gesamtwertung
+      if (totalBoxes <= 2) {
+        grid.className = 'flex-1 grid grid-cols-2 grid-rows-1 gap-3 min-h-0 overflow-hidden';
+      } else if (totalBoxes <= 4) {
+        grid.className = 'flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0 overflow-hidden';
+      } else {
+        grid.className = 'flex-1 grid grid-cols-3 grid-rows-2 gap-3 min-h-0 overflow-hidden';
+      }
+
+      // 1. Render Table for each individual Game
+      games.forEach(game => {
+        const gameBox = createGameTableElement(game, highlightGameId, highlightPlayerId);
+        grid.appendChild(gameBox);
+      });
+
+      // 2. Render Gesamtwertung Table (Master Box)
+      const overallBox = createOverallTableElement(totalsList, highlightPlayerId);
+      grid.appendChild(overallBox);
+    }
+
+    function createGameTableElement(game, highlightGameId, highlightPlayerId) {
+      const box = document.createElement('div');
+      box.className = 'game-panel flex flex-col h-full overflow-hidden';
+
+      // Sort players by score in this game
+      const sorted = [...tournament.players].map(p => {
+        const rawScore = Number((game.scores && game.scores[p.id]) || 0);
+        return {
+          player: p,
+          score: rawScore,
+          displayScore: (rawScore * (Number(game.multiplier) || 1)).toLocaleString('de-DE')
+        };
+      }).sort((a, b) => b.score - a.score);
+
+      // Header with game name & number
+      const gIdx = (tournament.games || []).findIndex(g => g.id === game.id) + 1;
+      const gNum = String(gIdx).padStart(2, '0');
+      const header = document.createElement('div');
+      header.className = 'px-3.5 py-2 bg-white/[0.02] border-b border-[#E58A25]/20 flex items-center justify-between flex-shrink-0';
+      header.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <span class="font-fut font-bold text-xs tracking-widest text-amber-400">${gNum}</span>
+          <h3 class="font-fut font-bold text-sm tracking-wider text-slate-100 uppercase">${game.name}</h3>
+        </div>
+        <span class="text-[9px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-400 font-fut font-bold uppercase tracking-wider">
+          ${game.unit || 'Punkte'}${Number(game.multiplier) > 1 ? ` (×${game.multiplier})` : ''}
+        </span>
+      `;
+      box.appendChild(header);
+
+      // Table Container
+      const tableWrapper = document.createElement('div');
+      tableWrapper.className = 'flex-1 overflow-y-auto px-2 py-1.5 space-y-1';
+
+      sorted.forEach((item, index) => {
+        const rank = index + 1;
+        const rankStr = String(rank).padStart(2, '0');
+        const p = item.player;
+        const isHighlighted = (game.id === highlightGameId && p.id === highlightPlayerId);
+
+        let rankBadgeClass = 'rank-badge-default';
+        if (rank === 1) rankBadgeClass = 'rank-badge-1';
+        else if (rank === 2) rankBadgeClass = 'rank-badge-2';
+        else if (rank === 3) rankBadgeClass = 'rank-badge-3';
+
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between px-2.5 py-1 rounded transition duration-200 ${
+          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.02]' : 'bg-transparent')
+        } border border-transparent hover:border-white/10`;
+
+        row.innerHTML = `
+          <!-- Rank & Mini-GUT-Karte & Name -->
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <!-- Rank Badge -->
+            <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-fut font-bold ${rankBadgeClass} flex-shrink-0">
+              ${rankStr}
+            </span>
+
+            <!-- Mini GUT Card -->
+            ${renderMiniGutCardHtml(p)}
+
+            <!-- Name & Nickname -->
+            <div class="flex flex-col min-w-0 leading-tight">
+              <span class="font-bold text-xs tracking-wide text-slate-100 truncate">${p.name}</span>
+              ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+            </div>
+          </div>
+
+          <!-- Score -->
+          <div class="flex items-center pl-2 flex-shrink-0">
+            <span class="font-fut text-lg font-bold tracking-wider text-slate-200">
+              ${item.displayScore}
+            </span>
+          </div>
+        `;
+        tableWrapper.appendChild(row);
+      });
+
+      box.appendChild(tableWrapper);
+      return box;
+    }
+
+    function createOverallTableElement(totalsList, highlightPlayerId) {
+      const box = document.createElement('div');
+      box.className = 'game-panel master-panel flex flex-col h-full overflow-hidden';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'px-3.5 py-2 bg-amber-500/[0.06] border-b border-amber-500/30 flex items-center justify-between flex-shrink-0';
+      header.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <span class="font-fut font-bold text-xs tracking-widest text-amber-400">GESAMT</span>
+          <h3 class="font-fut font-bold text-sm tracking-wider text-amber-300 uppercase">
+            LEADERBOARD
+          </h3>
+        </div>
+        <span class="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-fut font-bold tracking-wider uppercase">
+          GESAMTWERTUNG
+        </span>
+      `;
+      box.appendChild(header);
+
+      // Table Container
+      const tableWrapper = document.createElement('div');
+      tableWrapper.className = 'flex-1 overflow-y-auto px-2 py-1.5 space-y-1';
+
+      totalsList.forEach((item, index) => {
+        const rank = index + 1;
+        const rankStr = String(rank).padStart(2, '0');
+        const p = item.player;
+        const isHighlighted = (p.id === highlightPlayerId);
+
+        let rankBadgeClass = 'rank-badge-default';
+        if (rank === 1) rankBadgeClass = 'rank-badge-1';
+        else if (rank === 2) rankBadgeClass = 'rank-badge-2';
+        else if (rank === 3) rankBadgeClass = 'rank-badge-3';
+
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between px-2.5 py-1 rounded transition duration-200 ${
+          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.03]' : 'bg-transparent')
+        } border ${rank <= 3 ? 'border-amber-500/20' : 'border-transparent'}`;
+
+        row.innerHTML = `
+          <!-- Rank & Mini-GUT-Karte & Name -->
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-fut font-bold ${rankBadgeClass} flex-shrink-0">
+              ${rankStr}
+            </span>
+
+            ${renderMiniGutCardHtml(p)}
+
+            <div class="flex flex-col min-w-0 leading-tight">
+              <span class="font-bold text-xs tracking-wide ${rank === 1 ? 'text-amber-300' : 'text-slate-100'} truncate">
+                ${p.name}
+              </span>
+              ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+            </div>
+          </div>
+
+          <!-- Total Score -->
+          <div class="flex items-center pl-2 flex-shrink-0">
+            <span class="font-fut text-lg font-bold tracking-wider ${rank === 1 ? 'text-amber-300' : 'text-slate-200'}">
+              ${item.total.toLocaleString('de-DE')} <span class="text-[9px] font-fut font-bold uppercase text-slate-400">PKT</span>
+            </span>
+          </div>
+        `;
+        tableWrapper.appendChild(row);
+      });
+
+      box.appendChild(tableWrapper);
+      return box;
+    }
+
+    // Helper: Mini GUT-Card rendered next to player names
+    function renderMiniGutCardHtml(player) {
+      const ed = EDITION_CONFIG[player.edition] || EDITION_CONFIG['img_bier'];
+      const imgSrc = player.cardImage || player.portrait || ed.img;
+
+      return `
+        <div class="mini-card-shield border border-white/20 flex items-center justify-center overflow-hidden bg-black/60 shadow">
+          <img src="${imgSrc}" alt="${player.name}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='${ed.img}';">
+        </div>
+      `;
+    }
+
+    /* ============================================================ */
+    /* TOP 3 PODIUM SHOWCASE (RIGHT COLUMN - ALPINE LODGE)          */
+    /* ============================================================ */
+    function renderTop3Podium() {
+      const totalsList = calculatePlayerTotals();
+
+      const p1 = totalsList[0] || null;
+      const p2 = totalsList[1] || null;
+      const p3 = totalsList[2] || null;
+
+      renderShowcaseCard('card-rank-1', p1, 1, 'card-clean-shadow', '01. PLATZ', '#D4AF37');
+      renderShowcaseCard('card-rank-2', p2, 2, 'card-clean-shadow', '02. PLATZ', '#E2E8F0');
+      renderShowcaseCard('card-rank-3', p3, 3, 'card-clean-shadow', '03. PLATZ', '#CD7F32');
+    }
+
+    function renderShowcaseCard(containerId, data, rank, cardShadowClass, rankTitle, accentColor) {
+      const container = document.getElementById(containerId);
+      if (!data) {
+        container.innerHTML = `<div class="text-xs text-slate-500 py-4 font-fut tracking-widest uppercase text-center">Warte auf Teilnehmer...</div>`;
+        return;
+      }
+
+      const p = data.player;
+      const ed = EDITION_CONFIG[p.edition] || EDITION_CONFIG['img_bier'];
+      const cardImgSrc = p.cardImage || p.portrait || ed.img;
+
+      container.innerHTML = `
+        <!-- Rank Title Badge -->
+        <div class="flex items-center justify-center mb-1 z-10">
+          <span class="text-[10px] font-fut font-bold tracking-widest uppercase px-3 py-0.5 rounded bg-black/80 border border-white/10" style="color: ${accentColor};">
+            ${rankTitle}
+          </span>
+        </div>
+
+        <!-- The Pure Card Shield -->
+        <div class="relative flex items-center justify-center my-0.5 transition-transform duration-300 hover:scale-105">
+          <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] w-auto max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
+        </div>
+
+        <!-- Ambient Light under Card -->
+        <div class="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent rounded-full my-0.5"></div>
+
+        <!-- Overall Score Under Card -->
+        <div class="text-center font-fut text-2xl font-black tracking-wider text-slate-100">
+          ${data.total.toLocaleString('de-DE')} <span class="text-[10px] font-fut font-bold text-slate-400 tracking-widest uppercase">PKT</span>
+        </div>
+      `;
+    }
+
+    /* ============================================================ */
+    /* FLOATING TV TOAST BANNER                                     */
+    /* ============================================================ */
+    let tvBannerTimeout = null;
+    function showTvBanner(text) {
+      let banner = document.getElementById('tv-floating-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'tv-floating-banner';
+        banner.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 rounded-lg bg-[#0E121A]/95 border border-[#D4AF37]/40 text-slate-100 font-fut font-bold text-lg uppercase tracking-wider shadow flex items-center space-x-3 transition-all duration-500 transform -translate-y-24 opacity-0 pointer-events-none backdrop-blur-md';
+        document.body.appendChild(banner);
+      }
+
+      banner.innerHTML = `<span>${text}</span>`;
+      banner.classList.remove('-translate-y-24', 'opacity-0');
+      banner.classList.add('translate-y-0', 'opacity-100');
+
+      if (tvBannerTimeout) clearTimeout(tvBannerTimeout);
+      tvBannerTimeout = setTimeout(() => {
+        banner.classList.remove('translate-y-0', 'opacity-100');
+        banner.classList.add('-translate-y-24', 'opacity-0');
+      }, 4200);
+    }
+
+    /* ============================================================ */
+    /* FULLSCREEN CEREMONY (PODEST SIEGEREHRUNG)                    */
+    /* ============================================================ */
+    function renderFullscreenCeremony() {
+      const totalsList = calculatePlayerTotals();
+      const p1 = totalsList[0] || null;
+      const p2 = totalsList[1] || null;
+      const p3 = totalsList[2] || null;
+
+      renderCeremonyPedestal('ceremony-rank-1', p1, 1, '01. PLATZ (SIEGER)', '#D4AF37', 'h-[440px]', 'h-44');
+      renderCeremonyPedestal('ceremony-rank-2', p2, 2, '02. PLATZ', '#E2E8F0', 'h-[360px]', 'h-32');
+      renderCeremonyPedestal('ceremony-rank-3', p3, 3, '03. PLATZ', '#CD7F32', 'h-[320px]', 'h-24');
+    }
+
+    function renderCeremonyPedestal(containerId, item, rank, title, accentColor, cardHeightClass, pedestalHeightClass) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!item) {
+        container.innerHTML = `<div class="text-xs text-slate-500 py-10 font-fut">Warte auf Teilnehmer...</div>`;
+        return;
+      }
+
+      const p = item.player;
+      const ed = EDITION_CONFIG[p.edition] || EDITION_CONFIG['img_bier'];
+      const cardImgSrc = p.cardImage || p.portrait || ed.img;
+
+      container.innerHTML = `
+        <!-- Card Container with glow & hover -->
+        <div class="relative flex flex-col items-center z-10 transition-transform duration-500 hover:scale-105">
+          <div class="text-center mb-1">
+            <span class="text-xs font-fut font-bold tracking-widest uppercase px-3 py-1 rounded bg-black/90 border border-white/10" style="color: ${accentColor};">
+              ${title}
+            </span>
+          </div>
+
+          <img src="${cardImgSrc}" alt="${p.name}" class="${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow my-1" onerror="this.onerror=null; this.src='${ed.img}';">
+          
+          <!-- Player Name Banner -->
+          <div class="font-fut font-bold text-3xl tracking-wider text-white uppercase leading-tight text-center">
+            ${p.name}
+          </div>
+          ${p.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider mb-2">"${p.nickname}"</div>` : '<div class="mb-2"></div>'}
+        </div>
+
+        <!-- Pedestal Pillar Block -->
+        <div class="w-full ${pedestalHeightClass} bg-gradient-to-b from-[#0D1117] to-black rounded-t-xl border-t-2 border-x flex flex-col items-center justify-center shadow-2xl relative overflow-hidden" style="border-color: ${accentColor};">
+          <div class="text-xl font-fut font-bold text-slate-300">
+            0${rank}. PLATZ
+          </div>
+          <div class="font-fut text-3xl font-black tracking-wider" style="color: ${accentColor};">
+            ${item.total.toLocaleString('de-DE')} <span class="text-xs font-fut font-bold uppercase text-slate-400">PKT</span>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ============================================================ */
+    /* FULLSCREEN PHOTO SLIDESHOW ENGINE                            */
+    /* ============================================================ */
+    let slideshowInterval = null;
+    let currentSlideIndex = 0;
+    let activeSlideLayer = 1;
+
+    function startSlideshowTicker() {
+      const photos = tournament.photos || [];
+      const emptyUi = document.getElementById('slideshow-empty');
+      const layer1 = document.getElementById('slide-layer-1');
+      const layer2 = document.getElementById('slide-layer-2');
+      const badge = document.getElementById('slide-badge');
+
+      if (photos.length === 0) {
+        if (emptyUi) emptyUi.classList.remove('hidden');
+        if (layer1) layer1.style.backgroundImage = 'none';
+        if (layer2) layer2.style.backgroundImage = 'none';
+        if (badge) badge.classList.add('hidden');
+        return;
+      }
+
+      if (emptyUi) emptyUi.classList.add('hidden');
+      if (badge) badge.classList.remove('hidden');
+
+      renderCurrentSlide();
+
+      if (slideshowInterval) clearInterval(slideshowInterval);
+      slideshowInterval = setInterval(() => {
+        nextSlide();
+      }, 7000);
+    }
+
+    function stopSlideshowTicker() {
+      if (slideshowInterval) {
+        clearInterval(slideshowInterval);
+        slideshowInterval = null;
+      }
+    }
+
+    function nextSlide() {
+      const photos = tournament.photos || [];
+      if (photos.length === 0) return;
+      currentSlideIndex = (currentSlideIndex + 1) % photos.length;
+      renderCurrentSlide();
+    }
+
+    function renderCurrentSlide() {
+      const photos = tournament.photos || [];
+      if (photos.length === 0) return;
+
+      if (currentSlideIndex >= photos.length) currentSlideIndex = 0;
+      const photo = photos[currentSlideIndex];
+
+      const layer1 = document.getElementById('slide-layer-1');
+      const layer2 = document.getElementById('slide-layer-2');
+      const senderEl = document.getElementById('slide-sender');
+      const captionEl = document.getElementById('slide-caption');
+
+      if (activeSlideLayer === 1) {
+        layer2.style.backgroundImage = `url('${photo.url}')`;
+        layer2.classList.remove('opacity-0');
+        layer2.classList.add('opacity-100');
+        layer1.classList.remove('opacity-100');
+        layer1.classList.add('opacity-0');
+        activeSlideLayer = 2;
+      } else {
+        layer1.style.backgroundImage = `url('${photo.url}')`;
+        layer1.classList.remove('opacity-0');
+        layer1.classList.add('opacity-100');
+        layer2.classList.remove('opacity-100');
+        layer2.classList.add('opacity-0');
+        activeSlideLayer = 1;
+      }
+
+      if (senderEl) senderEl.textContent = (photo.sender || 'SCHNAPPSCHUSS').toUpperCase() + (photo.uploadedAt ? ` • ${photo.uploadedAt}` : '');
+      if (captionEl) captionEl.textContent = photo.caption ? `„${photo.caption}“` : 'Party-Fotos';
+    }
+
+    /* ============================================================ */
+    /* QR CODE MODAL & NETWORK DATA INITIALIZATION                  */
+    /* ============================================================ */
+    let qrModalOpen = false;
+    function toggleQrModal() {
+      const modal = document.getElementById('qr-modal');
+      qrModalOpen = !qrModalOpen;
+      if (qrModalOpen) {
+        modal.classList.remove('hidden');
+        loadQrData();
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    // Keyboard shortcut 'Q' toggles QR Modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'q' || e.key === 'Q') {
+        toggleQrModal();
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        // Toggle fullscreen
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+
+    async function loadQrData() {
+      try {
+        const res = await fetch('/api/network');
+        const data = await res.json();
+        
+        // Admin QR
+        const qrImg = document.getElementById('qr-image');
+        if (qrImg && data.qrDataUrl) qrImg.src = data.qrDataUrl;
+        const qrText = document.getElementById('qr-url-text');
+        if (qrText && data.mobileAdminUrl) qrText.textContent = data.mobileAdminUrl;
+
+        // Fotos QR for Slideshow
+        if (data.qrFotosUrl) {
+          const sqr = document.getElementById('slideshow-qr');
+          const seqr = document.getElementById('slideshow-empty-qr');
+          if (sqr) sqr.src = data.qrFotosUrl;
+          if (seqr) seqr.src = data.qrFotosUrl;
+        }
+      } catch (e) {
+        const qrText = document.getElementById('qr-url-text');
+        if (qrText) qrText.textContent = 'Fehler beim Laden des QR-Codes';
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      connectWebSocket();
+      loadQrData();
+    });
+  </script>
+</body>
+</html>

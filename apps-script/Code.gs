@@ -37,6 +37,7 @@ function doPost(e) {
 
     const folder = getOrCreateFolder_(ZIEL_ORDNER);
     const file = folder.createFile(blob.setName(stamp + '_' + name + '.' + ext));
+    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
 
     // Metadaten als kleiner Begleit-Eintrag (optional, hilfreich fuer die Punktetabelle)
     const meta = {
@@ -50,9 +51,10 @@ function doPost(e) {
       stats: payload.stats || {},
       datei: file.getName()
     };
-    getOrCreateFolder_(ZIEL_ORDNER).createFile(
+    const metaFile = getOrCreateFolder_(ZIEL_ORDNER).createFile(
       Utilities.newBlob(JSON.stringify(meta, null, 2), 'application/json', stamp + '_' + name + '.json')
     );
+    try { metaFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
 
     return json_({ ok: true, file: file.getName(), url: file.getUrl() });
   } catch (err) {
@@ -60,9 +62,53 @@ function doPost(e) {
   }
 }
 
-/** Gesundheitscheck: Aufruf der URL im Browser sollte {"ok":true} zeigen. */
-function doGet() {
-  return json_({ ok: true, service: 'GUT-Karten-Empfang' });
+/**
+ * GET-Anfrage: Liefert Kartenliste oder lädt ein einzelnes Bild herunter
+ */
+function doGet(e) {
+  try {
+    // 1. Download eines einzelnen Bildes als Base64
+    if (e && e.parameter && e.parameter.downloadFileId) {
+      const f = DriveApp.getFileById(e.parameter.downloadFileId);
+      return json_({
+        ok: true,
+        name: f.getName(),
+        mime: f.getMimeType(),
+        base64: Utilities.base64Encode(f.getBlob().getBytes())
+      });
+    }
+
+    // 2. Liste aller Karten abrufen
+    const folder = getOrCreateFolder_(ZIEL_ORDNER);
+    const files = folder.getFilesByType('application/json');
+    const cards = [];
+
+    while (files.hasNext()) {
+      const file = files.next();
+      try {
+        const raw = file.getBlob().getDataAsString();
+        const data = JSON.parse(raw);
+        data.driveId = file.getId();
+        // Bild-URL und Base64 fuer lokalen Download
+        if (data.datei) {
+          const imgFiles = folder.getFilesByName(data.datei);
+          if (imgFiles.hasNext()) {
+            const imgFile = imgFiles.next();
+            data.imgFileId = imgFile.getId();
+            data.cardImageUrl = 'https://drive.google.com/thumbnail?id=' + imgFile.getId() + '&sz=w600';
+            // Bild direkt als Base64 mitsenden, damit es auf den Laptop geladen wird:
+            data.imageBase64 = Utilities.base64Encode(imgFile.getBlob().getBytes());
+          }
+        }
+        cards.push(data);
+      } catch (inner) {}
+    }
+
+    cards.sort((a, b) => (b.gesendet || '').localeCompare(a.gesendet || ''));
+    return json_({ ok: true, count: cards.length, cards: cards });
+  } catch (err) {
+    return json_({ ok: false, error: String(err) });
+  }
 }
 
 function getOrCreateFolder_(name) {

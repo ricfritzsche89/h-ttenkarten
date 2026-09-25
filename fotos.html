@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Live Party-Foto Upload</title>
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%23f59e0b%22/></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Barlow Condensed', 'sans-serif'],
+            fut: ['Barlow Condensed', 'sans-serif']
+          },
+          colors: {
+            amber: {
+              300: '#F3E5AB',
+              400: '#E5C483',
+              500: '#D4AF37',
+              600: '#B89326',
+              700: '#94741B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html, body {
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+      background: #090B0E url('assets/volcanic_lodge_bg.jpg') no-repeat center bottom fixed;
+      background-size: cover;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    .lodge-card {
+      background: rgba(14, 18, 26, 0.96);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+      border-radius: 8px;
+    }
+
+    .lodge-inner {
+      background: rgba(8, 11, 16, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+    }
+
+    .touch-btn {
+      touch-action: manipulation;
+      user-select: none;
+      border-radius: 6px;
+      transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.15);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 max-w-md mx-auto justify-between select-none">
+
+  <!-- TOP HEADER -->
+  <header class="text-center pt-2 pb-4">
+    <div class="inline-flex items-center px-3 py-1 rounded bg-white/[0.04] border border-[#D4AF37]/35 text-[#D4AF37] text-xs font-bold uppercase tracking-wider mb-2 shadow">
+      <span>LIVE FOTO-STREAM</span>
+    </div>
+    <h1 class="font-display font-black text-2xl tracking-wider text-white uppercase drop-shadow">
+      FOTOS HOCHLADEN
+    </h1>
+    <p class="text-xs text-slate-300 mt-0.5">
+      Mache Schnappschüsse – sie erscheinen live auf dem Fernseher!
+    </p>
+  </header>
+
+  <!-- MAIN FORM CONTAINER -->
+  <main class="flex-1 flex flex-col justify-center my-2">
+    <div class="lodge-card p-5 space-y-4">
+      
+      <!-- PHOTO PICKER / PREVIEW AREA -->
+      <div id="preview-container" class="relative lodge-inner min-h-[240px] flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-[#D4AF37]/30 cursor-pointer p-2" onclick="document.getElementById('file-input').click()">
+        
+        <!-- Placeholder State -->
+        <div id="placeholder-ui" class="text-center space-y-2 p-4">
+          <div class="w-14 h-14 rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center mx-auto text-[#D4AF37] font-fut font-black text-sm tracking-wider shadow">
+            FOTO
+          </div>
+          <div class="font-bold text-sm text-white">Tippe hier zum Fotografieren</div>
+          <div class="text-[11px] text-gray-400">Kamera starten oder aus Galerie wählen</div>
+        </div>
+
+        <!-- Image Preview (Hidden by default) -->
+        <img id="photo-preview" class="max-h-[340px] w-auto max-w-full rounded-md object-contain hidden shadow-2xl" alt="Vorschau">
+        
+        <!-- Retake Button overlay -->
+        <button id="btn-retake" type="button" onclick="event.stopPropagation(); document.getElementById('file-input').click();" class="absolute top-3 right-3 px-3 py-1 bg-black/85 hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-md text-xs font-bold hidden shadow-lg uppercase tracking-wider">
+          Anderes Foto
+        </button>
+      </div>
+
+      <!-- Hidden native file input with camera capture support -->
+      <input type="file" id="file-input" accept="image/*" capture="environment" onchange="handleFileSelected(event)" class="hidden">
+
+      <!-- INPUT: SENDER NAME -->
+      <div class="space-y-1">
+        <label class="block text-xs font-bold text-[#D4AF37] uppercase tracking-wide">DEIN NAME / SPITZNAME</label>
+        <input type="text" id="input-sender" placeholder="z. B. Max, Lukas..." class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
+      </div>
+
+      <!-- INPUT: CAPTION / SPRUCH -->
+      <div class="space-y-1">
+        <label class="block text-xs font-bold text-[#D4AF37] uppercase tracking-wide">BILDUNTERSCHRIFT / SPRUCH (OPTIONAL)</label>
+        <input type="text" id="input-caption" placeholder="z. B. Bierpong-Finale, Runde 3..." maxlength="60" class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
+      </div>
+
+      <!-- SUBMIT BUTTON -->
+      <button id="btn-submit" type="button" onclick="uploadPhoto()" class="touch-btn w-full py-3 px-4 rounded-md bg-[#D4AF37] hover:bg-[#C5A059] text-black font-extrabold text-sm uppercase tracking-wider flex items-center justify-center border border-[#E5C483]/50 shadow">
+        <span>FOTO HOCHLADEN</span>
+      </button>
+
+      <!-- PROGRESS / STATUS -->
+      <div id="status-box" class="hidden text-center py-2 space-y-1">
+        <div id="status-spinner" class="inline-block w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+        <div id="status-text" class="text-xs font-bold text-amber-300">Wird übertragen...</div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="text-center py-3 text-[11px] text-gray-400">
+    <div>Party-Fotos • Live Slideshow Feed</div>
+  </footer>
+
+  <script>
+    let currentBase64 = null;
+
+    // Pre-fill sender name from localStorage if available
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedName = localStorage.getItem('gut_guest_name');
+      if (savedName) {
+        document.getElementById('input-sender').value = savedName;
+      }
+    });
+
+    // Handle image selection, downscale on client canvas for fast upload
+    function handleFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resize down to max 1920x1080 to ensure lightning upload and high quality on TV
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1920;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 85% JPEG quality gives crisp look under 400KB
+          currentBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          // Update UI Preview
+          const previewImg = document.getElementById('photo-preview');
+          previewImg.src = currentBase64;
+          previewImg.classList.remove('hidden');
+          document.getElementById('placeholder-ui').classList.add('hidden');
+          document.getElementById('btn-retake').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function uploadPhoto() {
+      if (!currentBase64) {
+        alert('Bitte wähle zuerst ein Foto aus!');
+        document.getElementById('file-input').click();
+        return;
+      }
+
+      const senderInput = document.getElementById('input-sender');
+      const captionInput = document.getElementById('input-caption');
+      const sender = senderInput.value.trim() || 'Party-Gast';
+      const caption = captionInput.value.trim();
+
+      // Persist name
+      localStorage.setItem('gut_guest_name', sender);
+
+      // UI Loading state
+      const btnSubmit = document.getElementById('btn-submit');
+      const statusBox = document.getElementById('status-box');
+      const statusText = document.getElementById('status-text');
+      const spinner = document.getElementById('status-spinner');
+
+      btnSubmit.disabled = true;
+      btnSubmit.classList.add('opacity-50');
+      statusBox.classList.remove('hidden');
+      statusText.textContent = 'Foto wird auf den TV übertragen...';
+      spinner.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/upload_photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file: currentBase64,
+            name: sender,
+            caption: caption
+          })
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+          spinner.classList.add('hidden');
+          statusText.innerHTML = '<strong>Erfolgreich!</strong> Dein Foto ist jetzt live im TV-Pool!';
+          
+          btnSubmit.innerHTML = '<span>WEITERES FOTO HOCHLADEN</span>';
+          btnSubmit.disabled = false;
+          btnSubmit.classList.remove('opacity-50');
+          btnSubmit.onclick = resetForm;
+        } else {
+          throw new Error(data.error || 'Upload fehlgeschlagen');
+        }
+      } catch (err) {
+        console.error(err);
+        spinner.classList.add('hidden');
+        statusText.textContent = 'Fehler beim Upload: ' + err.message;
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('opacity-50');
+      }
+    }
+
+    function resetForm() {
+      currentBase64 = null;
+      document.getElementById('photo-preview').classList.add('hidden');
+      document.getElementById('placeholder-ui').classList.remove('hidden');
+      document.getElementById('btn-retake').classList.add('hidden');
+      document.getElementById('input-caption').value = '';
+      document.getElementById('status-box').classList.add('hidden');
+      
+      const btnSubmit = document.getElementById('btn-submit');
+      btnSubmit.innerHTML = '<span>FOTO HOCHLADEN</span>';
+      btnSubmit.onclick = uploadPhoto;
+      
+      document.getElementById('file-input').click();
+    }
+  </script>
+</body>
+</html>
