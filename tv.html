@@ -7,6 +7,7 @@
   
   <!-- Tailwind CSS & Web Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="badges.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -427,6 +428,23 @@
             }
           } else if (msg.type === 'CARD_RECEIVED') {
             showTvBanner(`NEUER SPIELER: ${msg.payload.name.toUpperCase()} (${msg.payload.ovr} OVR)`);
+          } else if (msg.type === 'BET_PLACED') {
+            const bet = msg.payload.bet;
+            const targetName = bet.target === 'rot' ? 'TEAM ROT' : 'TEAM BLAU';
+            showTvBanner(`🔥 WETTE: ${bet.bettorName.toUpperCase()} SETZT ${bet.amount.toFixed(2)} € AUF ${targetName}! 🔥`);
+            playBetSound();
+          } else if (msg.type === 'BET_DELETED') {
+            showTvBanner(`WETTE STORNIERT`);
+          } else if (msg.type === 'BETS_RESOLVED') {
+            const wName = msg.payload.winner === 'rot' ? 'TEAM ROT' : 'TEAM BLAU';
+            showTvBanner(`🏆 WETTEN AUSGEWERTET: SIEG FÜR ${wName}! 💰 AUSZAHLUNG`);
+            playBetSound();
+          } else if (msg.type === 'BADGE_UNLOCKED') {
+            showTvBanner(`🏅 BADGE FREIGESCHALTET: ${msg.payload.playerName.toUpperCase()} HAT „${msg.payload.badgeName.toUpperCase()}“ VERDIENT! 🏅`);
+            playFanfare();
+          } else if (msg.type === 'LEVEL_UP') {
+            showTvBanner(`🌟 LEVEL UP! ${msg.payload.playerName.toUpperCase()} ERREICHT LEVEL ${msg.payload.newLevel} (${msg.payload.title.toUpperCase()})! 🌟`);
+            playFanfare();
           }
         } catch (e) {
           console.error('Error parsing WS message:', e);
@@ -434,9 +452,57 @@
       };
     }
 
+    function playBetSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1760, now + 0.15);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(1320, now + 0.1);
+        osc2.frequency.exponentialRampToValueAtTime(2640, now + 0.35);
+        gain2.gain.setValueAtTime(0.25, now + 0.1);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.5);
+      } catch (e) {}
+    }
+
     // Audio & Visual Effects disabled (clean TV mode)
     function playScoreChime() {}
-    function playFanfare() {}
+    function playFanfare() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+          gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.12);
+          osc.stop(now + idx * 0.12 + 0.4);
+        });
+      } catch (e) {}
+    }
     function playAnnounceChime() {}
     function playBuzzer() {}
     function playGong() {}
@@ -604,6 +670,12 @@
         const teamAPlayers = pAIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
         const teamBPlayers = pBIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
 
+        const betting = ev.betting || { bets: [], summary: { potA: 0, potB: 0, totalPot: 0, quoteA: 2.0, quoteB: 2.0 } };
+        const summary = betting.summary || { potA: 0, potB: 0, totalPot: 0, quoteA: 2.0, quoteB: 2.0 };
+        const bets = betting.bets || [];
+        const betsRot = bets.filter(b => b.target === 'rot');
+        const betsBlau = bets.filter(b => b.target === 'blau');
+
         container.innerHTML = `
           <!-- Header Bar with Countdown Badge -->
           <div class="flex items-center justify-between px-6 py-2.5 bg-black/80 rounded-xl border border-white/10 shadow-2xl">
@@ -630,19 +702,48 @@
 
               <!-- Cards Showcase in Full Glory on Deep Black Background -->
               <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
-                ${teamAPlayers.map(p => `
-                  <div class="flex flex-col items-center">
-                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
-                    <div class="text-center mt-3">
-                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
-                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                ${teamAPlayers.map(p => {
+                  const lvl = getPlayerLevel(p.xp || 0);
+                  return `
+                    <div class="flex flex-col items-center">
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      <div class="text-center mt-2">
+                        <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                        <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
+                          ${lvl.stars} LVL ${lvl.level} • ${lvl.title}
+                        </div>
+                        ${p.nickname ? `<div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mt-0.5">"${p.nickname}"</div>` : ''}
+                      </div>
                     </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
 
-              <div class="text-center text-xs font-fut font-bold tracking-wider text-red-300 uppercase">
-                ${teamAPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              <!-- Team Rot Footer with Live Betting HUD -->
+              <div class="mt-2 space-y-1.5">
+                <div class="text-center text-xs font-fut font-bold tracking-wider text-red-300 uppercase">
+                  ${teamAPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+                </div>
+
+                <div class="p-2.5 rounded-2xl bg-black/85 border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+                  <div class="flex items-center justify-between border-b border-red-500/30 pb-1 mb-1.5">
+                    <div class="flex items-center space-x-1.5">
+                      <span class="text-xs">🔴</span>
+                      <span class="font-fut font-black text-xs text-red-300 uppercase tracking-wider">TEAM ROT POTT</span>
+                    </div>
+                    <div class="font-fut font-black text-base text-red-400">
+                      ${(summary.potA || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteA || 2).toFixed(2)}x)</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 min-h-[26px] max-h-16 overflow-y-auto items-center">
+                    ${betsRot.length > 0 ? betsRot.map(b => `
+                      <span class="px-2 py-0.5 rounded-lg bg-red-950/90 border border-red-500/60 text-[11px] font-fut font-bold text-white shadow flex items-center space-x-1">
+                        <span>${b.bettorName}</span>
+                        <span class="text-amber-300 font-black">${b.amount.toFixed(0)}€</span>
+                      </span>
+                    `).join('') : '<span class="text-[11px] text-slate-500 italic">Noch keine Wetten auf Rot</span>'}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -655,19 +756,48 @@
 
               <!-- Cards Showcase in Full Glory on Deep Black Background -->
               <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
-                ${teamBPlayers.map(p => `
-                  <div class="flex flex-col items-center">
-                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
-                    <div class="text-center mt-3">
-                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
-                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                ${teamBPlayers.map(p => {
+                  const lvl = getPlayerLevel(p.xp || 0);
+                  return `
+                    <div class="flex flex-col items-center">
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      <div class="text-center mt-2">
+                        <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                        <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
+                          ${lvl.stars} LVL ${lvl.level} • ${lvl.title}
+                        </div>
+                        ${p.nickname ? `<div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mt-0.5">"${p.nickname}"</div>` : ''}
+                      </div>
                     </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
 
-              <div class="text-center text-xs font-fut font-bold tracking-wider text-blue-300 uppercase">
-                ${teamBPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+              <!-- Team Blau Footer with Live Betting HUD -->
+              <div class="mt-2 space-y-1.5">
+                <div class="text-center text-xs font-fut font-bold tracking-wider text-blue-300 uppercase">
+                  ${teamBPlayers.map(p => p.name).join(' & ') || 'Warte auf Aufstellung...'}
+                </div>
+
+                <div class="p-2.5 rounded-2xl bg-black/85 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                  <div class="flex items-center justify-between border-b border-blue-500/30 pb-1 mb-1.5">
+                    <div class="flex items-center space-x-1.5">
+                      <span class="text-xs">🔵</span>
+                      <span class="font-fut font-black text-xs text-blue-300 uppercase tracking-wider">TEAM BLAU POTT</span>
+                    </div>
+                    <div class="font-fut font-black text-base text-blue-400">
+                      ${(summary.potB || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteB || 2).toFixed(2)}x)</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 min-h-[26px] max-h-16 overflow-y-auto items-center">
+                    ${betsBlau.length > 0 ? betsBlau.map(b => `
+                      <span class="px-2 py-0.5 rounded-lg bg-blue-950/90 border border-blue-500/60 text-[11px] font-fut font-bold text-white shadow flex items-center space-x-1">
+                        <span>${b.bettorName}</span>
+                        <span class="text-amber-300 font-black">${b.amount.toFixed(0)}€</span>
+                      </span>
+                    `).join('') : '<span class="text-[11px] text-slate-500 italic">Noch keine Wetten auf Blau</span>'}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -699,6 +829,35 @@
                 <span class="font-fut font-black italic text-xs tracking-[0.35em] uppercase text-amber-300 drop-shadow">VERSUS DUELL</span>
                 <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
               </div>
+
+              <!-- Central Gold Cash Pot HUD -->
+              <div class="mt-2.5 pointer-events-auto px-6 py-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 border-2 border-amber-200 shadow-[0_0_40px_rgba(245,158,11,0.95)] flex items-center space-x-3 z-30 select-none">
+                <span class="text-xl">💰</span>
+                <div class="flex flex-col items-center">
+                  <span class="text-[9px] font-fut font-black tracking-widest uppercase text-slate-900 leading-none">HÜTTEN-BARGELDPOTT</span>
+                  <span class="font-fut font-black text-2xl tracking-wider leading-tight">${(summary.totalPot || 0).toFixed(2)} € CASH</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-fut font-black uppercase ${betting.status === 'closed' ? 'bg-rose-950 text-rose-300 border border-rose-500/50' : 'bg-slate-950 text-emerald-400 border border-emerald-400'}">
+                  ${betting.status === 'closed' ? '🔒 ZU' : '🟢 OFFEN'}
+                </span>
+              </div>
+
+              <!-- Winning Payout Celebration Box if match resolved -->
+              ${(betting.winner && Array.isArray(betting.payouts) && betting.payouts.length > 0) ? `
+                <div class="mt-3 pointer-events-auto p-4 rounded-3xl bg-black/95 border-2 border-emerald-400 shadow-[0_0_50px_rgba(16,185,129,0.8)] z-40 max-w-sm w-full animate-bounce">
+                  <div class="text-center font-fut font-black text-emerald-400 text-sm uppercase tracking-wider mb-2">
+                    🏆 AUSZAHLUNG SIEG ${betting.winner === 'rot' ? 'TEAM ROT' : 'TEAM BLAU'} 🏆
+                  </div>
+                  <div class="space-y-1 max-h-28 overflow-y-auto">
+                    ${betting.payouts.map(p => `
+                      <div class="flex items-center justify-between px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-white font-fut text-xs">
+                        <span class="font-bold">${p.name}</span>
+                        <span class="font-black text-emerald-300 text-sm">💸 ${p.payout.toFixed(2)} €</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
             </div>
 
           </div>
@@ -741,11 +900,14 @@
           <div class="flex-1 flex items-center justify-center space-x-12 my-6">
             ${activeP ? `
               <div class="flex flex-col items-center">
-                <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[440px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                ${renderCardWithBadgesHtml(activeP, { imgClass: 'h-[440px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                 <div class="text-center mt-3">
                   <span class="px-3 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-fut font-bold uppercase tracking-wider border border-amber-500/30">ALS NÄCHSTES AM START</span>
                   <div class="font-fut font-black italic text-3xl uppercase tracking-wider text-white mt-1 leading-tight">${activeP.name}</div>
-                  ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider">"${activeP.nickname}"</div>` : ''}
+                  <div class="text-xs font-fut font-bold uppercase tracking-wider mt-1" style="color: ${getPlayerLevel(activeP.xp).color};">
+                    ${getPlayerLevel(activeP.xp).stars} LVL ${getPlayerLevel(activeP.xp).level} • ${getPlayerLevel(activeP.xp).title}
+                  </div>
+                  ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider mt-0.5">"${activeP.nickname}"</div>` : ''}
                 </div>
               </div>
             ` : ''}
@@ -771,8 +933,13 @@
             </div>
           </div>
 
-          <div class="bg-black/50 border border-white/10 rounded-xl py-2 px-6 text-center text-xs text-slate-400 font-fut tracking-wider uppercase">
-            Echtzeit-Synchronisation mit der Turnier-Regie
+          <div class="bg-black/50 border border-white/10 rounded-xl py-2 px-6 flex items-center justify-between text-xs text-slate-400 font-fut tracking-wider uppercase">
+            <span>Echtzeit-Synchronisation mit der Turnier-Regie</span>
+            ${(ev.betting && ev.betting.summary && ev.betting.summary.totalPot > 0) ? `
+              <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-black">
+                💰 WETTPOTT: ${ev.betting.summary.totalPot.toFixed(2)} € CASH
+              </span>
+            ` : ''}
           </div>
         `;
       }
@@ -836,15 +1003,21 @@
 
               <!-- Cards Showcase in Full Glory on Deep Black Background -->
               <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
-                ${teamAPlayers.map(p => `
-                  <div class="flex flex-col items-center">
-                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
-                    <div class="text-center mt-3">
-                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
-                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                ${teamAPlayers.map(p => {
+                  const lvl = getPlayerLevel(p.xp || 0);
+                  return `
+                    <div class="flex flex-col items-center">
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      <div class="text-center mt-3">
+                        <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                        <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
+                          ${lvl.stars} LVL ${lvl.level} • ${lvl.title}
+                        </div>
+                        ${p.nickname ? `<div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mt-0.5">"${p.nickname}"</div>` : ''}
+                      </div>
                     </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
 
               <div class="text-center text-xs font-fut font-bold tracking-wider text-red-300 uppercase">
@@ -861,15 +1034,21 @@
 
               <!-- Cards Showcase in Full Glory on Deep Black Background -->
               <div class="flex-1 flex items-center justify-center space-x-6 py-2 overflow-hidden">
-                ${teamBPlayers.map(p => `
-                  <div class="flex flex-col items-center">
-                    <img src="${p.cardImage || p.portrait || 'chef.jfif'}" alt="${p.name}" class="h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
-                    <div class="text-center mt-3">
-                      <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
-                      ${p.nickname ? `<div class="text-xs text-amber-300 font-bold uppercase tracking-wider">"${p.nickname}"</div>` : ''}
+                ${teamBPlayers.map(p => {
+                  const lvl = getPlayerLevel(p.xp || 0);
+                  return `
+                    <div class="flex flex-col items-center">
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      <div class="text-center mt-3">
+                        <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
+                        <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
+                          ${lvl.stars} LVL ${lvl.level} • ${lvl.title}
+                        </div>
+                        ${p.nickname ? `<div class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mt-0.5">"${p.nickname}"</div>` : ''}
+                      </div>
                     </div>
-                  </div>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
 
               <div class="text-center text-xs font-fut font-bold tracking-wider text-blue-300 uppercase">
@@ -1054,9 +1233,11 @@
           <!-- Arena Body: Huge Card on Left, Big Shooter Info on Right -->
           <div class="flex-1 flex items-center justify-center space-x-12 my-6">
             ${activeP ? `
-              <!-- Giant Card with Hearth Plinth -->
+              <!-- Giant Card with Hearth Plinth & Badges -->
               <div class="flex flex-col items-center">
-                <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(activeP, { imgClass: 'h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300', beltSize: 'md' }) : `
+                  <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                `}
                 <div class="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full mt-3"></div>
               </div>
 
@@ -1069,7 +1250,14 @@
                   <h2 class="font-fut font-bold text-4xl text-white tracking-wide mt-1 uppercase">
                     ${activeP.name}
                   </h2>
-                  ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider mt-0.5">"${activeP.nickname}"</div>` : ''}
+                  <div class="flex items-center space-x-2 mt-1">
+                    ${activeP.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider">"${activeP.nickname}"</div>` : ''}
+                    ${typeof getPlayerLevel === 'function' ? `
+                      <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-fut font-bold uppercase tracking-wider">
+                        ★ LVL ${getPlayerLevel(activeP.xp).level} • ${getPlayerLevel(activeP.xp).title} (${activeP.xp || 100} XP)
+                      </span>
+                    ` : ''}
+                  </div>
                 </div>
 
                 <!-- Live Shots Tracker (if applicable) -->
@@ -1214,10 +1402,25 @@
             <!-- Mini GUT Card -->
             ${renderMiniGutCardHtml(p)}
 
-            <!-- Name & Nickname -->
+            <!-- Name, Level, Nickname & Badges -->
             <div class="flex flex-col min-w-0 leading-tight">
-              <span class="font-bold text-xs tracking-wide text-slate-100 truncate">${p.name}</span>
-              ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+              <div class="flex items-center space-x-1.5 truncate">
+                <span class="font-bold text-xs tracking-wide text-slate-100 truncate">${p.name}</span>
+                ${typeof getPlayerLevel === 'function' ? `
+                  <span class="px-1 py-0.2 rounded text-[9px] font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
+                ` : ''}
+              </div>
+              <div class="flex items-center space-x-1">
+                ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+                ${(p.badges && p.badges.length) ? `
+                  <div class="flex items-center space-x-0.5 ml-1">
+                    ${p.badges.slice(0, 3).map(bId => {
+                      const cfg = (typeof BADGES_CONFIG !== 'undefined' && BADGES_CONFIG[bId]);
+                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-3.5 h-3.5 object-contain inline-block drop-shadow">` : '';
+                    }).join('')}
+                  </div>
+                ` : ''}
+              </div>
             </div>
           </div>
 
@@ -1285,10 +1488,25 @@
             ${renderMiniGutCardHtml(p)}
 
             <div class="flex flex-col min-w-0 leading-tight">
-              <span class="font-bold text-xs tracking-wide ${rank === 1 ? 'text-amber-300' : 'text-slate-100'} truncate">
-                ${p.name}
-              </span>
-              ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+              <div class="flex items-center space-x-1.5 truncate">
+                <span class="font-bold text-xs tracking-wide ${rank === 1 ? 'text-amber-300' : 'text-slate-100'} truncate">
+                  ${p.name}
+                </span>
+                ${typeof getPlayerLevel === 'function' ? `
+                  <span class="px-1 py-0.2 rounded text-[9px] font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
+                ` : ''}
+              </div>
+              <div class="flex items-center space-x-1">
+                ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+                ${(p.badges && p.badges.length) ? `
+                  <div class="flex items-center space-x-0.5 ml-1">
+                    ${p.badges.slice(0, 3).map(bId => {
+                      const cfg = (typeof BADGES_CONFIG !== 'undefined' && BADGES_CONFIG[bId]);
+                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-3.5 h-3.5 object-contain inline-block drop-shadow">` : '';
+                    }).join('')}
+                  </div>
+                ` : ''}
+              </div>
             </div>
           </div>
 
@@ -1352,9 +1570,11 @@
           </span>
         </div>
 
-        <!-- The Pure Card Shield -->
+        <!-- The Pure Card Shield with Badges Option A -->
         <div class="relative flex items-center justify-center my-0.5 transition-transform duration-300 hover:scale-105">
-          <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] w-auto max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
+          ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `h-[215px] w-auto max-w-full object-contain ${cardShadowClass}`, beltSize: 'sm' }) : `
+            <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] w-auto max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
+          `}
         </div>
 
         <!-- Ambient Light under Card -->
@@ -1426,13 +1646,24 @@
             </span>
           </div>
 
-          <img src="${cardImgSrc}" alt="${p.name}" class="${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow my-1" onerror="this.onerror=null; this.src='${ed.img}';">
+          <div class="my-1">
+            ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow`, beltSize: 'md' }) : `
+              <img src="${cardImgSrc}" alt="${p.name}" class="${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow" onerror="this.onerror=null; this.src='${ed.img}';">
+            `}
+          </div>
           
           <!-- Player Name Banner -->
           <div class="font-fut font-bold text-3xl tracking-wider text-white uppercase leading-tight text-center">
             ${p.name}
           </div>
-          ${p.nickname ? `<div class="text-xs text-amber-400 font-bold uppercase tracking-wider mb-2">"${p.nickname}"</div>` : '<div class="mb-2"></div>'}
+          <div class="flex items-center space-x-2 my-1">
+            ${typeof getPlayerLevel === 'function' ? `
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-fut font-bold uppercase tracking-wider">
+                ★ LEVEL ${getPlayerLevel(p.xp).level} • ${getPlayerLevel(p.xp).title}
+              </span>
+            ` : ''}
+            ${p.nickname ? `<span class="text-xs text-amber-400 font-bold uppercase tracking-wider">"${p.nickname}"</span>` : ''}
+          </div>
         </div>
 
         <!-- Pedestal Pillar Block -->

@@ -447,7 +447,8 @@
       document.getElementById('card-counter').innerText = `${list.length} DESIGNS`;
 
       container.innerHTML = list.map(item => `
-        <div class="card-pedestal group relative flex flex-col rounded-3xl p-4 bg-slate-900/80 border border-slate-800/90 shadow-2xl backdrop-blur-md hover:border-amber-400/40 transition-all duration-300">
+        <div onclick="window.location.href='guest.html?edition=${item.id}'"
+             class="card-pedestal group relative flex flex-col rounded-3xl p-4 bg-slate-900/80 border border-slate-800/90 shadow-2xl backdrop-blur-md hover:border-amber-400/60 transition-all duration-300 cursor-pointer">
           
           <!-- Top Card Header: Number & Tag -->
           <div class="flex items-center justify-between mb-3 px-1">
@@ -484,9 +485,12 @@
             </p>
           </div>
 
-          <!-- Subtle Accent Line -->
-          <div class="w-full h-1 rounded-full mt-3 opacity-70 group-hover:opacity-100 transition-opacity"
-               style="background: linear-gradient(90deg, ${item.accentColor}, transparent);"></div>
+          <!-- Action Button: Direct Choose -->
+          <div class="mt-3.5 pt-2 border-t border-white/5">
+            <span class="w-full py-2 px-3 rounded-xl bg-amber-500/20 group-hover:bg-amber-500 text-amber-300 group-hover:text-slate-950 border border-amber-500/40 text-xs font-fut font-black tracking-wider uppercase text-center transition flex items-center justify-center gap-1.5 shadow">
+              <span>✨</span> <span>Dieses Design wählen ➔</span>
+            </span>
+          </div>
         </div>
       `).join('');
     }

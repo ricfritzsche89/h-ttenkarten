@@ -474,6 +474,20 @@
         <p class="text-xs text-slate-400">Welcher Look passt am besten zu deinem Style?</p>
       </div>
 
+      <!-- Currently Selected Card Notice -->
+      <div id="step4-selected-banner" class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/15 border border-amber-400/50 shadow-lg">
+        <div class="flex items-center gap-3">
+          <img id="step4-selected-thumb" src="vorlagen/karte_bier_gold.png" class="w-10 h-14 object-contain rounded border border-white/20 shadow">
+          <div>
+            <span class="text-[10px] font-fut font-bold uppercase tracking-wider text-amber-400 block">Dein gewähltes Design:</span>
+            <span id="step4-selected-name" class="text-sm font-fut font-black text-white uppercase tracking-wider">Bierfest-Edition</span>
+          </div>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-fut font-bold border border-emerald-400/30 flex items-center gap-1">
+          <span>✓</span> <span>AKTIV</span>
+        </span>
+      </div>
+
       <!-- Template Selection Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="guest-template-grid">
         <!-- Rendered via JS -->
@@ -781,12 +795,21 @@
       },
       {
         id: 'img_krone',
-        name: 'Kaiserliche Krone',
-        subtitle: 'Roségold & Lila Samt',
+        name: '👑 Kaiserliche Krone',
+        subtitle: 'Roségold & Kaiserlicher Lila Samt',
         imageUrl: 'vorlagen/karte_lila_krone.png',
         ratio: '931 / 1200',
         badge: 'crown',
         accentColor: '#E9D5FF'
+      },
+      {
+        id: 'img_neon',
+        name: '🪩 Neon-Nachtschicht',
+        subtitle: 'Lila/Pink Rave, Laser & Discokugel',
+        imageUrl: 'vorlagen/karte_neon_rave.png',
+        ratio: '809 / 1200',
+        badge: 'trophy',
+        accentColor: '#C084FC'
       },
       {
         id: 'img_brauhaus',
@@ -852,15 +875,6 @@
         ratio: '801 / 1200',
         badge: 'beer',
         accentColor: '#FACC15'
-      },
-      {
-        id: 'img_neon',
-        name: '🪩 Neon-Nachtschicht',
-        subtitle: 'Rave, Laser & Discokugel',
-        imageUrl: 'vorlagen/karte_neon_rave.png',
-        ratio: '809 / 1200',
-        badge: 'trophy',
-        accentColor: '#22D3EE'
       },
       {
         id: 'img_veteran',
@@ -930,6 +944,18 @@
 
     /* Init on page load */
     window.addEventListener('DOMContentLoaded', async () => {
+      // 0. Check URL parameters for pre-selected edition (e.g. from showcase.html or promo links)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const edParam = urlParams.get('edition') || urlParams.get('design') || urlParams.get('card');
+        if (edParam) {
+          const match = GUEST_EDITIONS.find(e => e.id === edParam || e.id === 'img_' + edParam);
+          if (match) {
+            selectedEditionId = match.id;
+          }
+        }
+      } catch (e) {}
+
       // 1. Load calibrated layouts
       try {
         const res = await fetch('karten_layouts.json');
@@ -978,9 +1004,10 @@
       const chefUnlocked = isGuestChefUnlocked();
       welcomeCards = GUEST_EDITIONS.filter(ed => ed.id !== 'img_chef' || chefUnlocked);
 
-      // Default index: find 'img_bier' or 0
+      // Default index: find selectedEditionId or 'img_bier' or 0
+      const activeIdx = welcomeCards.findIndex(e => e.id === selectedEditionId);
       const bIdx = welcomeCards.findIndex(e => e.id === 'img_bier');
-      welcomeIndex = bIdx >= 0 ? bIdx : 0;
+      welcomeIndex = activeIdx >= 0 ? activeIdx : (bIdx >= 0 ? bIdx : 0);
 
       // Render card elements
       stage.innerHTML = welcomeCards.map((ed, idx) => `
@@ -1086,13 +1113,21 @@
         }
       });
 
-      // Update badge & caption
+      // Update badge & caption and keep selectedEditionId synchronized
       const cur = welcomeCards[welcomeIndex];
       if (cur) {
+        selectedEditionId = cur.id;
         const nameEl = document.getElementById('welcome-card-name');
         const subEl = document.getElementById('welcome-card-sub');
         if (nameEl) nameEl.innerText = cur.name;
         if (subEl) subEl.innerText = cur.subtitle;
+
+        // Keep Step 4 banner and card preview in sync
+        const sThumb = document.getElementById('step4-selected-thumb');
+        const sName = document.getElementById('step4-selected-name');
+        if (sThumb) sThumb.src = cur.imageUrl;
+        if (sName) sName.innerText = cur.name;
+        updateGuestCardPreview();
       }
 
       // Update dots
@@ -1110,15 +1145,12 @@
     }
 
     function onWelcomeCardClick(idx) {
-      if (idx === welcomeIndex) {
-        // Already active card clicked -> select this edition!
-        const cur = welcomeCards[welcomeIndex];
-        if (cur) {
-          selectGuestEdition(cur.id);
-          showToast(`Design gewählt: ${cur.name}! ✨`, 'info', 2000);
-        }
-      } else {
-        goToWelcomeCard(idx);
+      pauseWelcomeAutoPlay();
+      goToWelcomeCard(idx);
+      const cur = welcomeCards[idx];
+      if (cur) {
+        selectGuestEdition(cur.id);
+        showToast(`Design gewählt: ${cur.name}! ✨`, 'info', 2000);
       }
     }
 
@@ -1191,13 +1223,20 @@
         const isSel = ed.id === selectedEditionId;
         return `
           <div onclick="selectGuestEdition('${ed.id}')" id="tpl-card-${ed.id}"
-            class="group p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${isSel ? 'bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/30 shadow-lg' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
-            <div class="aspect-[3/4] w-full rounded-lg overflow-hidden bg-black/60 mb-2 flex items-center justify-center p-1 border border-slate-800/80">
+            class="group p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+              isSel 
+                ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-[1.02]' 
+                : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+            }">
+            <div class="aspect-[3/4] w-full rounded-lg overflow-hidden bg-black/60 mb-2 flex items-center justify-center p-1 border ${isSel ? 'border-amber-400/60' : 'border-slate-800/80'}">
               <img src="${ed.imageUrl}" alt="${ed.name}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200">
             </div>
             <div>
-              <span class="block text-xs font-bold text-white group-hover:text-amber-400 transition-colors">${ed.name}</span>
-              <span class="block text-[10px] text-slate-400 truncate">${ed.subtitle}</span>
+              <div class="flex items-center justify-between">
+                <span class="block text-xs font-bold ${isSel ? 'text-amber-300 font-black' : 'text-white group-hover:text-amber-400'} transition-colors">${ed.name}</span>
+                ${isSel ? '<span class="text-[9px] font-fut font-black px-1.5 py-0.2 rounded bg-emerald-500/30 text-emerald-300 border border-emerald-400/50 shadow">✓ AKTIV</span>' : ''}
+              </div>
+              <span class="block text-[10px] text-slate-400 truncate mt-0.5">${ed.subtitle}</span>
             </div>
           </div>
         `;
@@ -1208,12 +1247,28 @@
       selectedEditionId = edId;
       renderGuestTemplateGrid();
       const ed = GUEST_EDITIONS.find(e => e.id === edId);
-      if (ed && !userTextColor) {
-        // sync preview color pill
-        const pill = document.getElementById('preview-color-pill');
-        if (pill) {
-          pill.style.backgroundColor = ed.accentColor;
-          pill.innerText = ed.accentColor.toUpperCase();
+      if (ed) {
+        if (!userTextColor) {
+          // sync preview color pill
+          const pill = document.getElementById('preview-color-pill');
+          if (pill) {
+            pill.style.backgroundColor = ed.accentColor;
+            pill.innerText = ed.accentColor.toUpperCase();
+          }
+        }
+        // Update Step 4 Top Banner
+        const sThumb = document.getElementById('step4-selected-thumb');
+        const sName = document.getElementById('step4-selected-name');
+        if (sThumb) sThumb.src = ed.imageUrl;
+        if (sName) sName.innerText = ed.name;
+
+        // Also sync 3D Carousel on Step 1 if it's there
+        if (welcomeCards && welcomeCards.length) {
+          const wIdx = welcomeCards.findIndex(c => c.id === edId);
+          if (wIdx >= 0) {
+            welcomeIndex = wIdx;
+            updateWelcomeCarousel();
+          }
         }
       }
       updateGuestCardPreview();

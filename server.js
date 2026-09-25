@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const { WebSocketServer, WebSocket } = require('ws');
 const QRCode = require('qrcode');
+const { BADGES_CONFIG, getPlayerLevel } = require('./badges.js');
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
@@ -154,7 +155,13 @@ try {
       teamB: { name: 'Team Blau', playerIds: [] },
       note: '',
       activePlayerId: null,
-      round: 1
+      round: 1,
+      betting: {
+        status: 'open',
+        bets: [],
+        winner: null,
+        payouts: []
+      }
     };
   }
 } catch (e) {
@@ -170,9 +177,23 @@ try {
       teamB: { name: 'Team Blau', playerIds: [] },
       note: '',
       activePlayerId: null,
-      round: 1
+      round: 1,
+      betting: {
+        status: 'open',
+        bets: [],
+        winner: null,
+        payouts: []
+      }
     };
   }
+}
+if (tournamentData.activeEvent && !tournamentData.activeEvent.betting) {
+  tournamentData.activeEvent.betting = {
+    status: 'open',
+    bets: [],
+    winner: null,
+    payouts: []
+  };
 }
 
 function saveTournamentData() {
@@ -181,6 +202,106 @@ function saveTournamentData() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(tournamentData, null, 2), 'utf8');
   } catch (err) {
     console.error('Error saving data:', err);
+  }
+}
+
+/* ============================================================ */
+/* LEVEL & BADGES ENGINE                                        */
+/* ============================================================ */
+function ensurePlayerBadgeDefaults(p) {
+  if (typeof p.xp !== 'number') p.xp = 100;
+  if (!Array.isArray(p.badges)) p.badges = ['alpine_shield'];
+  if (!p.badges.includes('alpine_shield')) p.badges.unshift('alpine_shield');
+  p.level = getPlayerLevel(p.xp).level;
+}
+
+// Initialize all existing players
+(tournamentData.players || []).forEach(ensurePlayerBadgeDefaults);
+
+function addPlayerXp(playerId, amount, reason = '') {
+  const p = (tournamentData.players || []).find(x => x.id === playerId);
+  if (!p) return;
+  ensurePlayerBadgeDefaults(p);
+  const oldLvl = p.level;
+  p.xp += Math.max(0, Number(amount) || 0);
+  const lvlInfo = getPlayerLevel(p.xp);
+  p.level = lvlInfo.level;
+
+  if (p.level > oldLvl) {
+    broadcast({
+      type: 'LEVEL_UP',
+      payload: {
+        playerId: p.id,
+        playerName: p.name,
+        oldLevel: oldLvl,
+        newLevel: p.level,
+        title: lvlInfo.title,
+        color: lvlInfo.color
+      }
+    });
+  }
+}
+
+function awardPlayerBadge(playerId, badgeId) {
+  const p = (tournamentData.players || []).find(x => x.id === playerId);
+  const badge = BADGES_CONFIG[badgeId];
+  if (!p || !badge) return;
+  ensurePlayerBadgeDefaults(p);
+
+  if (!p.badges.includes(badgeId)) {
+    p.badges.push(badgeId);
+    addPlayerXp(playerId, badge.xp || 100, `Badge: ${badge.name}`);
+    saveTournamentData();
+
+    broadcast({
+      type: 'BADGE_UNLOCKED',
+      payload: {
+        playerId: p.id,
+        playerName: p.name,
+        badgeId,
+        badgeName: badge.name,
+        badgeDesc: badge.desc,
+        badgeIcon: badge.icon
+      }
+    });
+  }
+}
+
+function togglePlayerBadge(playerId, badgeId) {
+  const p = (tournamentData.players || []).find(x => x.id === playerId);
+  if (!p) return;
+  ensurePlayerBadgeDefaults(p);
+  if (p.badges.includes(badgeId)) {
+    p.badges = p.badges.filter(b => b !== badgeId);
+    saveTournamentData();
+  } else {
+    awardPlayerBadge(playerId, badgeId);
+  }
+}
+
+function checkMvpKingBadge() {
+  const players = tournamentData.players || [];
+  if (!players.length) return;
+  const scores = {};
+  (tournamentData.games || []).forEach(g => {
+    if (g.scores) {
+      Object.entries(g.scores).forEach(([pId, score]) => {
+        scores[pId] = (scores[pId] || 0) + (Number(score) || 0);
+      });
+    }
+  });
+
+  let topPlayerId = null;
+  let topScore = 0;
+  Object.entries(scores).forEach(([pId, s]) => {
+    if (s > topScore) {
+      topScore = s;
+      topPlayerId = pId;
+    }
+  });
+
+  if (topPlayerId && topScore > 0) {
+    awardPlayerBadge(topPlayerId, 'mvp_king');
   }
 }
 
@@ -264,6 +385,56 @@ function generateTeamsInternal(gameId, playerIds = null) {
   tournamentData.activeEvent.teamA = { name: 'Team Rot', playerIds: teamAIds };
   tournamentData.activeEvent.teamB = { name: 'Team Blau', playerIds: teamBIds };
   tournamentData.activeEvent.note = note;
+}
+
+function calculateBettingSummary(betting) {
+  if (!betting) return null;
+  const bets = betting.bets || [];
+  let potA = 0;
+  let potB = 0;
+  bets.forEach(b => {
+    const amt = Number(b.amount) || 0;
+    if (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') potA += amt;
+    else if (b.target === 'teamB' || b.target === 'blau' || b.target === 'B') potB += amt;
+  });
+  const totalPot = potA + potB;
+  const quoteA = potA > 0 ? (totalPot / potA) : 2.0;
+  const quoteB = potB > 0 ? (totalPot / potB) : 2.0;
+
+  let payouts = [];
+  if (betting.winner) {
+    const isWinA = (betting.winner === 'A' || betting.winner === 'teamA' || betting.winner === 'rot');
+    const winningPot = isWinA ? potA : potB;
+    const winningBets = bets.filter(b => isWinA ? (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') : (b.target === 'teamB' || b.target === 'blau' || b.target === 'B'));
+
+    payouts = winningBets.map(b => {
+      const share = winningPot > 0 ? (b.amount / winningPot) : 0;
+      const rawPayout = share * totalPot;
+      const payout = Math.round(rawPayout * 100) / 100;
+      const profit = Math.round((payout - b.amount) * 100) / 100;
+      return {
+        id: b.id,
+        bettorId: b.bettorId,
+        bettorName: b.bettorName,
+        amount: b.amount,
+        target: b.target,
+        payout,
+        profit
+      };
+    });
+  }
+
+  return {
+    status: betting.status || 'open',
+    winner: betting.winner || null,
+    bets,
+    potA: Math.round(potA * 100) / 100,
+    potB: Math.round(potB * 100) / 100,
+    totalPot: Math.round(totalPot * 100) / 100,
+    quoteA: Number(quoteA.toFixed(2)),
+    quoteB: Number(quoteB.toFixed(2)),
+    payouts
+  };
 }
 
 function handleClientMessage(msg) {
@@ -482,8 +653,35 @@ function handleClientMessage(msg) {
         if (!game.scores) game.scores = {};
         winningPlayerIds.forEach(pId => {
           game.scores[pId] = (game.scores[pId] || 0) + pts;
+          addPlayerXp(pId, 250, 'Match-Sieg');
+
+          const p = (tournamentData.players || []).find(x => x.id === pId);
+          if (p) {
+            p.pongWins = (p.pongWins || 0) + 1;
+            if (p.pongWins >= 2) awardPlayerBadge(pId, 'beer_pong_god');
+            p.winStreak = (p.winStreak || 0) + 1;
+            if (p.winStreak >= 2) awardPlayerBadge(pId, 'on_fire');
+          }
         });
+
+        if (!tournamentData.firstBloodAwarded) {
+          tournamentData.firstBloodAwarded = true;
+          winningPlayerIds.forEach(pId => awardPlayerBadge(pId, 'first_blood'));
+        }
+
+        checkMvpKingBadge();
         tournamentData.activeEvent.round = (tournamentData.activeEvent.round || 1) + 1;
+
+        // Auto-resolve bets if betting is active
+        if (tournamentData.activeEvent.betting && (tournamentData.activeEvent.betting.bets || []).length > 0 && !tournamentData.activeEvent.betting.winner) {
+          const winnerChoice = (payload.winningTeam === 'A' || payload.winningTeam === 'teamA') ? 'teamA' : 'teamB';
+          tournamentData.activeEvent.betting.winner = winnerChoice;
+          tournamentData.activeEvent.betting.status = 'resolved';
+          const bettingSummary = calculateBettingSummary(tournamentData.activeEvent.betting);
+          tournamentData.activeEvent.betting.payouts = bettingSummary.payouts;
+          broadcast({ type: 'BETS_RESOLVED', payload: bettingSummary });
+        }
+
         saveTournamentData();
         broadcast({
           type: 'MATCH_WIN_AWARDED',
@@ -495,6 +693,94 @@ function handleClientMessage(msg) {
             tournamentData
           }
         });
+      }
+      break;
+    }
+
+    /* ======================================================== */
+    /* BUCHMACHER / WETTBÜRO HANDLERS                           */
+    /* ======================================================== */
+    case 'PLACE_BET': {
+      if (!tournamentData.activeEvent) tournamentData.activeEvent = {};
+      if (!tournamentData.activeEvent.betting) {
+        tournamentData.activeEvent.betting = { status: 'open', bets: [], winner: null, payouts: [] };
+      }
+      const amt = Math.max(0.5, Number(payload.amount) || 1);
+      const bet = {
+        id: 'bet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        bettorId: payload.bettorId || null,
+        bettorName: (payload.bettorName || 'Gast').trim(),
+        target: (payload.target === 'B' || payload.target === 'teamB' || payload.target === 'blau') ? 'blau' : 'rot',
+        amount: amt,
+        time: Date.now()
+      };
+      tournamentData.activeEvent.betting.bets.push(bet);
+      saveTournamentData();
+      const summary = calculateBettingSummary(tournamentData.activeEvent.betting);
+      broadcast({ type: 'BET_PLACED', payload: { bet, summary } });
+      broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      break;
+    }
+
+    case 'DELETE_BET': {
+      if (tournamentData.activeEvent && tournamentData.activeEvent.betting) {
+        const betId = payload.betId;
+        tournamentData.activeEvent.betting.bets = (tournamentData.activeEvent.betting.bets || []).filter(b => b.id !== betId);
+        saveTournamentData();
+        const summary = calculateBettingSummary(tournamentData.activeEvent.betting);
+        broadcast({ type: 'BET_DELETED', payload: { betId, summary } });
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      }
+      break;
+    }
+
+    case 'SET_BETTING_STATUS': {
+      if (tournamentData.activeEvent) {
+        if (!tournamentData.activeEvent.betting) {
+          tournamentData.activeEvent.betting = { status: 'open', bets: [], winner: null, payouts: [] };
+        }
+        tournamentData.activeEvent.betting.status = payload.status || 'open';
+        saveTournamentData();
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      }
+      break;
+    }
+
+    case 'RESOLVE_BETS': {
+      if (tournamentData.activeEvent) {
+        if (!tournamentData.activeEvent.betting) {
+          tournamentData.activeEvent.betting = { status: 'open', bets: [], winner: null, payouts: [] };
+        }
+        const win = (payload.winner === 'B' || payload.winner === 'teamB' || payload.winner === 'blau') ? 'blau' : 'rot';
+        tournamentData.activeEvent.betting.winner = win;
+        tournamentData.activeEvent.betting.status = 'resolved';
+        const summary = calculateBettingSummary(tournamentData.activeEvent.betting);
+        tournamentData.activeEvent.betting.payouts = summary.payouts;
+        saveTournamentData();
+        if (summary.payouts && summary.payouts.length > 0) {
+          summary.payouts.forEach(po => {
+            if (po.profit >= 10 && po.bettorId) {
+              awardPlayerBadge(po.bettorId, 'high_roller');
+            }
+          });
+        }
+        broadcast({ type: 'BETS_RESOLVED', payload: summary });
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      }
+      break;
+    }
+
+    case 'RESET_BETS': {
+      if (tournamentData.activeEvent) {
+        tournamentData.activeEvent.betting = {
+          status: 'open',
+          bets: [],
+          winner: null,
+          payouts: []
+        };
+        saveTournamentData();
+        broadcast({ type: 'BETS_RESET', payload: calculateBettingSummary(tournamentData.activeEvent.betting) });
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
       }
       break;
     }
@@ -522,6 +808,15 @@ function handleClientMessage(msg) {
         if (!game.scores) game.scores = {};
         const pts = Number(payload.scoreDelta) || 0;
         game.scores[payload.playerId] = (game.scores[payload.playerId] || 0) + pts;
+        
+        if (payload.playerId) {
+          addPlayerXp(payload.playerId, 100, 'Durchgang gespielt');
+          if (pts >= 8) {
+            awardPlayerBadge(payload.playerId, 'sniper_bullseye');
+          }
+          checkMvpKingBadge();
+        }
+
         if (payload.nextPlayerId !== undefined) {
           if (!tournamentData.activeEvent) tournamentData.activeEvent = {};
           tournamentData.activeEvent.activePlayerId = payload.nextPlayerId;
@@ -539,6 +834,23 @@ function handleClientMessage(msg) {
             tournamentData
           }
         });
+      }
+      break;
+    }
+
+    case 'ADD_PLAYER_XP': {
+      if (payload.playerId && payload.amount) {
+        addPlayerXp(payload.playerId, payload.amount, payload.reason);
+        saveTournamentData();
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      }
+      break;
+    }
+
+    case 'TOGGLE_PLAYER_BADGE': {
+      if (payload.playerId && payload.badgeId) {
+        togglePlayerBadge(payload.playerId, payload.badgeId);
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
       }
       break;
     }
@@ -756,6 +1068,19 @@ app.post('/api/upload_photo', (req, res) => {
 
     if (!tournamentData.photos) tournamentData.photos = [];
     tournamentData.photos.unshift(photoItem);
+
+    // XP & Paparazzi Badge check
+    const matchingPlayer = (tournamentData.players || []).find(p => 
+      p.name.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+    if (matchingPlayer) {
+      addPlayerXp(matchingPlayer.id, 50, 'Foto hochgeladen');
+      matchingPlayer.photoCount = (matchingPlayer.photoCount || 0) + 1;
+      if (matchingPlayer.photoCount >= 3) {
+        awardPlayerBadge(matchingPlayer.id, 'paparazzi');
+      }
+    }
+
     saveTournamentData();
 
     broadcast({ type: 'NEW_PHOTO', payload: photoItem });
