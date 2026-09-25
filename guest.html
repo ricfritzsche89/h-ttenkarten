@@ -1031,7 +1031,6 @@
         if (e.changedTouches && e.changedTouches[0]) {
           welcomeTouchStartX = e.changedTouches[0].screenX;
         }
-        pauseWelcomeAutoPlay();
       }, { passive: true });
 
       stage.addEventListener('touchend', (e) => {
@@ -1043,14 +1042,9 @@
             nextWelcomeCard();
           }
         }
-        startWelcomeAutoPlay();
       }, { passive: true });
 
-      stage.addEventListener('mouseenter', pauseWelcomeAutoPlay);
-      stage.addEventListener('mouseleave', startWelcomeAutoPlay);
-
       updateWelcomeCarousel();
-      startWelcomeAutoPlay();
     }
 
     function updateWelcomeCarousel() {
@@ -1174,12 +1168,8 @@
     }
 
     function startWelcomeAutoPlay() {
+      // Deaktiviert: Karten wechseln NIE wieder automatisch im Hintergrund
       pauseWelcomeAutoPlay();
-      if (!welcomeCards.length) return;
-      welcomeTimer = setInterval(() => {
-        welcomeIndex = (welcomeIndex + 1) % welcomeCards.length;
-        updateWelcomeCarousel();
-      }, 3400);
     }
 
     function pauseWelcomeAutoPlay() {
@@ -1276,6 +1266,7 @@
 
     /* Step Navigation */
     function goToStep(step) {
+      pauseWelcomeAutoPlay();
       // Validate step 1: Name should not be empty
       if (step > 1 && currentStep === 1) {
         const name = document.getElementById('guest-name').value.trim();
