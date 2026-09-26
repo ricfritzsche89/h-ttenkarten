@@ -198,9 +198,15 @@
         </div>
         <span class="text-xl">🥨</span>
       </div>
-      <div class="flex items-center space-x-2 font-mono text-sm tracking-widest text-slate-300 bg-black/40 px-3 py-1 rounded-lg border border-white/10">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="welcome-live-clock">19:45 UHR</span>
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2 font-mono text-sm tracking-widest text-slate-300 bg-black/40 px-3 py-1 rounded-lg border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="welcome-live-clock">19:45 UHR</span>
+        </div>
+        <button onclick="toggleFullscreen()" title="Vollbild umschalten (Taste F oder Doppelklick)" class="cursor-pointer flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-500/40 font-fut font-black text-xs uppercase tracking-wider transition-all shadow">
+          <span>⛶</span>
+          <span>VOLLBILD</span>
+        </button>
       </div>
     </header>
 
@@ -2213,14 +2219,29 @@
         updateScreenView();
       }
       if (e.key === 'f' || e.key === 'F') {
-        // Toggle fullscreen
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen().catch(() => {});
-        }
+        toggleFullscreen();
       }
     });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    // Double-click anywhere on the background to toggle fullscreen
+    window.addEventListener('dblclick', toggleFullscreen);
 
     async function loadQrData() {
       try {

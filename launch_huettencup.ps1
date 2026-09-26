@@ -1,4 +1,14 @@
 Add-Type -AssemblyName System.Windows.Forms
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class Win32Helper {
+    [DllImport("user32.dll")]
+    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+}
+"@
 
 Write-Host "===============================================================================" -ForegroundColor Yellow
 Write-Host "  HUETTENCUP 2026 - HIGH-PERFORMANCE ALL-IN-ONE LAUNCHER" -ForegroundColor Yellow
@@ -31,34 +41,54 @@ $allScreens = [System.Windows.Forms.Screen]::AllScreens
 $tvScreen = $allScreens | Where-Object { -not $_.Primary } | Select-Object -First 1
 
 $tvPosArg = ""
+$tvSizeArg = ""
 if ($tvScreen) {
     $tvX = $tvScreen.Bounds.X
     $tvY = $tvScreen.Bounds.Y
     $tvW = $tvScreen.Bounds.Width
     $tvH = $tvScreen.Bounds.Height
     $tvPosArg = "--window-position=$tvX,$tvY"
+    $tvSizeArg = "--window-size=$tvW,$tvH"
     Write-Host "[3/4] 47 Zoll TV-Bildschirm erkannt auf Position X=$tvX, Y=$tvY (${tvW}x${tvH})!" -ForegroundColor Green
     Write-Host "  -> TV-Ansicht wird DIREKT auf den Fernseher gebeamt!" -ForegroundColor Green
 } else {
     Write-Host "[3/4] Nur 1 Bildschirm erkannt. TV-Ansicht oeffnet auf Hauptdisplay." -ForegroundColor Yellow
 }
 
+# Alte TV-Instanzen beenden, damit neue Vollbild-Flags greifen
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*HuettencupTvApp*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Milliseconds 300
+
 # [4/4] 1. TV-Screen DIREKT auf dem Fernseher in Vollbild starten
 Write-Host "[4/4] Starte TV-Player, Laptop-Regie und Spotify Lite..." -ForegroundColor Cyan
 
 $tvArgsList = @(
-    "--app=http://localhost:3000/tv.html"
+    "--kiosk",
+    "http://localhost:3000/tv.html"
 )
 if ($tvPosArg) { $tvArgsList += $tvPosArg }
+if ($tvSizeArg) { $tvArgsList += $tvSizeArg }
 $tvArgsList += @(
     "--start-fullscreen",
+    "--kiosk-printing",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-pinch",
+    "--overscroll-history-navigation=0",
     "--ignore-gpu-blocklist",
     "--enable-gpu-rasterization",
     "--enable-zero-copy",
     "--disable-extensions",
     "--user-data-dir=$env:TEMP\HuettencupTvApp"
 )
-Start-Process -FilePath $chrome -ArgumentList ($tvArgsList -join " ")
+$tvProc = Start-Process -FilePath $chrome -ArgumentList ($tvArgsList -join " ") -PassThru
+Start-Sleep -Milliseconds 800
+
+# Windows SW_MAXIMIZE Failsafe
+$tvWindow = Get-Process -Name chrome, msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*Hüttencup*" -or $_.MainWindowTitle -like "*tv.html*" -or $_.Id -eq $tvProc.Id } | Select-Object -First 1
+if ($tvWindow -and $tvWindow.MainWindowHandle -ne [IntPtr]::Zero) {
+    [Win32Helper]::ShowWindow($tvWindow.MainWindowHandle, 3)
+}
 
 # 2. Turnier-Regie fuer Laptop starten
 Start-Sleep -Milliseconds 600
