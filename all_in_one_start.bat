@@ -1,57 +1,40 @@
 @echo off
-chcp 65001 >nul
-title Hüttencup All-In-One Studio
+title Huettencup 2026 - All-In-One Studio
 color 0E
 
-echo ===============================================================================
-echo   🏆 HÜTTENCUP 2026 - ALL-IN-ONE STUDIO ^& TV SERVER
-echo ===============================================================================
-echo.
-
-:: 1. Prüfe ob Node.js Server bereits auf Port 3000 läuft
-netstat -ano | findstr :3000 | findstr LISTENING >nul
-if %ERRORLEVEL% equ 0 (
-    echo [OK] Node.js Server läuft bereits auf Port 3000.
-) else (
-    echo [..] Starte Node.js Server auf Port 3000...
-    start "Hüttencup Server" /min cmd /c "cd /d "%~dp0" && node server.js"
-    timeout /t 2 /nobreak >nul
-)
-
-echo [OK] Öffne alle Browser-Seiten...
-echo.
-
-:: 2. TV-Scoreboard / Live-Display (für Fernseher / Beamer)
-start http://localhost:3000/tv.html
-
-:: 3. Admin-Konsole (Turnierleitung, Punkte, Timer, Soundboard, Wetten)
-start http://localhost:3000/admin.html
-
-:: 4. FUT Karten-Studio (Karten-Generator & Druck-Center)
-start http://localhost:3000/index.html
-
-:: 5. Gäste-Kartenersteller (Smartphone-Vorschau)
-start http://localhost:3000/guest.html
-
-:: 6. 3D-Karten-Showcase (Alle Designs)
-start http://localhost:3000/showcase.html
+cd /d "%~dp0"
 
 echo ===============================================================================
-echo   Folgende Seiten wurden in deinem Standard-Browser geöffnet:
-echo.
-echo   📺 TV Live-Display:     http://localhost:3000/tv.html
-echo   👑 Admin-Zentrale:      http://localhost:3000/admin.html
-echo   🃏 FUT Karten-Studio:   http://localhost:3000/index.html
-echo   📱 Gäste-Erstellung:    http://localhost:3000/guest.html
-echo   🖼️ 3D Showcase:         http://localhost:3000/showcase.html
-echo.
-echo   🌐 Live Gäste-Link (Smartphone / QR-Code):
-echo      https://ricfritzsche89.github.io/h-ttenkarten/guest.html
-echo.
-echo   👑 Exklusiver Chefin-Link (Nadine):
-echo      https://ricfritzsche89.github.io/h-ttenkarten/guest.html?edition=img_chefin
+echo   HUETTENCUP 2026 - ALL-IN-ONE STUDIO ^& TV SERVER
 echo ===============================================================================
 echo.
-echo Tipp: Ziehe das TV-Fenster (tv.html) einfach rüber auf deinen TV-Bildschirm.
+
+echo [1/2] Pruefe Node.js Server auf Port 3000...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if (-not $c) { Start-Process cmd.exe -ArgumentList '/k title Huettencup Server && node server.js' -WorkingDirectory '%~dp0'; Start-Sleep -Seconds 2; Write-Host 'Server gestartet!' -ForegroundColor Green } else { Write-Host 'Server laeuft bereits!' -ForegroundColor Green }"
+
 echo.
-timeout /t 8 >nul
+echo [2/2] Oeffne alle 5 Browser-Seiten...
+start "" "http://localhost:3000/tv.html"
+start "" "http://localhost:3000/admin.html"
+start "" "http://localhost:3000/index.html"
+start "" "http://localhost:3000/guest.html"
+start "" "http://localhost:3000/showcase.html"
+
+echo.
+echo ===============================================================================
+echo   FERTIG! Folgende Seiten sind im Browser geoeffnet:
+echo.
+echo   [1] TV-Scoreboard (Grossbildschirm): http://localhost:3000/tv.html
+echo   [2] Admin-Zentrale (Turnierleitung):  http://localhost:3000/admin.html
+echo   [3] FUT-Karten-Studio (Generator):    http://localhost:3000/index.html
+echo   [4] Gaeste-Erstellung (Smartphone):   http://localhost:3000/guest.html
+echo   [5] 3D-Karten-Showcase (Galerie):     http://localhost:3000/showcase.html
+echo.
+echo   Online-Link (Handy-Gaeste): https://ricfritzsche89.github.io/h-ttenkarten/guest.html
+echo   Chefin-Link (Nadine):       https://ricfritzsche89.github.io/h-ttenkarten/guest.html?edition=img_chefin
+echo ===============================================================================
+echo.
+echo Ziehe den TV-Tab (tv.html) auf deinen Fernseher / Beamer.
+echo.
+echo Druecke eine beliebige Taste zum Beenden dieses Fensters...
+pause >nul
