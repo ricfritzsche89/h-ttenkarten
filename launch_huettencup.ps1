@@ -15,16 +15,14 @@ Write-Host "  HUETTENCUP 2026 - HIGH-PERFORMANCE ALL-IN-ONE LAUNCHER" -Foregroun
 Write-Host "===============================================================================" -ForegroundColor Yellow
 Write-Host ""
 
-# [1/4] Server prüfen / starten
-$serverConn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
-if (-not $serverConn) {
-    Write-Host "[1/4] Starte Huettencup Server auf Port 3000..." -ForegroundColor Cyan
-    Start-Process cmd.exe -ArgumentList "/k title Huettencup Server && node server.js" -WorkingDirectory $PSScriptRoot
-    Start-Sleep -Seconds 2
-    Write-Host "  -> Server erfolgreich gestartet!" -ForegroundColor Green
-} else {
-    Write-Host "[1/4] Server laeuft bereits auf Port 3000." -ForegroundColor Green
-}
+# [1/4] Server frisch starten (damit alle Updates sofort aktiv sind)
+Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*server.js*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Milliseconds 300
+
+Write-Host "[1/4] Starte Huettencup Server auf Port 3000..." -ForegroundColor Cyan
+Start-Process cmd.exe -ArgumentList "/k title Huettencup Server && node server.js" -WorkingDirectory $PSScriptRoot
+Start-Sleep -Seconds 2
+Write-Host "  -> Server erfolgreich gestartet!" -ForegroundColor Green
 
 # [2/4] Browser ermitteln
 $chrome = "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"

@@ -80,7 +80,7 @@ function doGet(e) {
       });
     }
 
-    // 2. Liste aller Karten abrufen
+    // 2. Liste aller Karten und Fotos abrufen (blitzschnell ohne Base64-Bloat)
     const folder = getOrCreateFolder_(ZIEL_ORDNER);
     const files = folder.getFilesByType('application/json');
     const cards = [];
@@ -91,15 +91,12 @@ function doGet(e) {
         const raw = file.getBlob().getDataAsString();
         const data = JSON.parse(raw);
         data.driveId = file.getId();
-        // Bild-URL und Base64 fuer lokalen Download
         if (data.datei) {
           const imgFiles = folder.getFilesByName(data.datei);
           if (imgFiles.hasNext()) {
             const imgFile = imgFiles.next();
             data.imgFileId = imgFile.getId();
-            data.cardImageUrl = 'https://drive.google.com/thumbnail?id=' + imgFile.getId() + '&sz=w600';
-            // Bild direkt als Base64 mitsenden, damit es auf den Laptop geladen wird:
-            data.imageBase64 = Utilities.base64Encode(imgFile.getBlob().getBytes());
+            data.cardImageUrl = 'https://lh3.googleusercontent.com/d/' + imgFile.getId();
           }
         }
         cards.push(data);
@@ -107,7 +104,7 @@ function doGet(e) {
     }
 
     cards.sort((a, b) => (b.gesendet || '').localeCompare(a.gesendet || ''));
-    return json_({ ok: true, count: cards.length, cards: cards });
+    return json_({ ok: true, count: cards.length, cards: cards.slice(0, 50) });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }

@@ -860,23 +860,39 @@ function handleClientMessage(msg) {
 // Google Drive Sync Engine
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
 
-async function downloadDriveImageLocally(imgFileId, name) {
+async function downloadDriveImageLocally(imgFileId, name, isPhoto = false) {
   if (!imgFileId) return null;
-  const cleanName = (name || 'card').replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
-  const filename = `cards/${cleanName}_${imgFileId}.png`;
+  const cleanName = (name || (isPhoto ? 'photo' : 'card')).replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
+  const dir = isPhoto ? 'photos' : 'cards';
+  const ext = isPhoto ? 'jpg' : 'png';
+  const filename = `${dir}/${cleanName}_${imgFileId}.${ext}`;
   const localPath = path.join(__dirname, filename);
   if (fs.existsSync(localPath)) return filename;
 
   try {
+    // 1. Direkt Google Drive CDN (blitzschnell)
+    try {
+      const cdnRes = await fetch(`https://lh3.googleusercontent.com/d/${imgFileId}`);
+      if (cdnRes.ok) {
+        const buf = Buffer.from(await cdnRes.arrayBuffer());
+        if (buf.length > 500) {
+          fs.writeFileSync(localPath, buf);
+          console.log(`💾 ${isPhoto ? 'Foto' : 'Karte'} per Google CDN geladen: ${filename}`);
+          return filename;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fallback via Apps Script downloadFileId
     const res = await fetch(`${GOOGLE_SCRIPT_URL}?downloadFileId=${imgFileId}`);
     const json = await res.json();
     if (json && json.ok && json.base64) {
       fs.writeFileSync(localPath, Buffer.from(json.base64, 'base64'));
-      console.log(`💾 Karte lokal gespeichert: ${filename}`);
+      console.log(`💾 ${isPhoto ? 'Foto' : 'Karte'} lokal gespeichert: ${filename}`);
       return filename;
     }
   } catch (err) {
-    console.error('Fehler beim Download des Kartenbildes:', err);
+    console.error('Fehler beim Download des Bildes:', err);
   }
   return null;
 }
@@ -912,7 +928,7 @@ async function syncFromGoogleDrive() {
               }
               photoUrl = filename;
             } else if (c.imgFileId) {
-              photoUrl = await downloadDriveImageLocally(c.imgFileId, name);
+              photoUrl = await downloadDriveImageLocally(c.imgFileId, name, true);
             }
 
             if (photoUrl) {
