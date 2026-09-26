@@ -912,6 +912,17 @@
         innerBg: 'bg-black',
         accentColor: '#FDE68A',
         badgeColor: 'text-amber-200'
+      },
+      {
+        id: 'img_chefin',
+        name: '👑 Die Chefin',
+        subtitle: 'Kaiserin Nadine – Samt, Gold & Kronjuwelen',
+        imageUrl: 'vorlagen/karte_chefin.png',
+        ratio: '836 / 1200',
+        borderGradient: 'from-rose-400 via-pink-600 to-purple-900',
+        innerBg: 'bg-black',
+        accentColor: '#F43F5E',
+        badgeColor: 'text-pink-300'
       }
       /* Voruebergehend ausgeblendet - darum kuemmern wir uns spaeter:
       ,
@@ -2078,15 +2089,22 @@
     /* CARD UI & PROCEDURAL BACKGROUND RENDERERS                */
     /* ======================================================== */
 
-    /* Die Chef-Vorlage ist nur waehlbar, wenn oben der Name "Ric" eingetragen ist */
+    /* Die Chef-Vorlage ist nur waehlbar fuer Ric, die Chefin-Vorlage fuer Nadine */
     function isChefUnlocked() {
       const val = (document.getElementById('input-name')?.value || '').trim().toLowerCase();
       return val === 'ric' || val.startsWith('ric') || val.includes('ric');
     }
+    function isChefinUnlocked() {
+      const val = (document.getElementById('input-name')?.value || '').trim().toLowerCase();
+      return val === 'nadine' || val.startsWith('nadine') || val.includes('nadine');
+    }
     function isEditionSelectable(id) {
-      return id !== 'img_chef' || isChefUnlocked();
+      if (id === 'img_chef') return isChefUnlocked();
+      if (id === 'img_chefin') return isChefinUnlocked();
+      return true;
     }
     let chefUnlockState = false; // merkt sich, ob die Sperre gerade umgeschlagen ist
+    let chefinUnlockState = false;
 
     function renderTemplateButtons() {
       const container = document.getElementById('template-selector-container');
@@ -2274,17 +2292,26 @@
       document.getElementById('card-badge-display').innerText = BADGES[badgeKey] || '👑';
       document.getElementById('card-perk-display').innerText = perk;
 
-      // Chef-Vorlage: gesperrt, sobald der Name nicht mehr "Ric" lautet
+      // Chef & Chefin Vorlagen: gesperrt, sobald der passende Name fehlt
       const chefUnlocked = isChefUnlocked();
+      const chefinUnlocked = isChefinUnlocked();
       if (currentEditionId === 'img_chef' && !chefUnlocked) {
-        currentEditionId = 'img_krone';
+        currentEditionId = 'img_bier';
         renderTemplateButtons();
         showToast('Chef-Vorlage gesperrt – der Name wurde geändert.', 'info');
-      } else if (chefUnlocked !== chefUnlockState) {
-        // Sperre ist umgeschlagen (freigeschaltet): Auswahl-Buttons neu zeichnen
+      } else if (currentEditionId === 'img_chefin' && !chefinUnlocked) {
+        currentEditionId = 'img_bier';
+        renderTemplateButtons();
+        showToast('Chefin-Vorlage gesperrt – der Name wurde geändert.', 'info');
+      } else if (chefinUnlocked && currentEditionId !== 'img_chefin' && !chefinUnlockState) {
+        currentEditionId = 'img_chefin';
+        renderTemplateButtons();
+        showToast('👑 Chefin-Vorlage für Nadine freigeschaltet! ✨', 'info');
+      } else if (chefUnlocked !== chefUnlockState || chefinUnlocked !== chefinUnlockState) {
         renderTemplateButtons();
       }
       chefUnlockState = chefUnlocked;
+      chefinUnlockState = chefinUnlocked;
 
       // Theme Background and Border
       const edition = CARD_EDITIONS.find(e => e.id === currentEditionId) || CARD_EDITIONS[0];

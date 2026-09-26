@@ -749,6 +749,15 @@
         accentColor: '#FDE68A'
       },
       {
+        id: 'img_chefin',
+        name: '👑 Die Chefin',
+        subtitle: 'Kaiserin Nadine – Samt, Gold & Kronjuwelen',
+        imageUrl: 'vorlagen/karte_chefin.png',
+        ratio: '836 / 1200',
+        badge: 'crown',
+        accentColor: '#F43F5E'
+      },
+      {
         id: 'img_bier',
         name: 'Bierfest-Edition',
         subtitle: 'Goldrahmen & Bier-Aura',
@@ -893,14 +902,27 @@
       return name === 'ric' || name.startsWith('ric') || name.includes('ric');
     }
 
+    function isGuestChefinUnlocked() {
+      const name = (document.getElementById('guest-name')?.value || '').trim().toLowerCase();
+      return name === 'nadine' || name.startsWith('nadine') || name.includes('nadine');
+    }
+
     function onGuestNameChange() {
       const chefUnlocked = isGuestChefUnlocked();
-      // Wenn Ric eingetippt wird und noch die Standard-Vorlage gewählt ist, Boss-Karte vorauswählen
-      if (chefUnlocked && selectedEditionId === 'img_bier') {
+      const chefinUnlocked = isGuestChefinUnlocked();
+
+      // Wenn Nadine eingetippt wird: Chefin-Karte freischalten & vorauswählen!
+      if (chefinUnlocked && selectedEditionId !== 'img_chefin') {
+        selectedEditionId = 'img_chefin';
+        showToast('👑 Chefin-Karte für Nadine freigeschaltet! ✨', 'info', 3000);
+      } else if (!chefinUnlocked && selectedEditionId === 'img_chefin') {
+        selectedEditionId = 'img_bier';
+      } else if (chefUnlocked && selectedEditionId === 'img_bier') {
         selectedEditionId = 'img_chef';
       } else if (!chefUnlocked && selectedEditionId === 'img_chef') {
         selectedEditionId = 'img_bier';
       }
+
       renderGuestTemplateGrid();
       initWelcomeCarousel();
       updateGuestCardPreview();
@@ -951,6 +973,17 @@
         if (edParam) {
           const match = GUEST_EDITIONS.find(e => e.id === edParam || e.id === 'img_' + edParam);
           if (match) {
+            if (match.id === 'img_chefin') {
+              const nameInput = document.getElementById('guest-name');
+              if (nameInput && !nameInput.value) {
+                nameInput.value = 'Nadine';
+              }
+            } else if (match.id === 'img_chef') {
+              const nameInput = document.getElementById('guest-name');
+              if (nameInput && !nameInput.value) {
+                nameInput.value = 'Ric';
+              }
+            }
             selectedEditionId = match.id;
           }
         }
@@ -1000,9 +1033,14 @@
       const dotsContainer = document.getElementById('welcome-card-dots');
       if (!stage) return;
 
-      // Filter out 'img_chef' unless chef is unlocked
+      // Filter out 'img_chef' and 'img_chefin' unless unlocked
       const chefUnlocked = isGuestChefUnlocked();
-      welcomeCards = GUEST_EDITIONS.filter(ed => ed.id !== 'img_chef' || chefUnlocked);
+      const chefinUnlocked = isGuestChefinUnlocked();
+      welcomeCards = GUEST_EDITIONS.filter(ed => {
+        if (ed.id === 'img_chef') return chefUnlocked;
+        if (ed.id === 'img_chefin') return chefinUnlocked;
+        return true;
+      });
 
       // Default index: find selectedEditionId or 'img_bier' or 0
       const activeIdx = welcomeCards.findIndex(e => e.id === selectedEditionId);
@@ -1207,7 +1245,12 @@
     function renderGuestTemplateGrid() {
       const grid = document.getElementById('guest-template-grid');
       const chefUnlocked = isGuestChefUnlocked();
-      const visibleEditions = GUEST_EDITIONS.filter(ed => ed.id !== 'img_chef' || chefUnlocked);
+      const chefinUnlocked = isGuestChefinUnlocked();
+      const visibleEditions = GUEST_EDITIONS.filter(ed => {
+        if (ed.id === 'img_chef') return chefUnlocked;
+        if (ed.id === 'img_chefin') return chefinUnlocked;
+        return true;
+      });
 
       grid.innerHTML = visibleEditions.map(ed => {
         const isSel = ed.id === selectedEditionId;
@@ -1234,6 +1277,14 @@
     }
 
     function selectGuestEdition(edId) {
+      if (edId === 'img_chefin' && !isGuestChefinUnlocked()) {
+        showToast('👑 Diese Karte ist exklusiv für Nadine reserviert!', 'warning');
+        return;
+      }
+      if (edId === 'img_chef' && !isGuestChefUnlocked()) {
+        showToast('👑 Diese Karte ist exklusiv für Ric reserviert!', 'warning');
+        return;
+      }
       selectedEditionId = edId;
       renderGuestTemplateGrid();
       const ed = GUEST_EDITIONS.find(e => e.id === edId);
