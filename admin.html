@@ -159,7 +159,10 @@
             <span>TV-BILDSCHIRM ANSICHT</span>
             <span id="regie-tv-mode-badge" class="text-[10px] px-2 py-0.5 rounded font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">SCOREBOARD</span>
           </div>
-          <div class="grid grid-cols-5 gap-1.5">
+          <div class="grid grid-cols-6 gap-1.5">
+            <button id="btn-tv-view-welcome" onclick="setTvViewMode('welcome')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
+              <span class="leading-tight text-center truncate w-full">🥨 Lobby</span>
+            </button>
             <button id="btn-tv-view-scoreboard" onclick="setTvViewMode('scoreboard')" class="touch-btn py-2 px-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-fut font-bold uppercase tracking-wider border border-white/10 flex flex-col items-center justify-center transition">
               <span class="leading-tight text-center truncate w-full">Score</span>
             </button>
@@ -394,6 +397,29 @@
       <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase">
         TV-STEUERUNG
       </h2>
+
+      <!-- 0. OKTOBERFEST WILLKOMMENS-LOBBY -->
+      <div class="lodge-card lodge-card-amber p-4 space-y-3 shadow-lg border border-amber-500/40">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider flex items-center space-x-1.5">
+              <span>🥨</span>
+              <span>OKTOBERFEST WILLKOMMENS-LOBBY</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Fullscreen-Bühne mit rotierenden Karten, Uhrzeit & Disziplinen-Ticker</p>
+          </div>
+          <span class="text-[10px] font-fut font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">LOBBY</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="setTvViewMode('welcome')" class="touch-btn py-2.5 px-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black text-xs tracking-wider uppercase flex flex-col items-center justify-center shadow">
+            <span>🥨 LOBBY AKTIVIEREN</span>
+          </button>
+          <button onclick="setTvViewMode('scoreboard')" class="touch-btn py-2.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs tracking-wider uppercase flex flex-col items-center justify-center border border-white/10 shadow">
+            <span>📊 SCOREBOARD ANZEIGEN</span>
+          </button>
+        </div>
+      </div>
 
       <!-- 1. SIEGEREHRUNG SPECIAL CARD -->
       <div class="lodge-card lodge-card-amber p-4 space-y-3 shadow-lg border border-amber-500/40">
@@ -1079,6 +1105,7 @@
 
       // Highlight TV view mode buttons and badge
       const curTvView = ev.tvView || (ev.status === 'announced' ? 'announced' : (ev.status === 'live' ? 'live' : 'scoreboard'));
+      const btnWelcome = document.getElementById('btn-tv-view-welcome');
       const btnScoreboard = document.getElementById('btn-tv-view-scoreboard');
       const btnAnnounced = document.getElementById('btn-tv-view-announced');
       const btnLive = document.getElementById('btn-tv-view-live');
@@ -1089,6 +1116,7 @@
       const activeBtnClass = 'touch-btn py-2 px-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-[11px] font-black shadow-lg flex flex-col items-center justify-center ring-2 ring-amber-300';
       const inactiveBtnClass = 'touch-btn py-2 px-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-300 text-[11px] font-bold border border-white/10 flex flex-col items-center justify-center transition';
 
+      if (btnWelcome) btnWelcome.className = (curTvView === 'welcome') ? activeBtnClass : inactiveBtnClass;
       if (btnScoreboard) btnScoreboard.className = (curTvView === 'scoreboard') ? activeBtnClass : inactiveBtnClass;
       if (btnAnnounced) btnAnnounced.className = (curTvView === 'announced') ? activeBtnClass : inactiveBtnClass;
       if (btnLive) btnLive.className = (curTvView === 'live') ? activeBtnClass : inactiveBtnClass;
@@ -1097,7 +1125,8 @@
       
       if (tvBadge) {
         let badgeText = 'SCOREBOARD';
-        if (curTvView === 'announced') badgeText = 'COUNTDOWN';
+        if (curTvView === 'welcome') badgeText = 'OKTOBERFEST LOBBY';
+        else if (curTvView === 'announced') badgeText = 'COUNTDOWN';
         else if (curTvView === 'live') badgeText = 'LIVE ARENA';
         else if (curTvView === 'slideshow') badgeText = 'SLIDESHOW';
         else if (curTvView === 'ceremony') badgeText = 'SIEGEREHRUNG';
@@ -1512,6 +1541,7 @@
       });
       renderRegieView();
       let modeText = 'Normales Scoreboard';
+      if (viewMode === 'welcome') modeText = '🥨 Oktoberfest Willkommens-Lobby';
       if (viewMode === 'live') modeText = 'Live Match Arena';
       if (viewMode === 'slideshow') modeText = 'Fullscreen Foto-Slideshow';
       if (viewMode === 'ceremony') modeText = 'Große Siegerehrung';

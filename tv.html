@@ -100,17 +100,31 @@
       backdrop-filter: blur(16px);
     }
 
-    /* Miniature GUT card shield in table rows */
+    /* Miniature GUT card shield in table rows - Enlarged for 47" TV */
     .mini-card-shield {
-      width: 28px;
-      height: 38px;
-      border-radius: 3px;
+      width: 34px;
+      height: 46px;
+      border-radius: 4px;
       clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
       position: relative;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.9);
       background-size: cover;
       background-position: center;
+    }
+
+    /* Oktoberfest Welcome Screen Ticker */
+    @keyframes ticker-slide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .welcome-ticker-track {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: ticker-slide 32s linear infinite;
+    }
+    .welcome-ticker-track:hover {
+      animation-play-state: paused;
     }
 
     /* Score Change Highlight Pulse */
@@ -163,6 +177,66 @@
   </style>
 </head>
 <body class="slate-lodge-bg alpine-wood-frame w-screen h-screen select-none overflow-hidden text-gray-100 relative">
+  <!-- ============================================================ -->
+  <!-- SCREEN 0: FULLSCREEN OKTOBERFEST PRE-GAME LOBBY              -->
+  <!-- ============================================================ -->
+  <div id="screen-welcome" class="w-full h-full flex flex-col justify-between p-6 select-none overflow-hidden relative z-20 transition-opacity duration-700 hidden">
+    <!-- Top Bar: Bavarian Accent & Discreet Time -->
+    <header class="flex items-center justify-between px-6 py-2.5 bg-black/75 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">🍻</span>
+        <span class="font-fut font-black text-xl tracking-wider text-amber-400 uppercase">HÜTTENCUP 2026</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-xl">🥨</span>
+        <span class="font-fut font-bold text-xs sm:text-sm tracking-widest text-slate-200 uppercase bg-amber-500/20 px-3.5 py-1 rounded-full border border-amber-500/30 shadow">
+          OKTOBERFEST-EDITION
+        </span>
+        <span class="text-xl">🥨</span>
+      </div>
+      <div class="flex items-center space-x-2 font-mono text-sm tracking-widest text-slate-300 bg-black/40 px-3 py-1 rounded-lg border border-white/10">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="welcome-live-clock">19:45 UHR</span>
+      </div>
+    </header>
+
+    <!-- Center Arena: 3D-Kartenbühne mit Spotlight & Spieler-Details -->
+    <main class="flex-1 flex flex-col items-center justify-center relative my-3">
+      <!-- Title Heading -->
+      <div class="text-center mb-3">
+        <h1 class="font-fut font-black text-4xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+          OKTOBERFEST 2026
+        </h1>
+        <p class="font-fut font-bold text-sm sm:text-base tracking-widest text-slate-300 uppercase mt-0.5">
+          DAS GROSSE HÜTTENTURNIER
+        </p>
+      </div>
+
+      <!-- Spotlight Glow behind Card -->
+      <div class="relative flex items-center justify-center">
+        <div class="absolute w-96 h-[480px] bg-amber-500/15 rounded-full blur-3xl pointer-events-none -top-10"></div>
+        
+        <!-- Large Card Pedestal Showcase (~500-540px card height) -->
+        <div id="welcome-card-stage" class="relative z-10 flex flex-col items-center transition-all duration-700">
+          <!-- Dynamically injected via renderWelcomeStage() -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Bar: Dynamic Disciplines Ticker (Ticker der echten Spiele) -->
+    <footer class="w-full bg-black/85 backdrop-blur-md rounded-xl border border-white/10 py-2.5 px-4 overflow-hidden shadow-2xl relative flex items-center">
+      <div class="flex-shrink-0 flex items-center space-x-2 pr-4 border-r border-white/20 font-fut font-black text-xs text-amber-400 uppercase tracking-widest">
+        <span>🏆</span>
+        <span>DISZIPLINEN:</span>
+      </div>
+      <div class="flex-1 overflow-hidden relative whitespace-nowrap ml-4">
+        <div id="welcome-games-ticker" class="inline-block text-sm font-fut font-bold text-slate-200 tracking-wider">
+          <!-- Dynamically filled with tournament.games -->
+        </div>
+      </div>
+    </footer>
+  </div>
+
   <!-- ============================================================ -->
   <!-- SCREEN 1: COMPLETE SCOREBOARD (GAMES GRID + TOP 3 COLUMN)   -->
   <!-- ============================================================ -->
@@ -590,7 +664,9 @@
       const viewMode = ev.tvView || 'auto';
 
       let activeView = 'scoreboard';
-      if (viewMode === 'scoreboard') {
+      if (viewMode === 'welcome') {
+        activeView = 'welcome';
+      } else if (viewMode === 'scoreboard') {
         activeView = 'scoreboard';
       } else if (viewMode === 'announced') {
         if (ev.status === 'announced' && ev.timerEndsAt && ev.timerEndsAt > Date.now()) {
@@ -610,6 +686,7 @@
         else activeView = 'scoreboard';
       }
 
+      const screenWelcome = document.getElementById('screen-welcome');
       const screenScoreboard = document.getElementById('screen-scoreboard');
       const screenEvent = document.getElementById('screen-event');
       const screenSlideshow = document.getElementById('screen-slideshow');
@@ -620,10 +697,18 @@
       if (!screenScoreboard || !screenEvent) return;
 
       // Hide all non-active main screens
+      if (screenWelcome) screenWelcome.classList.toggle('hidden', activeView !== 'welcome');
       screenScoreboard.classList.toggle('hidden', activeView !== 'scoreboard');
       screenEvent.classList.toggle('hidden', activeView !== 'announced' && activeView !== 'live');
       if (screenSlideshow) screenSlideshow.classList.toggle('hidden', activeView !== 'slideshow');
       if (screenCeremony) screenCeremony.classList.toggle('hidden', activeView !== 'ceremony');
+
+      // Welcome screen management
+      if (activeView === 'welcome') {
+        startWelcomeScreen();
+      } else {
+        stopWelcomeScreen();
+      }
 
       // Slideshow management
       if (activeView === 'slideshow') {
@@ -1360,13 +1445,13 @@
       const gIdx = (tournament.games || []).findIndex(g => g.id === game.id) + 1;
       const gNum = String(gIdx).padStart(2, '0');
       const header = document.createElement('div');
-      header.className = 'px-3.5 py-2 bg-white/[0.02] border-b border-[#E58A25]/20 flex items-center justify-between flex-shrink-0';
+      header.className = 'px-3.5 py-2.5 bg-white/[0.03] border-b border-[#E58A25]/25 flex items-center justify-between flex-shrink-0';
       header.innerHTML = `
-        <div class="flex items-center space-x-2">
-          <span class="font-fut font-bold text-xs tracking-widest text-amber-400">${gNum}</span>
-          <h3 class="font-fut font-bold text-sm tracking-wider text-slate-100 uppercase">${game.name}</h3>
+        <div class="flex items-center space-x-2.5">
+          <span class="font-fut font-black text-sm tracking-widest text-amber-400">${gNum}</span>
+          <h3 class="font-fut font-extrabold text-base sm:text-lg tracking-wider text-slate-100 uppercase">${game.name}</h3>
         </div>
-        <span class="text-[9px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-400 font-fut font-bold uppercase tracking-wider">
+        <span class="text-xs px-2.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-fut font-bold uppercase tracking-wider">
           ${game.unit || 'Punkte'}${Number(game.multiplier) > 1 ? ` (×${game.multiplier})` : ''}
         </span>
       `;
@@ -1374,7 +1459,7 @@
 
       // Table Container
       const tableWrapper = document.createElement('div');
-      tableWrapper.className = 'flex-1 overflow-y-auto px-2 py-1.5 space-y-1';
+      tableWrapper.className = 'flex-1 overflow-y-auto px-2.5 py-2 space-y-1.5';
 
       sorted.forEach((item, index) => {
         const rank = index + 1;
@@ -1388,15 +1473,15 @@
         else if (rank === 3) rankBadgeClass = 'rank-badge-3';
 
         const row = document.createElement('div');
-        row.className = `flex items-center justify-between px-2.5 py-1 rounded transition duration-200 ${
-          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.02]' : 'bg-transparent')
+        row.className = `flex items-center justify-between px-3 py-1.5 rounded transition duration-200 ${
+          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.03]' : 'bg-transparent')
         } border border-transparent hover:border-white/10`;
 
         row.innerHTML = `
           <!-- Rank & Mini-GUT-Karte & Name -->
-          <div class="flex items-center space-x-2.5 min-w-0">
+          <div class="flex items-center space-x-3 min-w-0">
             <!-- Rank Badge -->
-            <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-fut font-bold ${rankBadgeClass} flex-shrink-0">
+            <span class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-fut font-black ${rankBadgeClass} flex-shrink-0 shadow">
               ${rankStr}
             </span>
 
@@ -1405,19 +1490,19 @@
 
             <!-- Name, Level, Nickname & Badges -->
             <div class="flex flex-col min-w-0 leading-tight">
-              <div class="flex items-center space-x-1.5 truncate">
-                <span class="font-bold text-xs tracking-wide text-slate-100 truncate">${p.name}</span>
+              <div class="flex items-center space-x-2 truncate">
+                <span class="font-extrabold text-sm sm:text-base tracking-wide text-slate-100 truncate">${p.name}</span>
                 ${typeof getPlayerLevel === 'function' ? `
-                  <span class="px-1 py-0.2 rounded text-[9px] font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-fut font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
                 ` : ''}
               </div>
-              <div class="flex items-center space-x-1">
-                ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+              <div class="flex items-center space-x-1.5">
+                ${p.nickname ? `<span class="text-xs text-amber-400/90 font-medium truncate">"${p.nickname}"</span>` : ''}
                 ${(p.badges && p.badges.length) ? `
-                  <div class="flex items-center space-x-0.5 ml-1">
+                  <div class="flex items-center space-x-1 ml-1">
                     ${p.badges.slice(0, 3).map(bId => {
                       const cfg = (typeof BADGES_CONFIG !== 'undefined' && BADGES_CONFIG[bId]);
-                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-3.5 h-3.5 object-contain inline-block drop-shadow">` : '';
+                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-4 h-4 object-contain inline-block drop-shadow">` : '';
                     }).join('')}
                   </div>
                 ` : ''}
@@ -1426,8 +1511,8 @@
           </div>
 
           <!-- Score -->
-          <div class="flex items-center pl-2 flex-shrink-0">
-            <span class="font-fut text-lg font-bold tracking-wider text-slate-200">
+          <div class="flex items-center pl-3 flex-shrink-0">
+            <span class="font-fut text-2xl font-black tracking-wider text-amber-300 drop-shadow">
               ${item.displayScore}
             </span>
           </div>
@@ -1445,15 +1530,15 @@
 
       // Header
       const header = document.createElement('div');
-      header.className = 'px-3.5 py-2 bg-amber-500/[0.06] border-b border-amber-500/30 flex items-center justify-between flex-shrink-0';
+      header.className = 'px-3.5 py-2.5 bg-amber-500/[0.08] border-b border-amber-500/35 flex items-center justify-between flex-shrink-0';
       header.innerHTML = `
-        <div class="flex items-center space-x-2">
-          <span class="font-fut font-bold text-xs tracking-widest text-amber-400">GESAMT</span>
-          <h3 class="font-fut font-bold text-sm tracking-wider text-amber-300 uppercase">
+        <div class="flex items-center space-x-2.5">
+          <span class="font-fut font-black text-sm tracking-widest text-amber-400">GESAMT</span>
+          <h3 class="font-fut font-extrabold text-base sm:text-lg tracking-wider text-amber-300 uppercase">
             LEADERBOARD
           </h3>
         </div>
-        <span class="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-fut font-bold tracking-wider uppercase">
+        <span class="text-xs px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-fut font-bold tracking-wider uppercase">
           GESAMTWERTUNG
         </span>
       `;
@@ -1461,7 +1546,7 @@
 
       // Table Container
       const tableWrapper = document.createElement('div');
-      tableWrapper.className = 'flex-1 overflow-y-auto px-2 py-1.5 space-y-1';
+      tableWrapper.className = 'flex-1 overflow-y-auto px-2.5 py-2 space-y-1.5';
 
       totalsList.forEach((item, index) => {
         const rank = index + 1;
@@ -1475,35 +1560,35 @@
         else if (rank === 3) rankBadgeClass = 'rank-badge-3';
 
         const row = document.createElement('div');
-        row.className = `flex items-center justify-between px-2.5 py-1 rounded transition duration-200 ${
-          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.03]' : 'bg-transparent')
-        } border ${rank <= 3 ? 'border-amber-500/20' : 'border-transparent'}`;
+        row.className = `flex items-center justify-between px-3 py-1.5 rounded transition duration-200 ${
+          isHighlighted ? 'score-updated bg-amber-500/25 border-amber-400/80' : (rank % 2 === 0 ? 'bg-white/[0.04]' : 'bg-transparent')
+        } border ${rank <= 3 ? 'border-amber-500/30' : 'border-transparent'}`;
 
         row.innerHTML = `
           <!-- Rank & Mini-GUT-Karte & Name -->
-          <div class="flex items-center space-x-2.5 min-w-0">
-            <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-fut font-bold ${rankBadgeClass} flex-shrink-0">
+          <div class="flex items-center space-x-3 min-w-0">
+            <span class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-fut font-black ${rankBadgeClass} flex-shrink-0 shadow">
               ${rankStr}
             </span>
 
             ${renderMiniGutCardHtml(p)}
 
             <div class="flex flex-col min-w-0 leading-tight">
-              <div class="flex items-center space-x-1.5 truncate">
-                <span class="font-bold text-xs tracking-wide ${rank === 1 ? 'text-amber-300' : 'text-slate-100'} truncate">
+              <div class="flex items-center space-x-2 truncate">
+                <span class="font-extrabold text-sm sm:text-base tracking-wide ${rank === 1 ? 'text-amber-300' : 'text-slate-100'} truncate">
                   ${p.name}
                 </span>
                 ${typeof getPlayerLevel === 'function' ? `
-                  <span class="px-1 py-0.2 rounded text-[9px] font-fut font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-fut font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">L${getPlayerLevel(p.xp).level}</span>
                 ` : ''}
               </div>
-              <div class="flex items-center space-x-1">
-                ${p.nickname ? `<span class="text-[10px] text-amber-400/80 truncate">"${p.nickname}"</span>` : ''}
+              <div class="flex items-center space-x-1.5">
+                ${p.nickname ? `<span class="text-xs text-amber-400/90 font-medium truncate">"${p.nickname}"</span>` : ''}
                 ${(p.badges && p.badges.length) ? `
-                  <div class="flex items-center space-x-0.5 ml-1">
+                  <div class="flex items-center space-x-1 ml-1">
                     ${p.badges.slice(0, 3).map(bId => {
                       const cfg = (typeof BADGES_CONFIG !== 'undefined' && BADGES_CONFIG[bId]);
-                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-3.5 h-3.5 object-contain inline-block drop-shadow">` : '';
+                      return cfg ? `<img src="${cfg.icon}" title="${cfg.name}" class="w-4 h-4 object-contain inline-block drop-shadow">` : '';
                     }).join('')}
                   </div>
                 ` : ''}
@@ -1512,9 +1597,9 @@
           </div>
 
           <!-- Total Score -->
-          <div class="flex items-center pl-2 flex-shrink-0">
-            <span class="font-fut text-lg font-bold tracking-wider ${rank === 1 ? 'text-amber-300' : 'text-slate-200'}">
-              ${item.total.toLocaleString('de-DE')} <span class="text-[9px] font-fut font-bold uppercase text-slate-400">PKT</span>
+          <div class="flex items-center pl-3 flex-shrink-0">
+            <span class="font-fut text-2xl font-black tracking-wider ${rank === 1 ? 'text-amber-300' : 'text-slate-100'}">
+              ${item.total.toLocaleString('de-DE')} <span class="text-xs font-fut font-bold uppercase text-slate-400">PKT</span>
             </span>
           </div>
         `;
@@ -1759,6 +1844,166 @@
     }
 
     /* ============================================================ */
+    /* SCREEN 0: OKTOBERFEST WELCOME SCREEN ENGINE                  */
+    /* ============================================================ */
+    let welcomePlayerIndex = 0;
+    let welcomeStageTimer = null;
+    let welcomeClockTimer = null;
+
+    function startWelcomeScreen() {
+      updateWelcomeClock();
+      if (!welcomeClockTimer) {
+        welcomeClockTimer = setInterval(updateWelcomeClock, 1000);
+      }
+      updateWelcomeTicker();
+      renderWelcomeStage();
+      if (!welcomeStageTimer) {
+        welcomeStageTimer = setInterval(() => {
+          const players = tournament.players || [];
+          if (players.length > 0) {
+            welcomePlayerIndex = (welcomePlayerIndex + 1) % players.length;
+            renderWelcomeStage();
+          }
+        }, 6500); // Sanfte Rotation alle 6.5 Sekunden
+      }
+    }
+
+    function stopWelcomeScreen() {
+      if (welcomeStageTimer) {
+        clearInterval(welcomeStageTimer);
+        welcomeStageTimer = null;
+      }
+      if (welcomeClockTimer) {
+        clearInterval(welcomeClockTimer);
+        welcomeClockTimer = null;
+      }
+    }
+
+    function updateWelcomeClock() {
+      const clockEl = document.getElementById('welcome-live-clock');
+      if (!clockEl) return;
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      clockEl.textContent = `${hh}:${mm} UHR`;
+    }
+
+    function updateWelcomeTicker() {
+      const tickerContainer = document.getElementById('welcome-games-ticker');
+      if (!tickerContainer) return;
+      const games = tournament.games && tournament.games.length > 0 ? tournament.games : [
+        { name: 'Bierpong', unit: 'Punkte', multiplier: 1 },
+        { name: 'Schießen (Sterne)', unit: 'Punkte', multiplier: 1 },
+        { name: 'Schießen (Zielscheibe)', unit: 'Punkte', multiplier: 1 },
+        { name: 'Maßkrugschieben', unit: 'Punkte', multiplier: 1 },
+        { name: 'Ballons Dart', unit: 'Punkte', multiplier: 1 }
+      ];
+
+      const tickerItems = games.map((g) => {
+        let icon = '🍺';
+        const nameLower = (g.name || '').toLowerCase();
+        if (nameLower.includes('stern') || nameLower.includes('schieß')) icon = '🎯';
+        else if (nameLower.includes('ziel') || nameLower.includes('scheibe')) icon = '🎯';
+        else if (nameLower.includes('dart') || nameLower.includes('ballon')) icon = '🎈';
+        else if (nameLower.includes('maß') || nameLower.includes('krug')) icon = '🍺';
+        else if (nameLower.includes('pong')) icon = '🍻';
+
+        return `
+          <span class="inline-flex items-center space-x-2.5 mx-8">
+            <span class="text-xl">${icon}</span>
+            <span class="font-fut font-black text-lg tracking-wider text-amber-300 uppercase">${g.name}</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-fut font-bold border border-white/15">
+              ${g.unit || 'Punkte'}${Number(g.multiplier) > 1 ? ` (×${g.multiplier})` : ''}
+            </span>
+          </span>
+        `;
+      }).join('<span class="text-amber-500/60 font-black text-xl">✦</span>');
+
+      // Double the items for seamless infinite horizontal scrolling marquee
+      tickerContainer.className = 'welcome-ticker-track';
+      tickerContainer.innerHTML = tickerItems + '<span class="text-amber-500/60 font-black text-xl mx-4">✦</span>' + tickerItems;
+    }
+
+    function renderWelcomeStage() {
+      const stage = document.getElementById('welcome-card-stage');
+      if (!stage) return;
+      const players = tournament.players || [];
+
+      if (players.length === 0) {
+        stage.innerHTML = `
+          <div class="text-center p-8 bg-black/60 rounded-3xl border border-white/10 backdrop-blur-md max-w-md shadow-2xl">
+            <div class="text-5xl mb-3">🥨</div>
+            <h3 class="font-fut font-black text-2xl text-amber-300 uppercase tracking-wider">HERZLICH WILLKOMMEN</h3>
+            <p class="text-xs text-slate-300 mt-2">Warte auf Teilnehmer-Karten...</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (welcomePlayerIndex >= players.length) welcomePlayerIndex = 0;
+      const p = players[welcomePlayerIndex];
+      const lvl = typeof getPlayerLevel === 'function' ? getPlayerLevel(p.xp || 0) : { level: 1, title: 'Rookie', stars: '★', color: '#F59E0B' };
+      const ed = (typeof EDITION_CONFIG !== 'undefined' && EDITION_CONFIG[p.edition]) || { name: 'Standard', border: '#F59E0B', img: 'vorlagen/karte_bier_gold.png' };
+      const cardImg = p.cardImage || p.portrait || ed.img;
+
+      stage.innerHTML = `
+        <div class="flex flex-col items-center animate-fadeIn">
+          <!-- 3D Card Plinth Showcase (~520px height) -->
+          <div class="relative group">
+            <div class="relative z-10 transition-transform duration-500 hover:scale-105">
+              ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, {
+                imgClass: 'h-[500px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
+                beltSize: 'lg'
+              }) : `
+                <img src="${cardImg}" alt="${p.name}" class="h-[500px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
+              `}
+            </div>
+
+            <!-- Floor Reflection / Hearth Light -->
+            <div class="w-64 h-2 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent rounded-full mx-auto mt-4 blur-[1px]"></div>
+          </div>
+
+          <!-- Player Legend Bar Under Card -->
+          <div class="mt-4 flex flex-col items-center text-center space-y-1">
+            <div class="flex items-center space-x-3">
+              <span class="font-fut font-black italic text-4xl sm:text-5xl uppercase tracking-wider text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
+                ${p.name}
+              </span>
+              <span class="px-3 py-1 rounded-xl bg-amber-500/25 border border-amber-400/60 text-amber-300 font-fut font-black text-xl shadow">
+                ${p.ovr || 85} <span class="text-xs font-bold text-slate-300">OVR</span>
+              </span>
+            </div>
+
+            <div class="flex items-center space-x-3 mt-1">
+              ${p.nickname ? `
+                <span class="text-base sm:text-lg text-amber-400 font-bold uppercase tracking-widest drop-shadow">
+                  „${p.nickname}“
+                </span>
+              ` : ''}
+              <span class="text-xs sm:text-sm font-fut font-bold uppercase tracking-wider px-3 py-0.5 rounded-full bg-white/10 border border-white/15" style="color: ${lvl.color};">
+                ${lvl.stars} LVL ${lvl.level} • ${lvl.title}
+              </span>
+            </div>
+
+            ${(p.badges && p.badges.length) ? `
+              <div class="flex items-center justify-center space-x-2 pt-2">
+                ${p.badges.map(bId => {
+                  const cfg = (typeof BADGES_CONFIG !== 'undefined' && BADGES_CONFIG[bId]);
+                  return cfg ? `
+                    <div class="p-1 rounded-lg bg-black/60 border border-white/15 shadow flex items-center space-x-1 px-2">
+                      <img src="${cfg.icon}" alt="${cfg.name}" class="w-5 h-5 object-contain">
+                      <span class="text-[11px] font-fut font-bold text-slate-200 tracking-wider">${cfg.name}</span>
+                    </div>
+                  ` : '';
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* ============================================================ */
     /* QR CODE MODAL & NETWORK DATA INITIALIZATION                  */
     /* ============================================================ */
     let qrModalOpen = false;
@@ -1773,10 +2018,21 @@
       }
     }
 
-    // Keyboard shortcut 'Q' toggles QR Modal
+    // Keyboard shortcuts: 'Q' for QR Modal, 'F' for Fullscreen, 'W' for Oktoberfest Welcome Screen
     window.addEventListener('keydown', (e) => {
       if (e.key === 'q' || e.key === 'Q') {
         toggleQrModal();
+      }
+      if (e.key === 'w' || e.key === 'W') {
+        const ev = tournament.activeEvent || {};
+        const curView = ev.tvView || 'scoreboard';
+        const newView = (curView === 'welcome') ? 'scoreboard' : 'welcome';
+        sendWs('SET_ACTIVE_EVENT', {
+          ...ev,
+          tvView: newView
+        });
+        if (tournament.activeEvent) tournament.activeEvent.tvView = newView;
+        updateScreenView();
       }
       if (e.key === 'f' || e.key === 'F') {
         // Toggle fullscreen
