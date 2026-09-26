@@ -181,16 +181,21 @@
   <!-- ============================================================ -->
   <div id="screen-welcome" class="w-full h-full flex flex-col justify-between p-6 select-none overflow-hidden relative z-20 transition-opacity duration-700 hidden">
     <!-- Top Bar: Bavarian Accent & Discreet Time -->
-    <header class="flex items-center justify-between px-6 py-2.5 bg-[#0B0F17]/95 rounded-2xl border border-white/10 shadow-xl">
+    <header class="flex items-center justify-between px-6 py-2.5 bg-[#0B0F17]/95 rounded-2xl border border-white/10 shadow-xl flex-shrink-0">
       <div class="flex items-center space-x-3">
         <span class="text-2xl">🍻</span>
         <span class="font-fut font-black text-xl tracking-wider text-amber-400 uppercase">HÜTTENCUP 2026</span>
       </div>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-3">
         <span class="text-xl">🥨</span>
-        <span class="font-fut font-bold text-xs sm:text-sm tracking-widest text-slate-200 uppercase bg-amber-500/20 px-3.5 py-1 rounded-full border border-amber-500/30 shadow">
-          OKTOBERFEST-EDITION
-        </span>
+        <div class="flex flex-col items-center">
+          <span class="font-fut font-black text-sm tracking-widest text-slate-100 uppercase bg-amber-500/20 px-4 py-0.5 rounded-full border border-amber-500/30 shadow">
+            OKTOBERFEST-EDITION
+          </span>
+          <span class="text-[9px] font-fut font-bold tracking-widest text-amber-300 uppercase mt-0.5">
+            5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE
+          </span>
+        </div>
         <span class="text-xl">🥨</span>
       </div>
       <div class="flex items-center space-x-2 font-mono text-sm tracking-widest text-slate-300 bg-black/40 px-3 py-1 rounded-lg border border-white/10">
@@ -199,27 +204,201 @@
       </div>
     </header>
 
-    <!-- Center Arena: 3D-Kartenbühne mit Spotlight & Spieler-Details -->
-    <main class="flex-1 flex flex-col items-center justify-center relative my-3">
-      <!-- Title Heading -->
-      <div class="text-center mb-3">
-        <h1 class="font-fut font-black text-4xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-          OKTOBERFEST 2026
-        </h1>
-        <p class="font-fut font-bold text-sm sm:text-base tracking-widest text-slate-300 uppercase mt-0.5">
-          DAS GROSSE HÜTTENTURNIER
-        </p>
-      </div>
-
-      <!-- Spotlight Glow behind Card (High-Perf Radial Gradient without filter blur) -->
-      <div class="relative flex items-center justify-center">
-        <div class="absolute w-96 h-[480px] rounded-full pointer-events-none -top-10" style="background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.05) 45%, transparent 70%);"></div>
-        
-        <!-- Large Card Pedestal Showcase (~500-540px card height) -->
-        <div id="welcome-card-stage" class="relative z-10 flex flex-col items-center transition-all duration-700">
-          <!-- Dynamically injected via renderWelcomeStage() -->
+    <!-- 3-ZONEN BROADCAST STAGE: Links Fahrplan, Mitte 3D-Karte, Rechts Disziplinen -->
+    <main class="flex-1 grid grid-cols-12 gap-4 items-stretch my-3 min-h-0 overflow-hidden relative">
+      
+      <!-- ZONE 1: LINKS (ABEND-FAHRPLAN & HIGHLIGHTS) -->
+      <aside class="col-span-3 h-full flex flex-col justify-between bg-[#0B0F17]/90 rounded-2xl border border-white/10 p-3.5 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center space-x-2.5 border-b border-amber-500/30 pb-2 flex-shrink-0">
+          <span class="text-xl">📅</span>
+          <div>
+            <h3 class="font-fut font-black text-sm tracking-wider text-amber-300 uppercase">ABEND-FAHRPLAN</h3>
+            <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">DAS HEUTIGE PROGRAMM</p>
+          </div>
         </div>
-      </div>
+
+        <!-- Schedule Items List -->
+        <div class="flex-1 flex flex-col justify-between py-2 space-y-1.5 overflow-hidden">
+          
+          <!-- Item 1 -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🍺</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">1. ANSTICH & LOBBY</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">WARM-UP</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Das erste kühle Festbier zapfen, Musik genießen & Taktik schmieden.</p>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🎯</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">2. DIE 5 WETTKÄMPFE</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">PUNKTEJAGD</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Treffer sammeln an allen Stationen für das große Leaderboard.</p>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-amber-500/20 flex items-start space-x-3 bg-amber-500/[0.03]">
+            <span class="text-xl flex-shrink-0 mt-0.5">💰</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="font-fut font-black text-xs text-amber-300 uppercase tracking-wider">3. DAS LIVE-WETTBÜRO</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/50">CASH-POTT</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Setze Bargeld auf Team Rot oder Blau mit Live-Quoten am TV.</p>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">📸</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">4. DIE LIVE FOTO-WALL</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-white/10 text-slate-300 border border-white/15">SOUVENIR</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Lade Schnappschüsse per Smartphone live auf diese Leinwand!</p>
+            </div>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="p-2.5 rounded-xl bg-amber-500/[0.08] border border-amber-500/40 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🏆</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="font-fut font-black text-xs text-amber-300 uppercase tracking-wider">5. GROSSE SIEGEREHRUNG</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500 text-slate-950">PODIUM</span>
+              </div>
+              <p class="text-[11px] text-slate-300 leading-snug mt-0.5">Das 3er-Treppchen & Übergabe des Hüttencup-Wanderpokals 2026.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pt-2 border-t border-white/10 text-center text-[10px] font-fut font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
+          <span>HÜTTENORDNUNG • FAIRPLAY • GUTE LAUNE</span>
+        </div>
+      </aside>
+
+      <!-- ZONE 2: MITTE (3D-KARTENBÜHNE MIT SPOTLIGHT & SPIELER-DETAILS) -->
+      <section class="col-span-6 h-full flex flex-col items-center justify-between relative overflow-hidden py-1">
+        <!-- Title Heading -->
+        <div class="text-center flex-shrink-0">
+          <div class="inline-flex items-center space-x-2 px-4 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 font-fut font-black text-xs uppercase tracking-widest shadow">
+            <span>★</span>
+            <span>DAS GROSSE HÜTTENTURNIER</span>
+            <span>★</span>
+          </div>
+          <h1 class="font-fut font-black text-4xl sm:text-5xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] mt-0.5">
+            OKTOBERFEST 2026
+          </h1>
+        </div>
+
+        <!-- Spotlight Glow behind Card -->
+        <div class="relative flex-1 flex items-center justify-center w-full min-h-0">
+          <div class="absolute w-96 h-[460px] rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.06) 45%, transparent 70%);"></div>
+          
+          <!-- Large Card Pedestal Showcase (~500px card height) -->
+          <div id="welcome-card-stage" class="relative z-10 flex flex-col items-center transition-all duration-700 w-full">
+            <!-- Dynamically injected via renderWelcomeStage() -->
+          </div>
+        </div>
+
+        <!-- Teaser Bottom Hint -->
+        <div class="text-center flex-shrink-0 text-xs font-fut font-bold text-amber-400 uppercase tracking-widest bg-black/60 px-5 py-1 rounded-full border border-white/10 shadow">
+          <span>⚡ BEREITMACHEN • DAS TURNIER STARTET IN KÜRZE ⚡</span>
+        </div>
+      </section>
+
+      <!-- ZONE 3: RECHTS (DIE 5 WETTKÄMPFE IM DETAIL) -->
+      <aside class="col-span-3 h-full flex flex-col justify-between bg-[#0B0F17]/90 rounded-2xl border border-white/10 p-3.5 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center space-x-2.5 border-b border-amber-500/30 pb-2 flex-shrink-0">
+          <span class="text-xl">🏆</span>
+          <div>
+            <h3 class="font-fut font-black text-sm tracking-wider text-amber-300 uppercase">DIE 5 WETTKÄMPFE</h3>
+            <p class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">DISZIPLINEN & REGELN</p>
+          </div>
+        </div>
+
+        <!-- Games List -->
+        <div class="flex-1 flex flex-col justify-between py-2 space-y-1.5 overflow-hidden">
+          
+          <!-- Game 1: Bierpong -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🍻</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">BIERPONG</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-red-950/90 text-red-300 border border-red-500/40">TEKKEN CLASH</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Team Rot vs. Team Blau. Wer alle Becher abräumt, holt den Siegpunkt!</p>
+            </div>
+          </div>
+
+          <!-- Game 2: Sterne -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🎯</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">SCHIESSEN (STERNE)</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">10 SCHUSS</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">10 Schuss auf Klappsterne. Jeder Treffer bringt 1 Punkt.</p>
+            </div>
+          </div>
+
+          <!-- Game 3: Zielscheibe -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🎯</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">SCHIESSEN (SCHEIBE)</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">1-12 PKT</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">5 Wertungsschüsse auf die Ringe. Zentrum = 12 Punkte.</p>
+            </div>
+          </div>
+
+          <!-- Game 4: Maßkrugschieben -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🍺</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">MASSKRUGSCHIEBEN</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-white/10 text-slate-300 border border-white/15">FEINGEFÜHL</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">5 Durchgänge Pub-Sport. Den gefüllten Krug perfekt platzieren.</p>
+            </div>
+          </div>
+
+          <!-- Game 5: Ballons Dart -->
+          <div class="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-start space-x-3">
+            <span class="text-xl flex-shrink-0 mt-0.5">🎈</span>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-fut font-black text-xs text-white uppercase tracking-wider">BALLONS DART</span>
+                <span class="text-[9px] font-fut font-bold px-1.5 py-0.2 rounded bg-white/10 text-slate-300 border border-white/15">ACTION</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Mit Dartpfeilen die Ballons zum Platzen bringen.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pt-2 border-t border-white/10 text-center text-[10px] font-fut font-bold text-amber-300 uppercase tracking-wider flex-shrink-0">
+          <span>ALLE PUNKTE FLIESSEN IN DAS LEADERBOARD</span>
+        </div>
+      </aside>
+
     </main>
 
     <!-- Bottom Bar: Dynamic Disciplines Ticker (Ticker der echten Spiele) -->
@@ -1951,10 +2130,10 @@
           <div class="relative group">
             <div class="relative z-10 transition-transform duration-500 hover:scale-105">
               ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, {
-                imgClass: 'h-[500px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
+                imgClass: 'h-[460px] sm:h-[480px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
                 beltSize: 'lg'
               }) : `
-                <img src="${cardImg}" alt="${p.name}" class="h-[500px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
+                <img src="${cardImg}" alt="${p.name}" class="h-[460px] sm:h-[480px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
               `}
             </div>
 
