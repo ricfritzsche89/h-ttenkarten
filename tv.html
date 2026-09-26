@@ -72,32 +72,29 @@
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 0 50px rgba(0, 0, 0, 0.98);
     }
 
-    /* Precision Magma Slate Panels - Subtle molten ember hairline border & ambient glow */
+    /* Precision Magma Slate Panels - Optimized for high performance on 1080p */
     .game-panel {
-      background: rgba(12, 16, 24, 0.94);
+      background: rgba(11, 15, 23, 0.97);
       border: 1px solid rgba(225, 105, 25, 0.38);
       border-radius: 8px;
-      box-shadow: 0 10px 26px -4px rgba(0, 0, 0, 0.9), 
-                  0 0 16px -2px rgba(220, 75, 10, 0.12), 
+      box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.85), 
                   inset 0 1px 0 rgba(255, 175, 75, 0.22);
-      backdrop-filter: blur(14px);
     }
 
     /* Overall / Leaderboard Master Box: Champagner-Magma Frame */
     .master-panel {
+      background: rgba(13, 17, 26, 0.98) !important;
       border: 1px solid rgba(212, 175, 55, 0.55) !important;
-      box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.9), 
-                  0 0 20px rgba(212, 175, 55, 0.18), 
-                  0 0 10px rgba(225, 90, 20, 0.12),
+      box-shadow: 0 10px 24px -2px rgba(0, 0, 0, 0.9), 
+                  0 0 16px rgba(212, 175, 55, 0.15), 
                   inset 0 1px 0 rgba(243, 229, 171, 0.35) !important;
     }
 
     /* Top 3 Showcase Column on the Right (Precision Timing Column with Magma Edge) */
     .showcase-column {
-      background: rgba(10, 13, 19, 0.98);
+      background: rgba(9, 12, 18, 0.98);
       border-left: 1px solid rgba(225, 105, 25, 0.32);
-      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.85), -4px 0 14px rgba(220, 75, 10, 0.08);
-      backdrop-filter: blur(16px);
+      box-shadow: -8px 0 20px rgba(0, 0, 0, 0.85);
     }
 
     /* Miniature GUT card shield in table rows - Enlarged for 47" TV */
@@ -113,15 +110,17 @@
       background-position: center;
     }
 
-    /* Oktoberfest Welcome Screen Ticker */
+    /* Oktoberfest Welcome Screen Ticker - GPU Accelerated */
     @keyframes ticker-slide {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-50%, 0, 0); }
     }
     .welcome-ticker-track {
       display: inline-flex;
       white-space: nowrap;
-      animation: ticker-slide 32s linear infinite;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      animation: ticker-slide 34s linear infinite;
     }
     .welcome-ticker-track:hover {
       animation-play-state: paused;
@@ -182,7 +181,7 @@
   <!-- ============================================================ -->
   <div id="screen-welcome" class="w-full h-full flex flex-col justify-between p-6 select-none overflow-hidden relative z-20 transition-opacity duration-700 hidden">
     <!-- Top Bar: Bavarian Accent & Discreet Time -->
-    <header class="flex items-center justify-between px-6 py-2.5 bg-black/75 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl">
+    <header class="flex items-center justify-between px-6 py-2.5 bg-[#0B0F17]/95 rounded-2xl border border-white/10 shadow-xl">
       <div class="flex items-center space-x-3">
         <span class="text-2xl">🍻</span>
         <span class="font-fut font-black text-xl tracking-wider text-amber-400 uppercase">HÜTTENCUP 2026</span>
@@ -212,9 +211,9 @@
         </p>
       </div>
 
-      <!-- Spotlight Glow behind Card -->
+      <!-- Spotlight Glow behind Card (High-Perf Radial Gradient without filter blur) -->
       <div class="relative flex items-center justify-center">
-        <div class="absolute w-96 h-[480px] bg-amber-500/15 rounded-full blur-3xl pointer-events-none -top-10"></div>
+        <div class="absolute w-96 h-[480px] rounded-full pointer-events-none -top-10" style="background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.05) 45%, transparent 70%);"></div>
         
         <!-- Large Card Pedestal Showcase (~500-540px card height) -->
         <div id="welcome-card-stage" class="relative z-10 flex flex-col items-center transition-all duration-700">
@@ -224,7 +223,7 @@
     </main>
 
     <!-- Bottom Bar: Dynamic Disciplines Ticker (Ticker der echten Spiele) -->
-    <footer class="w-full bg-black/85 backdrop-blur-md rounded-xl border border-white/10 py-2.5 px-4 overflow-hidden shadow-2xl relative flex items-center">
+    <footer class="w-full bg-[#0B0F17]/95 rounded-xl border border-white/10 py-2.5 px-4 overflow-hidden shadow-xl relative flex items-center">
       <div class="flex-shrink-0 flex items-center space-x-2 pr-4 border-r border-white/20 font-fut font-black text-xs text-amber-400 uppercase tracking-widest">
         <span>🏆</span>
         <span>DISZIPLINEN:</span>
@@ -331,7 +330,7 @@
     <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.7) 100%);"></div>
 
     <!-- Floating Bottom-Left Badge: Sender Name & Caption -->
-    <div id="slide-badge" class="absolute bottom-8 left-8 max-w-xl bg-black/85 backdrop-blur-md border border-white/15 rounded-xl px-5 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3.5 z-20">
+    <div id="slide-badge" class="absolute bottom-8 left-8 max-w-xl bg-[#0B0F17]/95 border border-white/15 rounded-xl px-5 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3.5 z-20">
       <div class="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-400/50 flex items-center justify-center font-fut font-black text-amber-300 text-xs tracking-wider shadow">
         LIVE
       </div>
@@ -342,7 +341,7 @@
     </div>
 
     <!-- Floating Bottom-Right Badge: QR Code to Upload Photos -->
-    <div class="absolute bottom-8 right-8 bg-black/85 backdrop-blur-md border border-white/15 rounded-xl p-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3 z-20">
+    <div class="absolute bottom-8 right-8 bg-[#0B0F17]/95 border border-white/15 rounded-xl p-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3 z-20">
       <img id="slideshow-qr" src="" alt="QR" class="w-16 h-16 rounded bg-white p-0.5 object-contain">
       <div class="pr-2">
         <div class="text-[11px] font-fut font-bold text-amber-300 uppercase tracking-wider">FOTO HOCHLADEN</div>
@@ -396,13 +395,13 @@
     </div>
 
     <!-- Bottom Banner -->
-    <div class="text-center py-2.5 bg-black/85 backdrop-blur-md rounded-xl border border-white/10 text-xs text-slate-300 font-fut font-bold tracking-widest uppercase shadow-xl flex items-center justify-center space-x-3">
+    <div class="text-center py-2.5 bg-[#0B0F17]/95 rounded-xl border border-white/10 text-xs text-slate-300 font-fut font-bold tracking-widest uppercase shadow-xl flex items-center justify-center space-x-3">
       <span>TURNIER-ABSCHLUSS • HERZLICHEN GLÜCKWUNSCH</span>
     </div>
   </div>
 
   <!-- QR CODE MODAL FOR SMARTPHONES -->
-  <div id="qr-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center hidden" onclick="toggleQrModal()">
+  <div id="qr-modal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center hidden" onclick="toggleQrModal()">
     <div class="bg-[#0D1117] border border-white/15 rounded-xl p-8 max-w-md w-full text-center shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
       <div class="text-[11px] font-fut font-bold tracking-widest text-amber-400 uppercase px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded mb-3">SMARTPHONE VERBINDUNG</div>
       <h3 class="text-2xl font-bold font-fut text-white mb-1 uppercase tracking-wider">TURNIER-REGIE ÖFFNEN</h3>
@@ -890,8 +889,8 @@
             <!-- DOMINANT TEKKEN 8 FOREGROUND CENTERPIECE (Z-40, OVERLAPPING IN FRONT OF CARDS) -->
             <div id="tekken-vs-centerpiece" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none flex flex-col items-center justify-center select-none">
               
-              <!-- Red/Blue Clash Energy Glow behind VS -->
-              <div class="absolute -inset-10 bg-gradient-to-r from-red-600/40 via-amber-500/50 to-blue-600/40 blur-3xl rounded-full scale-125 -z-10 animate-pulse"></div>
+              <!-- Red/Blue Clash Energy Glow behind VS (High-Perf Gradient) -->
+              <div class="absolute -inset-10 rounded-full scale-125 -z-10 animate-pulse pointer-events-none" style="background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, rgba(239,68,68,0.15) 35%, rgba(59,130,246,0.15) 60%, transparent 75%);"></div>
 
               <!-- Countdown Timer Box (Prominent & Clear) -->
               <div class="pointer-events-auto mb-2 px-6 py-3 rounded-2xl bg-black/95 border-2 border-amber-400/90 shadow-[0_0_40px_rgba(212,175,55,0.5)] flex flex-col items-center min-w-[240px]">
@@ -1145,8 +1144,8 @@
             <!-- DOMINANT TEKKEN 8 FOREGROUND CENTERPIECE (Z-40, OVERLAPPING IN FRONT OF CARDS) -->
             <div id="tekken-vs-centerpiece" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none flex flex-col items-center justify-center select-none">
               
-              <!-- Red/Blue Clash Energy Glow behind VS -->
-              <div class="absolute -inset-12 bg-gradient-to-r from-red-600/40 via-amber-500/50 to-blue-600/40 blur-3xl rounded-full scale-125 -z-10 animate-pulse"></div>
+              <!-- Red/Blue Clash Energy Glow behind VS (High-Perf Gradient) -->
+              <div class="absolute -inset-12 rounded-full scale-125 -z-10 animate-pulse pointer-events-none" style="background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, rgba(239,68,68,0.15) 35%, rgba(59,130,246,0.15) 60%, transparent 75%);"></div>
 
               <!-- High-Resolution 3D Metallic Tekken VS Graphic from assets/vs.png -->
               <div class="relative flex items-center justify-center">
@@ -1682,7 +1681,7 @@
       if (!banner) {
         banner = document.createElement('div');
         banner.id = 'tv-floating-banner';
-        banner.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 rounded-lg bg-[#0E121A]/95 border border-[#D4AF37]/40 text-slate-100 font-fut font-bold text-lg uppercase tracking-wider shadow flex items-center space-x-3 transition-all duration-500 transform -translate-y-24 opacity-0 pointer-events-none backdrop-blur-md';
+        banner.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 rounded-lg bg-[#0E121A]/95 border border-[#D4AF37]/40 text-slate-100 font-fut font-bold text-lg uppercase tracking-wider shadow-2xl flex items-center space-x-3 transition-all duration-500 transform -translate-y-24 opacity-0 pointer-events-none';
         document.body.appendChild(banner);
       }
 
@@ -1931,7 +1930,7 @@
 
       if (players.length === 0) {
         stage.innerHTML = `
-          <div class="text-center p-8 bg-black/60 rounded-3xl border border-white/10 backdrop-blur-md max-w-md shadow-2xl">
+          <div class="text-center p-8 bg-[#0B0F17]/95 rounded-3xl border border-white/10 max-w-md shadow-2xl">
             <div class="text-5xl mb-3">🥨</div>
             <h3 class="font-fut font-black text-2xl text-amber-300 uppercase tracking-wider">HERZLICH WILLKOMMEN</h3>
             <p class="text-xs text-slate-300 mt-2">Warte auf Teilnehmer-Karten...</p>
@@ -1959,8 +1958,8 @@
               `}
             </div>
 
-            <!-- Floor Reflection / Hearth Light -->
-            <div class="w-64 h-2 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent rounded-full mx-auto mt-4 blur-[1px]"></div>
+            <!-- Floor Reflection / Hearth Light (High-Perf Gradient) -->
+            <div class="w-64 h-1.5 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent rounded-full mx-auto mt-4"></div>
           </div>
 
           <!-- Player Legend Bar Under Card -->
