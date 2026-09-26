@@ -126,6 +126,7 @@ Write-Host "  [Musik]   Spotify Lite (Puffer-gefixt):   https://open.spotify.com
 Write-Host ""
 Write-Host "  Online-Link (Handy-Gaeste):  https://ricfritzsche89.github.io/h-ttenkarten/guest.html" -ForegroundColor Cyan
 Write-Host "  Chefin-Link (Nadine):        https://ricfritzsche89.github.io/h-ttenkarten/guest.html?edition=img_chefin" -ForegroundColor Cyan
+Write-Host "  Foto-Upload (Live auf TV):   https://ricfritzsche89.github.io/h-ttenkarten/fotos.html" -ForegroundColor Cyan
 Write-Host "===============================================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Tastenkuerzel auf dem TV:" -ForegroundColor Gray

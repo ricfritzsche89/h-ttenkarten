@@ -888,12 +888,65 @@ async function syncFromGoogleDrive() {
     if (data.ok && Array.isArray(data.cards)) {
       let newCount = 0;
       if (!tournamentData.inbox) tournamentData.inbox = [];
+      if (!tournamentData.photos) tournamentData.photos = [];
 
       for (const c of data.cards) {
         const id = 'drive_' + (c.driveId || c.gesendet || c.name);
         const name = c.name || 'Gast';
         let localImg = null;
 
+        // 1. Unterscheidung: Ist es ein Party-Foto oder eine Spielerkarte?
+        const isPhoto = (c.type === 'photo') || (c.caption !== undefined && !c.ovr && !c.stats);
+        if (isPhoto) {
+          const photoId = 'drive_photo_' + (c.driveId || c.gesendet || c.datei || Date.now());
+          const alreadyExists = tournamentData.photos.some(p => p.id === photoId || (p.sender === name && p.uploadedAt === c.gesendet));
+
+          if (!alreadyExists) {
+            let photoUrl = '';
+            if (c.imageBase64) {
+              const cleanName = (name || 'photo').replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
+              const filename = `photos/${cleanName}_${c.driveId || c.imgFileId || Date.now()}.jpg`;
+              const fullPath = path.join(__dirname, filename);
+              if (!fs.existsSync(fullPath)) {
+                fs.writeFileSync(fullPath, Buffer.from(c.imageBase64, 'base64'));
+              }
+              photoUrl = filename;
+            } else if (c.imgFileId) {
+              photoUrl = await downloadDriveImageLocally(c.imgFileId, name);
+            }
+
+            if (photoUrl) {
+              const photoItem = {
+                id: photoId,
+                url: photoUrl,
+                sender: name,
+                caption: c.caption || '',
+                uploadedAt: c.gesendet || new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+              };
+              tournamentData.photos.unshift(photoItem);
+
+              // XP & Paparazzi Badge check
+              const matchingPlayer = (tournamentData.players || []).find(p => 
+                p.name.toLowerCase().trim() === name.toLowerCase().trim()
+              );
+              if (matchingPlayer) {
+                addPlayerXp(matchingPlayer.id, 50, 'Foto hochgeladen');
+                matchingPlayer.photoCount = (matchingPlayer.photoCount || 0) + 1;
+                if (matchingPlayer.photoCount >= 3) {
+                  awardPlayerBadge(matchingPlayer.id, 'paparazzi');
+                }
+              }
+
+              saveTournamentData();
+              broadcast({ type: 'NEW_PHOTO', payload: photoItem });
+              broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+              console.log(`📸 Neues Party-Foto via Google Drive von: ${photoItem.sender} ("${photoItem.caption}")`);
+            }
+          }
+          continue; // Nicht als Spielerkarte behandeln!
+        }
+
+        // 2. Spielerkarte verarbeiten
         if (c.imageBase64) {
           const cleanName = (name || 'card').replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
           const filename = `cards/${cleanName}_${c.driveId || c.imgFileId}.png`;
@@ -953,8 +1006,8 @@ async function syncFromGoogleDrive() {
   }
 }
 
-// Auto-Sync mit Google Drive alle 20 Sekunden
-setInterval(syncFromGoogleDrive, 20000);
+// Auto-Sync mit Google Drive alle 10 Sekunden (schneller Fotostream)
+setInterval(syncFromGoogleDrive, 10000);
 setTimeout(syncFromGoogleDrive, 2000);
 
 // Helper: adds an inbox card object into active players
@@ -1121,7 +1174,8 @@ app.get('/api/network', async (req, res) => {
   const localIp = getLocalIpAddress();
   const mobileAdminUrl = `http://${localIp}:${PORT}/admin.html`;
   const tvUrl = `http://localhost:${PORT}/tv.html`;
-  const guestFotosUrl = `http://${localIp}:${PORT}/fotos.html`;
+  // Online erreichbar für alle Gäste per Handynetz / LTE / 5G / WLAN:
+  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html`;
   try {
     const qrDataUrl = await QRCode.toDataURL(mobileAdminUrl, {
       margin: 2,

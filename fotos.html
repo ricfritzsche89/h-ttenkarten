@@ -86,6 +86,10 @@
     <p class="text-xs text-slate-300 mt-0.5">
       Mache Schnappschüsse – sie erscheinen live auf dem Fernseher!
     </p>
+    <div class="mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>Weltweit erreichbar (WLAN, LTE & 5G)</span>
+    </div>
   </header>
 
   <!-- MAIN FORM CONTAINER -->
@@ -227,36 +231,74 @@
       btnSubmit.disabled = true;
       btnSubmit.classList.add('opacity-50');
       statusBox.classList.remove('hidden');
-      statusText.textContent = 'Foto wird auf den TV übertragen...';
+      statusText.textContent = 'Foto wird übertragen...';
       spinner.classList.remove('hidden');
 
-      try {
-        const res = await fetch('/api/upload_photo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            file: currentBase64,
-            name: sender,
-            caption: caption
-          })
-        });
+      const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
+      const payloadObj = {
+        file: currentBase64,
+        name: sender,
+        caption: caption,
+        type: 'photo'
+      };
+      const jsonPayload = JSON.stringify(payloadObj);
 
-        const data = await res.json();
-        if (data.ok) {
-          spinner.classList.add('hidden');
-          statusText.innerHTML = '<strong>Erfolgreich!</strong> Dein Foto ist jetzt live im TV-Pool!';
-          
-          btnSubmit.innerHTML = '<span>WEITERES FOTO HOCHLADEN</span>';
-          btnSubmit.disabled = false;
-          btnSubmit.classList.remove('opacity-50');
-          btnSubmit.onclick = resetForm;
-        } else {
-          throw new Error(data.error || 'Upload fehlgeschlagen');
+      let delivered = false;
+
+      // 1. Direktlokaler Upload falls auf Port 3000 oder im Heimnetz
+      if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        try {
+          const localRes = await fetch('/api/upload_photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: jsonPayload
+          });
+          const localJson = await localRes.json();
+          if (localJson && localJson.ok) delivered = true;
+        } catch (e) {
+          console.log('Lokaler Upload nicht möglich, nutze Cloud-Upload...');
         }
-      } catch (err) {
-        console.error(err);
+      }
+
+      // 2. Online-Cloud-Upload (für alle Gäste im Handynetz / LTE / 5G / außerhalb des WLANs)
+      if (!delivered) {
+        try {
+          const res = await fetch(GUT_SUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: jsonPayload
+          });
+          const json = await res.json();
+          if (json && json.ok) delivered = true;
+        } catch (e) {
+          console.warn('Standard-CORS fehlgeschlagen, versuche no-cors Fallback:', e);
+        }
+
+        if (!delivered) {
+          try {
+            await fetch(GUT_SUBMIT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: jsonPayload,
+              mode: 'no-cors'
+            });
+            delivered = true;
+          } catch (e) {
+            console.error('No-cors Fallback ebenfalls fehlgeschlagen:', e);
+          }
+        }
+      }
+
+      if (delivered) {
         spinner.classList.add('hidden');
-        statusText.textContent = 'Fehler beim Upload: ' + err.message;
+        statusText.innerHTML = '<strong>Super!</strong> Dein Foto ist live und erscheint in wenigen Augenblicken auf dem TV!';
+        btnSubmit.innerHTML = '<span>WEITERES FOTO HOCHLADEN</span>';
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('opacity-50');
+        btnSubmit.onclick = resetForm;
+      } else {
+        spinner.classList.add('hidden');
+        statusText.textContent = 'Upload fehlgeschlagen. Bitte prüfe deine Internetverbindung!';
         btnSubmit.disabled = false;
         btnSubmit.classList.remove('opacity-50');
       }

@@ -42,6 +42,8 @@ function doPost(e) {
     // Metadaten als kleiner Begleit-Eintrag (optional, hilfreich fuer die Punktetabelle)
     const meta = {
       gesendet: stamp,
+      type: payload.type || (payload.caption !== undefined && !payload.ovr ? 'photo' : 'card'),
+      caption: payload.caption || '',
       name: payload.name || '',
       nickname: payload.nickname || '',
       ovr: payload.ovr || '',
