@@ -28,43 +28,56 @@ if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
 )
 
 echo.
-echo [3/3] Starte TV-Player und Admin-Regie im schnellen App-Modus...
+echo [3/3] Starte TV-Player, Admin-Regie und Spotify Lite...
 
 if defined BROWSER_BIN (
-    :: TV-Screen als isolierte Vollbild-App mit erzwungener GPU-Hardwarebeschleunigung
+    :: 1. TV-Screen als isolierte Vollbild-App mit erzwungener GPU-Hardwarebeschleunigung
     start "" "%BROWSER_BIN%" --app="http://localhost:3000/tv.html" --start-fullscreen --ignore-gpu-blocklist --enable-gpu-rasterization --enable-zero-copy --disable-extensions --user-data-dir="%TEMP%\HuettencupTvApp"
     
-    :: Turnier-Regie fuer Laptop / Spielleitung
+    :: 2. Turnier-Regie fuer Laptop / Spielleitung
     start "" "%BROWSER_BIN%" --app="http://localhost:3000/admin.html" --ignore-gpu-blocklist --enable-gpu-rasterization
+    
+    :: 3. Schlanker Spotify Party Player (Login bleibt im lokalen Profil dauerhaft gespeichert)
+    start "" "%BROWSER_BIN%" --app="https://open.spotify.com" --user-data-dir="%LOCALAPPDATA%\SpotifyLitePartyApp" --ignore-gpu-blocklist --enable-gpu-rasterization
 ) else (
     :: Fallback Standard-Browser
     start "" "http://localhost:3000/tv.html"
     start "" "http://localhost:3000/admin.html"
+    start "" "https://open.spotify.com"
 )
 
 echo.
 echo ===============================================================================
-echo   FERTIG! Das System laeuft jetzt im optimierten App-Modus!
+echo   FERTIG! Das System laeuft jetzt im All-In-One Modus:
 echo.
-echo   [TV]    Fernseher-Vollbild:  http://localhost:3000/tv.html
-echo   [Admin] Laptop-Regie:        http://localhost:3000/admin.html
+echo   [1] TV-Bildschirm:   http://localhost:3000/tv.html (Vollbild)
+echo   [2] Turnier-Regie:   http://localhost:3000/admin.html (Laptop)
+echo   [3] Party-Musik:     Spotify Lite Player (Eigenes schlankes Fenster)
 echo.
 echo   Online-Link (Handy-Gaeste):  https://ricfritzsche89.github.io/h-ttenkarten/guest.html
 echo   Chefin-Link (Nadine):        https://ricfritzsche89.github.io/h-ttenkarten/guest.html?edition=img_chefin
 echo ===============================================================================
 echo.
-echo   TIPP ZUM BROWSER-FENSTER:
-echo   - Ziehe das TV-Fenster auf deinen Fernseher / Beamer.
-echo   - Druecke auf dem TV 'F' fuer Vollbild oder 'W' fuer die Oktoberfest-Lobby.
+echo   BEDIEN-TIPPS:
+echo   - Ziehe das TV-Fenster auf deinen 47"-Fernseher.
+echo   - Druecke auf dem TV 'W' fuer die Oktoberfest-Lobby oder 'F' fuer Vollbild.
+echo   - Der Spotify Lite Player verbraucht nur einen Bruchteil des Speichers!
 echo.
-echo   OPTIONALE TOOLS OEFFNEN (Nur bei Bedarf):
-echo   [1] FUT-Karten Studio (index.html)
-echo   [2] 3D-Karten Showcase (showcase.html)
+echo   OPTIONALE GENERATOREN (Nur bei Bedarf):
+echo   [1] FUT-Karten Studio oeffnen (index.html)
+echo   [2] 3D-Karten Showcase oeffnen (showcase.html)
 echo   [3] Gaeste-Ansicht testen (guest.html)
-echo   [X] Fenster schliessen
+echo   [M] Spotify Lite erneut oeffnen
 echo.
-set /p OPTION="Waehle eine Option (1-3) oder Enter zum Beenden: "
+set /p OPTION="Waehle eine Option (1-3, M) oder druecke Enter zum Beenden: "
 
 if "%OPTION%"=="1" start "" "http://localhost:3000/index.html"
 if "%OPTION%"=="2" start "" "http://localhost:3000/showcase.html"
 if "%OPTION%"=="3" start "" "http://localhost:3000/guest.html"
+if /I "%OPTION%"=="M" (
+    if defined BROWSER_BIN (
+        start "" "%BROWSER_BIN%" --app="https://open.spotify.com" --user-data-dir="%LOCALAPPDATA%\SpotifyLitePartyApp" --ignore-gpu-blocklist --enable-gpu-rasterization
+    ) else (
+        start "" "https://open.spotify.com"
+    )
+)
