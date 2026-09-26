@@ -906,7 +906,7 @@ async function syncFromGoogleDrive() {
   if (isSyncingDrive) return { ok: false, busy: true };
   isSyncingDrive = true;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  const timeoutId = setTimeout(() => controller.abort(), 95000);
 
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, { signal: controller.signal });
@@ -923,7 +923,10 @@ async function syncFromGoogleDrive() {
         let localImg = null;
 
         // 1. Unterscheidung: Ist es ein Party-Foto oder eine Spielerkarte?
-        const isPhoto = (c.type === 'photo') || (c.caption !== undefined && !c.ovr && !c.stats);
+        const isPhoto = (c.type === 'photo') || 
+                        (c.caption !== undefined && c.caption !== null && c.caption !== '') ||
+                        (c.datei && /\.(jpe?g|webp)$/i.test(c.datei)) ||
+                        (!c.ovr && !c.pos && (!c.stats || Object.keys(c.stats).length === 0));
         if (isPhoto) {
           const photoId = 'drive_photo_' + (c.driveId || c.gesendet || c.datei || Date.now());
           const alreadyExists = tournamentData.photos.some(p => p.id === photoId || (p.sender === name && p.uploadedAt === c.gesendet));
