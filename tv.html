@@ -140,6 +140,35 @@
       filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.9));
     }
 
+    /* Live Photo Spotlight Overlay & Animations */
+    #photo-spotlight-modal {
+      transition: opacity 0.4s ease-out, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #photo-spotlight-modal.photo-pop-active {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: scale(1) translate3d(0, 0, 0) !important;
+    }
+    #photo-spotlight-modal.photo-pop-inactive {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: scale(0.92) translate3d(0, 20px, 0) !important;
+    }
+    @keyframes photo-flash {
+      0% { opacity: 0.95; }
+      100% { opacity: 0; }
+    }
+    .photo-flash-active {
+      animation: photo-flash 0.4s ease-out forwards;
+    }
+    @keyframes spotlight-timer-bar {
+      0% { width: 100%; }
+      100% { width: 0%; }
+    }
+    .spotlight-progress-animate {
+      animation: spotlight-timer-bar 9s linear forwards;
+    }
+
     /* High-Precision Sports Timing Rank Badges (Chrono Titanium & Champagne) */
     .rank-badge-1 {
       background: #D4AF37;
@@ -608,6 +637,68 @@
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- LIVE PHOTO SPOTLIGHT OVERLAY (HIGH-IMPACT TV POPUP)         -->
+  <!-- ============================================================ -->
+  <div id="photo-flash-fx" class="fixed inset-0 bg-white pointer-events-none z-[99998] opacity-0"></div>
+
+  <div id="photo-spotlight-modal" class="fixed inset-0 z-[99999] flex items-center justify-center p-6 bg-black/85 backdrop-blur-md select-none photo-pop-inactive">
+    <div class="relative max-w-5xl w-full bg-[#0D111A] border-2 border-amber-400/80 rounded-2xl p-6 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(212,175,55,0.25)] flex flex-col items-center overflow-hidden">
+      
+      <!-- Top Bar: Header with Flash icon and Live Badge -->
+      <div class="w-full flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-400/60 flex items-center justify-center text-amber-300 text-2xl font-bold shadow-inner">
+            📸
+          </div>
+          <div>
+            <div class="text-[11px] font-fut font-bold text-amber-400 tracking-widest uppercase flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+              <span>LIVE-SCHNAPPSCHUSS DER PARTY</span>
+            </div>
+            <h2 id="spotlight-title" class="font-fut font-black text-2xl text-white tracking-wider uppercase drop-shadow">
+              NEUES FOTO HOCHGELADEN!
+            </h2>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <div class="px-3.5 py-1.5 rounded-lg bg-amber-400 text-black font-fut font-extrabold text-xs uppercase tracking-wider shadow">
+            JETZT LIVE
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Photo Display Area -->
+      <div class="relative w-full flex items-center justify-center max-h-[66vh] overflow-hidden rounded-xl bg-black/60 border border-white/10 p-2 shadow-inner">
+        <img id="spotlight-img" src="" alt="Schnappschuss" class="max-h-[62vh] max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-300">
+      </div>
+
+      <!-- Bottom Bar: Sender Name & Caption -->
+      <div class="w-full mt-4 flex items-center justify-between px-2">
+        <div class="space-y-0.5">
+          <div class="text-xs font-fut font-bold text-amber-300 tracking-widest uppercase" id="spotlight-sender-badge">
+            FOTOGRAF: <span id="spotlight-sender" class="text-white text-base">MAX</span>
+          </div>
+          <div id="spotlight-caption" class="text-xl font-bold text-amber-100 italic truncate max-w-3xl">
+            „Bierpong Finale, Runde 3!“
+          </div>
+        </div>
+
+        <div class="text-right">
+          <div id="spotlight-time" class="text-xs font-mono font-bold text-slate-400">19:42 Uhr</div>
+          <div class="text-[10px] text-amber-400/80 font-fut uppercase tracking-wider">Hüttencup 2026</div>
+        </div>
+      </div>
+
+      <!-- Countdown Progress Bar -->
+      <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10">
+        <div id="spotlight-progress-bar" class="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300"></div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Sound Audio Elements (Synthesized Web Audio API fallback) -->
 
   <script>
@@ -679,11 +770,16 @@
             showTvBanner(`SIEG FÜR ${tName}! (+${msg.payload.pts} PKT)`);
           } else if (msg.type === 'NEW_PHOTO') {
             if (!tournament.photos) tournament.photos = [];
-            tournament.photos.unshift(msg.payload);
-            showTvBanner(`NEUES FOTO VON ${(msg.payload.sender || 'Gast').toUpperCase()}`);
+            const exists = tournament.photos.some(p => p.id === msg.payload.id || (p.url === msg.payload.url && p.sender === msg.payload.sender));
+            if (!exists) {
+              tournament.photos.unshift(msg.payload);
+            }
+            showTvBanner(`📸 NEUER SCHNAPPSCHUSS VON ${(msg.payload.sender || 'Gast').toUpperCase()}!`);
+            triggerPhotoSpotlight(msg.payload);
             const ev = tournament.activeEvent || {};
             if (ev.tvView === 'slideshow') {
-              startSlideshowTicker();
+              currentSlideIndex = 0;
+              renderCurrentSlide();
             }
           } else if (msg.type === 'CARD_RECEIVED') {
             showTvBanner(`NEUER SPIELER: ${msg.payload.name.toUpperCase()} (${msg.payload.ovr} OVR)`);
@@ -2028,6 +2124,148 @@
     }
 
     /* ============================================================ */
+    /* LIVE PHOTO SPOTLIGHT OVERLAY CONTROLLER                      */
+    /* ============================================================ */
+    let photoSpotlightTimeout = null;
+
+    function playCameraShutterSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        
+        // 1. First Mechanical Shutter Click
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(650, now);
+        osc1.frequency.exponentialRampToValueAtTime(120, now + 0.05);
+        gain1.gain.setValueAtTime(0.45, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.06);
+
+        // 2. Camera Mirror / Mechanical Noise Burst
+        const bufferSize = Math.floor(ctx.sampleRate * 0.09);
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.25, now + 0.03);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        noise.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now + 0.03);
+
+        // 3. Second Shutter Click (Curtain Close)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(480, now + 0.09);
+        osc2.frequency.exponentialRampToValueAtTime(90, now + 0.14);
+        gain2.gain.setValueAtTime(0.4, now + 0.09);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.09);
+        osc2.stop(now + 0.15);
+      } catch (e) {}
+    }
+
+    function triggerPhotoSpotlight(photo) {
+      if (!photo || !photo.url) return;
+
+      const modal = document.getElementById('photo-spotlight-modal');
+      const flash = document.getElementById('photo-flash-fx');
+      const img = document.getElementById('spotlight-img');
+      const sender = document.getElementById('spotlight-sender');
+      const caption = document.getElementById('spotlight-caption');
+      const time = document.getElementById('spotlight-time');
+      const bar = document.getElementById('spotlight-progress-bar');
+
+      if (!modal || !img) return;
+
+      // Populate content
+      img.src = photo.url;
+      if (sender) sender.textContent = (photo.sender || 'Party-Gast').toUpperCase();
+      if (caption) caption.textContent = photo.caption ? `„${photo.caption}“` : 'Neuer Party-Schnappschuss!';
+      if (time) time.textContent = photo.uploadedAt || (new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr');
+
+      // Trigger Audio & Visual Flash
+      playCameraShutterSound();
+      if (flash) {
+        flash.classList.remove('photo-flash-active');
+        void flash.offsetWidth; // Reflow
+        flash.classList.add('photo-flash-active');
+      }
+
+      // Show Modal with smooth 3D Scale
+      modal.classList.remove('photo-pop-inactive');
+      modal.classList.add('photo-pop-active');
+
+      // Animate progress bar countdown
+      if (bar) {
+        bar.classList.remove('spotlight-progress-animate');
+        void bar.offsetWidth; // Reflow
+        bar.classList.add('spotlight-progress-animate');
+      }
+
+      // Reset any running dismiss timer
+      if (photoSpotlightTimeout) {
+        clearTimeout(photoSpotlightTimeout);
+      }
+
+      // Automatically dismiss after 9 seconds
+      photoSpotlightTimeout = setTimeout(() => {
+        closePhotoSpotlight();
+      }, 9000);
+    }
+
+    function closePhotoSpotlight() {
+      const modal = document.getElementById('photo-spotlight-modal');
+      if (modal) {
+        modal.classList.remove('photo-pop-active');
+        modal.classList.add('photo-pop-inactive');
+      }
+      if (photoSpotlightTimeout) {
+        clearTimeout(photoSpotlightTimeout);
+        photoSpotlightTimeout = null;
+      }
+    }
+
+    function toggleQrModal() {
+      const m = document.getElementById('qr-modal');
+      if (m) m.classList.toggle('hidden');
+    }
+
+    // Escape-Taste schließt aktive Overlays / Modals
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePhotoSpotlight();
+        const qm = document.getElementById('qr-modal');
+        if (qm && !qm.classList.contains('hidden')) qm.classList.add('hidden');
+      } else if (e.key.toLowerCase() === 'q') {
+        toggleQrModal();
+      }
+    });
+
+    // Testfunktion in Console: window.testPhotoSpotlight()
+    window.testPhotoSpotlight = function(customImg) {
+      triggerPhotoSpotlight({
+        id: 'test_' + Date.now(),
+        url: customImg || 'chef.jfif',
+        sender: 'Test Gast',
+        caption: 'Bierpong Finale 2026!',
+        uploadedAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+      });
+    };
     /* SCREEN 0: OKTOBERFEST WELCOME SCREEN ENGINE                  */
     /* ============================================================ */
     let welcomePlayerIndex = 0;

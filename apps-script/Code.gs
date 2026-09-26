@@ -39,6 +39,7 @@ function doPost(e) {
     const file = folder.createFile(blob.setName(stamp + '_' + name + '.' + ext));
     try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
 
+    const fileId = file.getId();
     // Metadaten als kleiner Begleit-Eintrag (optional, hilfreich fuer die Punktetabelle)
     const meta = {
       gesendet: stamp,
@@ -51,14 +52,16 @@ function doPost(e) {
       perk: payload.perk || '',
       edition: payload.edition || '',
       stats: payload.stats || {},
-      datei: file.getName()
+      datei: file.getName(),
+      imgFileId: fileId,
+      cardImageUrl: 'https://lh3.googleusercontent.com/d/' + fileId
     };
     const metaFile = getOrCreateFolder_(ZIEL_ORDNER).createFile(
       Utilities.newBlob(JSON.stringify(meta, null, 2), 'application/json', stamp + '_' + name + '.json')
     );
     try { metaFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
 
-    return json_({ ok: true, file: file.getName(), url: file.getUrl() });
+    return json_({ ok: true, file: file.getName(), fileId: fileId, url: file.getUrl() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
@@ -91,7 +94,10 @@ function doGet(e) {
         const raw = file.getBlob().getDataAsString();
         const data = JSON.parse(raw);
         data.driveId = file.getId();
-        if (data.datei) {
+        if (data.imgFileId) {
+          data.cardImageUrl = 'https://lh3.googleusercontent.com/d/' + data.imgFileId;
+        } else if (data.datei) {
+          // Fallback nur für ältere JSONs ohne imgFileId
           const imgFiles = folder.getFilesByName(data.datei);
           if (imgFiles.hasNext()) {
             const imgFile = imgFiles.next();

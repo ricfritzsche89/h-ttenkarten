@@ -245,18 +245,42 @@
 
       let delivered = false;
 
-      // 1. Direktlokaler Upload falls auf Port 3000 oder im Heimnetz
+      // 1. Direktlokaler Upload (wenn im selben WLAN oder lokaler Host bekannt)
+      const urlParams = new URLSearchParams(window.location.search);
+      const hostParam = urlParams.get('host');
+      if (hostParam) {
+        try { localStorage.setItem('gut_local_host', hostParam); } catch (e) {}
+      }
+      const localHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
+
+      const candidateUrls = [];
       if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        candidateUrls.push('/api/upload_photo');
+      }
+      if (localHost) {
+        candidateUrls.push(`http://${localHost}/api/upload_photo`);
+      }
+
+      for (const u of candidateUrls) {
+        if (delivered) break;
         try {
-          const localRes = await fetch('/api/upload_photo', {
+          const ctrl = new AbortController();
+          const tId = setTimeout(() => ctrl.abort(), 2500); // 2.5s Timeout
+          const localRes = await fetch(u, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: jsonPayload
+            body: jsonPayload,
+            signal: ctrl.signal
           });
+          clearTimeout(tId);
           const localJson = await localRes.json();
-          if (localJson && localJson.ok) delivered = true;
+          if (localJson && localJson.ok) {
+            delivered = true;
+            console.log('⚡ Blitzschneller Direkt-Upload zum TV erfolgreich über:', u);
+            break;
+          }
         } catch (e) {
-          console.log('Lokaler Upload nicht möglich, nutze Cloud-Upload...');
+          console.log('Lokaler Upload über', u, 'nicht erreichbar (evtl. Gast im mobilen Handynetz).');
         }
       }
 

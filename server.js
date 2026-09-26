@@ -1,3 +1,6 @@
+const dns = require('dns');
+try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
+
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -897,9 +900,17 @@ async function downloadDriveImageLocally(imgFileId, name, isPhoto = false) {
   return null;
 }
 
+let isSyncingDrive = false;
+
 async function syncFromGoogleDrive() {
+  if (isSyncingDrive) return { ok: false, busy: true };
+  isSyncingDrive = true;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
+
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL);
+    const res = await fetch(GOOGLE_SCRIPT_URL, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const data = await res.json();
     if (data.ok && Array.isArray(data.cards)) {
       let newCount = 0;
@@ -1017,14 +1028,19 @@ async function syncFromGoogleDrive() {
       return { ok: true, newCards: newCount };
     }
   } catch (err) {
-    console.error('Fehler beim Synchronisieren mit Google Drive:', err);
+    clearTimeout(timeoutId);
+    if (err.name !== 'AbortError') {
+      console.error('Fehler beim Synchronisieren mit Google Drive:', err.message || err);
+    }
     return { ok: false, error: String(err) };
+  } finally {
+    isSyncingDrive = false;
   }
 }
 
-// Auto-Sync mit Google Drive alle 10 Sekunden (schneller Fotostream)
-setInterval(syncFromGoogleDrive, 10000);
-setTimeout(syncFromGoogleDrive, 2000);
+// Auto-Sync mit Google Drive alle 5 Sekunden (blitzschneller Fotostream)
+setInterval(syncFromGoogleDrive, 5000);
+setTimeout(syncFromGoogleDrive, 1500);
 
 // Helper: adds an inbox card object into active players
 function addCardToPlayers_(card) {
@@ -1191,7 +1207,8 @@ app.get('/api/network', async (req, res) => {
   const mobileAdminUrl = `http://${localIp}:${PORT}/admin.html`;
   const tvUrl = `http://localhost:${PORT}/tv.html`;
   // Online erreichbar für alle Gäste per Handynetz / LTE / 5G / WLAN:
-  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html`;
+  // Mit ?host= Parameter, damit Geräte im selben WLAN direkt blitzschnell lokal hochladen können!
+  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html?host=${localIp}:${PORT}`;
   try {
     const qrDataUrl = await QRCode.toDataURL(mobileAdminUrl, {
       margin: 2,
