@@ -993,8 +993,8 @@
         const teamAPlayers = pAIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
         const teamBPlayers = pBIds.map(id => tournament.players.find(p => p.id === id)).filter(Boolean);
 
-        const betting = ev.betting || { bets: [], summary: { potA: 0, potB: 0, totalPot: 0, quoteA: 2.0, quoteB: 2.0 } };
-        const summary = betting.summary || { potA: 0, potB: 0, totalPot: 0, quoteA: 2.0, quoteB: 2.0 };
+        const betting = ev.betting || { bets: [], summary: { potA: 0, potB: 0, totalPot: 0, quoteA: 1.0, quoteB: 1.0 } };
+        const summary = betting.summary || { potA: 0, potB: 0, totalPot: 0, quoteA: 1.0, quoteB: 1.0 };
         const bets = betting.bets || [];
         const betsRot = bets.filter(b => b.target === 'rot');
         const betsBlau = bets.filter(b => b.target === 'blau');
@@ -1055,7 +1055,7 @@
                       <span class="font-fut font-black text-xs text-red-300 uppercase tracking-wider">TEAM ROT POTT</span>
                     </div>
                     <div class="font-fut font-black text-base text-red-400">
-                      ${(summary.potA || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteA || 2).toFixed(2)}x)</span>
+                      ${(summary.potA || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteA || 1).toFixed(2)}x)</span>
                     </div>
                   </div>
                   <div class="flex flex-wrap gap-1.5 min-h-[26px] max-h-16 overflow-y-auto items-center">
@@ -1109,7 +1109,7 @@
                       <span class="font-fut font-black text-xs text-blue-300 uppercase tracking-wider">TEAM BLAU POTT</span>
                     </div>
                     <div class="font-fut font-black text-base text-blue-400">
-                      ${(summary.potB || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteB || 2).toFixed(2)}x)</span>
+                      ${(summary.potB || 0).toFixed(2)} € <span class="text-xs text-amber-300 ml-1">(${(summary.quoteB || 1).toFixed(2)}x)</span>
                     </div>
                   </div>
                   <div class="flex flex-wrap gap-1.5 min-h-[26px] max-h-16 overflow-y-auto items-center">

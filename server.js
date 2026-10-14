@@ -351,36 +351,115 @@ wss.on('connection', (ws) => {
 });
 
 function generateTeamsInternal(gameId, playerIds = null) {
-  const playerPool = [...(playerIds && playerIds.length > 0 ? playerIds : tournamentData.players.map(p => p.id))];
-  // Fisher-Yates shuffle
-  for (let i = playerPool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [playerPool[i], playerPool[j]] = [playerPool[j], playerPool[i]];
+  const isRic = (p) => p && /^(ric|riccardo|richard)\b/i.test((p.name || '').trim());
+  const isMandy = (p) => p && /^(mandy|mandi)\b/i.test((p.name || '').trim());
+
+  const allPlayers = tournamentData.players || [];
+  const poolIds = (playerIds && playerIds.length > 0) ? playerIds : allPlayers.map(p => p.id);
+  const selectedPlayers = poolIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
+
+  if (selectedPlayers.length < 2) {
+    return;
   }
+
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
 
   let teamAIds = [];
   let teamBIds = [];
   let note = '';
 
-  if (playerPool.length === 3) {
-    teamAIds = [playerPool[0], playerPool[1]];
-    teamBIds = [playerPool[2]];
-    const pAlone = tournamentData.players.find(p => p.id === playerPool[2]);
-    const aloneName = pAlone ? pAlone.name : 'Einzelspieler';
-    note = `2 gegen 1: ${aloneName} hat 2 Würfe pro Runde!`;
-  } else if (playerPool.length === 2) {
-    teamAIds = [playerPool[0]];
-    teamBIds = [playerPool[1]];
-  } else if (playerPool.length >= 4) {
-    const half = Math.ceil(playerPool.length / 2);
-    teamAIds = playerPool.slice(0, half);
-    teamBIds = playerPool.slice(half);
-    if (teamAIds.length !== teamBIds.length) {
-      note = `Ungleiche Teams: Team mit weniger Spielern hat Ausgleichswürfe!`;
+  if (selectedPlayers.length === 2) {
+    // 1vs1
+    const p1 = selectedPlayers[0];
+    const p2 = selectedPlayers[1];
+    if (isRic(p1) && isMandy(p2)) {
+      teamAIds = [p1.id];
+      teamBIds = [p2.id];
+    } else if (isMandy(p1) && isRic(p2)) {
+      teamAIds = [p2.id];
+      teamBIds = [p1.id];
+    } else {
+      const shuffled = shuffle(selectedPlayers);
+      teamAIds = [shuffled[0].id];
+      teamBIds = [shuffled[1].id];
     }
-  } else if (playerPool.length === 1) {
-    teamAIds = [playerPool[0]];
-    teamBIds = [];
+    note = '1 gegen 1: Direktes Duell am Tisch!';
+  } else if (selectedPlayers.length === 3) {
+    // 2vs1
+    const ric = selectedPlayers.find(isRic);
+    const mandy = selectedPlayers.find(isMandy);
+
+    if (ric && mandy) {
+      // Niemals Ric und Mandy im selben Team:
+      const other = selectedPlayers.find(p => p.id !== ric.id && p.id !== mandy.id);
+      const ricAlone = Math.random() < 0.5;
+      const soloPlayer = ricAlone ? ric : mandy;
+      const duoOther = ricAlone ? mandy : ric;
+
+      if (Math.random() < 0.5) {
+        teamAIds = [duoOther.id, other.id];
+        teamBIds = [soloPlayer.id];
+      } else {
+        teamAIds = [soloPlayer.id];
+        teamBIds = [duoOther.id, other.id];
+      }
+      note = `2 gegen 1: ${soloPlayer.name} hat 2 Ausgleichswürfe!`;
+    } else {
+      const shuffled = shuffle(selectedPlayers);
+      if (Math.random() < 0.5) {
+        teamAIds = [shuffled[0].id, shuffled[1].id];
+        teamBIds = [shuffled[2].id];
+        note = `2 gegen 1: ${shuffled[2].name} hat 2 Ausgleichswürfe!`;
+      } else {
+        teamAIds = [shuffled[0].id];
+        teamBIds = [shuffled[1].id, shuffled[2].id];
+        note = `2 gegen 1: ${shuffled[0].name} hat 2 Ausgleichswürfe!`;
+      }
+    }
+  } else {
+    // 4 oder mehr Spieler angewählt -> STRIKT 2vs2 (maximal 4 Spieler am Tisch)
+    let active4;
+    const ric = selectedPlayers.find(isRic);
+    const mandy = selectedPlayers.find(isMandy);
+
+    if (selectedPlayers.length === 4) {
+      active4 = [...selectedPlayers];
+    } else {
+      // Wenn Ric und Mandy unter den ausgewählten Spielern sind, beide bevorzugt ins Match nehmen
+      if (ric && mandy) {
+        const others = shuffle(selectedPlayers.filter(p => p.id !== ric.id && p.id !== mandy.id)).slice(0, 2);
+        active4 = [ric, mandy, ...others];
+      } else {
+        active4 = shuffle(selectedPlayers).slice(0, 4);
+      }
+    }
+
+    const activeRic = active4.find(isRic);
+    const activeMandy = active4.find(isMandy);
+
+    if (activeRic && activeMandy) {
+      // NIEMALS Ric und Mandy in einem Team:
+      const others = shuffle(active4.filter(p => p.id !== activeRic.id && p.id !== activeMandy.id));
+      if (Math.random() < 0.5) {
+        teamAIds = [activeRic.id, others[0].id];
+        teamBIds = [activeMandy.id, others[1].id];
+      } else {
+        teamAIds = [activeMandy.id, others[0].id];
+        teamBIds = [activeRic.id, others[1].id];
+      }
+    } else {
+      const shuffled = shuffle(active4);
+      teamAIds = [shuffled[0].id, shuffled[1].id];
+      teamBIds = [shuffled[2].id, shuffled[3].id];
+    }
+    note = '2 gegen 2: Klassisches Bierpong-Teamduell!';
   }
 
   if (!tournamentData.activeEvent) tournamentData.activeEvent = {};
@@ -395,36 +474,100 @@ function calculateBettingSummary(betting) {
   const bets = betting.bets || [];
   let potA = 0;
   let potB = 0;
+  let countA = 0;
+  let countB = 0;
   bets.forEach(b => {
     const amt = Number(b.amount) || 0;
-    if (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') potA += amt;
-    else if (b.target === 'teamB' || b.target === 'blau' || b.target === 'B') potB += amt;
+    if (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') {
+      potA += amt;
+      countA++;
+    } else if (b.target === 'teamB' || b.target === 'blau' || b.target === 'B') {
+      potB += amt;
+      countB++;
+    }
   });
   const totalPot = potA + potB;
-  const quoteA = potA > 0 ? (totalPot / potA) : 2.0;
-  const quoteB = potB > 0 ? (totalPot / potB) : 2.0;
+
+  // STRICT PARI-MUTUEL POOL (Totalisator - Bank zahlt niemals aus eigener Tasche):
+  // 1. Wenn noch keine Wetten da sind: Quote ist 1.00
+  // 2. Wenn nur auf EIN Team gewettet wurde (z.B. nur 1 € auf Rot, 0 € auf Blau):
+  //    - Die Quote auf Rot ist 1.00x (Einsatz zurück, 0 € Gewinn).
+  //    - Die Bank zahlt niemals extra drauf!
+  // 3. Nur wenn auf BEIDE Teams Einsätze vorliegen, verteilt sich der gegnerische Pott:
+  //    - quoteA = totalPot / potA
+  //    - quoteB = totalPot / potB
+  let quoteA = 1.0;
+  let quoteB = 1.0;
+
+  if (potA > 0 && potB > 0) {
+    quoteA = totalPot / potA;
+    quoteB = totalPot / potB;
+  } else if (potA > 0 && potB === 0) {
+    quoteA = 1.0;
+    quoteB = 1.0;
+  } else if (potB > 0 && potA === 0) {
+    quoteA = 1.0;
+    quoteB = 1.0;
+  }
 
   let payouts = [];
   if (betting.winner) {
     const isWinA = (betting.winner === 'A' || betting.winner === 'teamA' || betting.winner === 'rot');
     const winningPot = isWinA ? potA : potB;
-    const winningBets = bets.filter(b => isWinA ? (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') : (b.target === 'teamB' || b.target === 'blau' || b.target === 'B'));
+    const opponentPot = isWinA ? potB : potA;
+    const winningBets = bets.filter(b => isWinA 
+      ? (b.target === 'teamA' || b.target === 'rot' || b.target === 'A') 
+      : (b.target === 'teamB' || b.target === 'blau' || b.target === 'B'));
 
-    payouts = winningBets.map(b => {
-      const share = winningPot > 0 ? (b.amount / winningPot) : 0;
-      const rawPayout = share * totalPot;
-      const payout = Math.round(rawPayout * 100) / 100;
-      const profit = Math.round((payout - b.amount) * 100) / 100;
-      return {
+    if (winningPot > 0) {
+      if (opponentPot > 0) {
+        // Normalfall: Gewinner teilen sich den GESAMTEN Pott (inkl. Verlierer-Einsätze) proportional
+        payouts = winningBets.map(b => {
+          const share = b.amount / winningPot;
+          const rawPayout = share * totalPot;
+          const payout = Math.round(rawPayout * 100) / 100;
+          const profit = Math.max(0, Math.round((payout - b.amount) * 100) / 100);
+          return {
+            id: b.id,
+            bettorId: b.bettorId,
+            bettorName: b.bettorName,
+            name: b.bettorName,
+            amount: b.amount,
+            target: b.target,
+            payout,
+            profit,
+            note: `Gewonnen (+${profit.toFixed(2)} € aus gegnerischem Pott)`
+          };
+        });
+      } else {
+        // Sonderfall: Nur 1 Team hatte Einsätze, keine Gegenwetten.
+        // Gewinner bekommt maximal seinen Einsatz zurück, Bank zahlt 0 € aus.
+        payouts = winningBets.map(b => ({
+          id: b.id,
+          bettorId: b.bettorId,
+          bettorName: b.bettorName,
+          name: b.bettorName,
+          amount: b.amount,
+          target: b.target,
+          payout: b.amount,
+          profit: 0,
+          note: 'Einsatz zurück (Kein Gegeneinsatz vorhanden, Bank zahlt nix drauf)'
+        }));
+      }
+    } else {
+      // Niemand hat auf das Gewinner-Team gewettet -> Alle Einsätze zurück an die Tipper
+      payouts = bets.map(b => ({
         id: b.id,
         bettorId: b.bettorId,
         bettorName: b.bettorName,
+        name: b.bettorName,
         amount: b.amount,
         target: b.target,
-        payout,
-        profit
-      };
-    });
+        payout: b.amount,
+        profit: 0,
+        note: 'Rückerstattung (Niemand hatte auf den Sieger gewettet)'
+      }));
+    }
   }
 
   return {
@@ -433,6 +576,8 @@ function calculateBettingSummary(betting) {
     bets,
     potA: Math.round(potA * 100) / 100,
     potB: Math.round(potB * 100) / 100,
+    countA,
+    countB,
     totalPot: Math.round(totalPot * 100) / 100,
     quoteA: Number(quoteA.toFixed(2)),
     quoteB: Number(quoteB.toFixed(2)),
