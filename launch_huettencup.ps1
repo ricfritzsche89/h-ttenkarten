@@ -98,57 +98,100 @@ if ($tvScreen) {
     Write-Host "[3/4] Nur 1 Bildschirm erkannt. TV-Ansicht oeffnet auf Hauptdisplay." -ForegroundColor Yellow
 }
 
-# Alte TV-Instanzen beenden, damit neue Vollbild-Flags greifen
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*HuettencupTvApp*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-Start-Sleep -Milliseconds 300
+# Alte Party-Browser-Instanzen beenden, damit neue Flags greifen
+Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe' or Name = 'msedge.exe'" -ErrorAction SilentlyContinue | Where-Object { 
+    $_.CommandLine -match "HuettencupTvApp|HuettencupAdminApp|SpotifyLitePartyApp" 
+} | ForEach-Object { 
+    try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch {} 
+}
+Start-Sleep -Milliseconds 400
 
-# [4/4] 1. TV-Screen DIREKT auf dem Fernseher in Vollbild starten
+# [4/4] TV-Player, Laptop-Regie und Spotify Lite starten
 Write-Host "[4/4] Starte TV-Player, Laptop-Regie und Spotify Lite..." -ForegroundColor Cyan
 
-$tvArgsList = @(
-    "--kiosk",
-    "http://localhost:3000/tv.html"
-)
-if ($tvPosArg) { $tvArgsList += $tvPosArg }
-if ($tvSizeArg) { $tvArgsList += $tvSizeArg }
-$tvArgsList += @(
-    "--start-fullscreen",
-    "--kiosk-printing",
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--disable-pinch",
-    "--overscroll-history-navigation=0",
-    "--ignore-gpu-blocklist",
-    "--enable-gpu-rasterization",
-    "--enable-zero-copy",
-    "--disable-extensions",
-    "--user-data-dir=$env:TEMP\HuettencupTvApp"
-)
-$tvProc = Start-Process -FilePath $chrome -ArgumentList ($tvArgsList -join " ") -PassThru
-Start-Sleep -Milliseconds 800
+if ($tvScreen) {
+    # === 2 BILDSCHIRME: 47" Fernseher vorhanden! ===
+    # 1. TV-Screen DIREKT auf dem Fernseher in Vollbild starten
+    $tvArgsList = @(
+        "--kiosk",
+        "http://localhost:3000/tv.html",
+        "--window-position=$($tvScreen.Bounds.X),$($tvScreen.Bounds.Y)",
+        "--window-size=$($tvScreen.Bounds.Width),$($tvScreen.Bounds.Height)",
+        "--start-fullscreen",
+        "--kiosk-printing",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-pinch",
+        "--overscroll-history-navigation=0",
+        "--ignore-gpu-blocklist",
+        "--enable-gpu-rasterization",
+        "--enable-zero-copy",
+        "--disable-extensions",
+        "--user-data-dir=$env:TEMP\HuettencupTvApp"
+    )
+    $tvProc = Start-Process -FilePath $chrome -ArgumentList ($tvArgsList -join " ") -PassThru
+    Start-Sleep -Milliseconds 800
 
-# Windows SW_MAXIMIZE Failsafe
-$tvWindow = Get-Process -Name chrome, msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*Hüttencup*" -or $_.MainWindowTitle -like "*tv.html*" -or $_.Id -eq $tvProc.Id } | Select-Object -First 1
-if ($tvWindow -and $tvWindow.MainWindowHandle -ne [IntPtr]::Zero) {
-    [Win32Helper]::ShowWindow($tvWindow.MainWindowHandle, 3)
+    # Windows SW_MAXIMIZE Failsafe fuer TV-Bildschirm
+    $tvWindow = Get-Process -Name chrome, msedge -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -like "*Hüttencup*" -or $_.MainWindowTitle -like "*tv.html*" -or $_.Id -eq $tvProc.Id } | Select-Object -First 1
+    if ($tvWindow -and $tvWindow.MainWindowHandle -ne [IntPtr]::Zero) {
+        [Win32Helper]::ShowWindow($tvWindow.MainWindowHandle, 3)
+    }
+
+    # 2. Turnier-Regie fuer Laptop starten (Hauptbildschirm)
+    Start-Sleep -Milliseconds 600
+    $regieArgsList = @(
+        "--app=http://localhost:3000/admin.html",
+        "--user-data-dir=$env:TEMP\HuettencupAdminApp",
+        "--window-position=40,40",
+        "--window-size=1200,820",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--ignore-gpu-blocklist",
+        "--enable-gpu-rasterization"
+    )
+    Start-Process -FilePath $chrome -ArgumentList ($regieArgsList -join " ")
+} else {
+    # === 1 BILDSCHIRM: Laptop-Modus (Vorbereitung & Testen) ===
+    # WICHTIG: KEIN Kiosk-Vollbild, damit beide Fenster nebeneinander sichtbar sind!
+    Write-Host "  -> 1 Monitor: Oeffne TV (rechts) und Admin-Dashboard (links) nebeneinander!" -ForegroundColor Green
+
+    # 1. TV-Screen auf rechter Bildschirmhaelfte
+    $tvArgsList = @(
+        "--app=http://localhost:3000/tv.html",
+        "--user-data-dir=$env:TEMP\HuettencupTvApp",
+        "--window-position=810,30",
+        "--window-size=780,840",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--ignore-gpu-blocklist",
+        "--enable-gpu-rasterization"
+    )
+    $tvProc = Start-Process -FilePath $chrome -ArgumentList ($tvArgsList -join " ") -PassThru
+    Start-Sleep -Milliseconds 600
+
+    # 2. Turnier-Regie auf linker Bildschirmhaelfte
+    $regieArgsList = @(
+        "--app=http://localhost:3000/admin.html",
+        "--user-data-dir=$env:TEMP\HuettencupAdminApp",
+        "--window-position=10,30",
+        "--window-size=790,840",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--ignore-gpu-blocklist",
+        "--enable-gpu-rasterization"
+    )
+    $regieProc = Start-Process -FilePath $chrome -ArgumentList ($regieArgsList -join " ") -PassThru
 }
-
-# 2. Turnier-Regie fuer Laptop starten
-Start-Sleep -Milliseconds 600
-$regieArgsList = @(
-    "--app=http://localhost:3000/admin.html",
-    "--window-position=80,60",
-    "--window-size=1100,780",
-    "--ignore-gpu-blocklist",
-    "--enable-gpu-rasterization"
-)
-Start-Process -FilePath $chrome -ArgumentList ($regieArgsList -join " ")
 
 # 3. Spotify Lite mit VOLLER Anti-Drosselung starten (Nie wieder Aussetzer!)
 Start-Sleep -Milliseconds 600
 $spotifyArgsList = @(
     "--app=https://open.spotify.com",
     "--user-data-dir=$env:LOCALAPPDATA\SpotifyLitePartyApp",
+    "--window-position=50,100",
+    "--window-size=800,600",
+    "--no-first-run",
     "--disable-background-timer-throttling",
     "--disable-backgrounding-occluded-windows",
     "--disable-renderer-backgrounding",
