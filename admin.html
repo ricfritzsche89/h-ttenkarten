@@ -144,6 +144,27 @@
     <!-- ======================================================== -->
     <section id="view-regie" class="space-y-3">
       
+      <!-- DYNAMISCHER INBOX-ALERT BANNER (Sofort sichtbar, wenn neue Gast-Karten warten) -->
+      <div id="regie-inbox-banner" class="hidden lodge-card p-3 border-2 border-amber-400 bg-gradient-to-r from-amber-500/25 via-amber-400/15 to-transparent shadow-xl space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <span class="text-2xl animate-bounce">📥</span>
+            <div class="min-w-0">
+              <div class="font-fut font-black text-xs text-amber-300 uppercase tracking-wider flex items-center space-x-1.5">
+                <span id="regie-inbox-title">1 NEUE GAST-KARTE WARTET</span>
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+              </div>
+              <div id="regie-inbox-sub" class="text-xs text-white font-bold truncate">
+                "Test" (95 OVR)
+              </div>
+            </div>
+          </div>
+          <button onclick="switchTab('players')" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow whitespace-nowrap">
+            FREIGEBEN ➔
+          </button>
+        </div>
+      </div>
+
       <!-- Top Control Bar: Spiel-Wahl & TV Quick Switch -->
       <div class="lodge-card p-3 space-y-2.5 border border-amber-500/40 shadow-lg">
         <div class="flex items-center justify-between">
@@ -997,6 +1018,11 @@
             showToast(`Neue Karte eingetroffen: ${msg.payload.name} (${msg.payload.ovr} OVR)`);
             haptic();
             playAdminSound('gong');
+            if (!tournament.inbox) tournament.inbox = [];
+            if (!tournament.inbox.some(c => c.id === msg.payload.id)) {
+              tournament.inbox.unshift(msg.payload);
+            }
+            renderPlayersManageList();
           } else if (msg.type === 'DRIVE_SYNC_DONE') {
             if (msg.payload && msg.payload.newCards > 0) {
               showToast(`${msg.payload.newCards} neue Karte(n) aus Google Drive geladen`);
@@ -1066,6 +1092,10 @@
           if (navEl) navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all';
         }
       });
+      if (tabId === 'players') {
+        renderPlayersManageList();
+        renderGamesManageList();
+      }
       haptic();
     }
 
@@ -2931,6 +2961,20 @@
       const inboxList = document.getElementById('inbox-cards-list');
       const inboxCount = document.getElementById('inbox-count');
       const navBadge = document.getElementById('nav-inbox-badge');
+
+      // Update Regie Tab Alert Banner (Tab 1)
+      const regieBanner = document.getElementById('regie-inbox-banner');
+      const regieTitle = document.getElementById('regie-inbox-title');
+      const regieSub = document.getElementById('regie-inbox-sub');
+      if (regieBanner) {
+        if (inbox.length > 0) {
+          regieBanner.classList.remove('hidden');
+          if (regieTitle) regieTitle.textContent = `${inbox.length} NEUE GAST-KARTE${inbox.length > 1 ? 'N WARTEN' : ' WARTET'}`;
+          if (regieSub) regieSub.textContent = inbox.map(c => `"${c.name}" (${c.ovr || 88} OVR)`).join(', ');
+        } else {
+          regieBanner.classList.add('hidden');
+        }
+      }
 
       // Update Nav Badge
       if (navBadge) {

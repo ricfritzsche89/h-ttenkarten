@@ -2272,20 +2272,41 @@
 
         let delivered = false;
 
-        // 1. Versuche lokalen GUT Studio Server
-        try {
-          const localUrl = (window.location.port === '3000') 
-            ? '/api/submit_card' 
-            : `http://${window.location.hostname || 'localhost'}:3000/api/submit_card`;
-          const localRes = await fetch(localUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload
-          });
-          const localJson = await localRes.json();
-          if (localJson && localJson.ok) delivered = true;
-        } catch (e) {
-          // Lokaler Server nicht erreichbar, nutze Google Apps Script
+        // 1. Versuche direkten Upload an den lokalen GUT Studio Server
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostParam = urlParams.get('host');
+        if (hostParam) {
+          try { localStorage.setItem('gut_local_host', hostParam); } catch (e) {}
+        }
+        const savedHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
+
+        const candidateUrls = [];
+        if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          candidateUrls.push('/api/submit_card');
+        }
+        if (savedHost) {
+          const formattedHost = savedHost.includes(':') ? savedHost : `${savedHost}:3000`;
+          candidateUrls.push(`http://${formattedHost}/api/submit_card`);
+        }
+        if (!candidateUrls.includes('/api/submit_card')) {
+          candidateUrls.push('http://localhost:3000/api/submit_card');
+        }
+
+        for (const u of candidateUrls) {
+          if (delivered) break;
+          try {
+            const ctrl = new AbortController();
+            const tId = setTimeout(() => ctrl.abort(), 3500);
+            const localRes = await fetch(u, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+              signal: ctrl.signal
+            });
+            clearTimeout(tId);
+            const localJson = await localRes.json();
+            if (localJson && localJson.ok) delivered = true;
+          } catch (e) {}
         }
 
         // 2. Google Apps Script als Backup / Online-Speicher
