@@ -13,8 +13,24 @@ if ($conn) {
     Write-Host "[OK] Node.js Server laeuft bereits auf Port 3000." -ForegroundColor Green
 } else {
     Write-Host "[..] Starte Node.js Server (server.js)..." -ForegroundColor Cyan
-    Start-Process "cmd.exe" -ArgumentList "/k", "title Huettencup Server && node server.js" -WorkingDirectory $PSScriptRoot
-    Start-Sleep -Seconds 2
+    Start-Process "cmd.exe" -ArgumentList '/k "title Huettencup Server && node server.js"' -WorkingDirectory $PSScriptRoot
+    
+    # Aktiv warten bis Server antwortet
+    Write-Host "  Warte auf Server..." -NoNewline
+    $serverReady = $false
+    $attempts = 0
+    while (-not $serverReady -and $attempts -lt 20) {
+        Start-Sleep -Milliseconds 500
+        $attempts++
+        Write-Host "." -NoNewline
+        if (Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue) {
+            $serverReady = $true
+        }
+    }
+    Write-Host ""
+    if ($serverReady) {
+        Write-Host "  -> Server bereit auf Port 3000!" -ForegroundColor Green
+    }
 }
 
 Write-Host "[OK] Oeffne alle Browser-Seiten..." -ForegroundColor Green

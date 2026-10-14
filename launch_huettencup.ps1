@@ -1,5 +1,6 @@
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type @"
+Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+if (-not ([System.Management.Automation.PSTypeName]'Win32Helper').Type) {
+    Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 public class Win32Helper {
@@ -8,21 +9,65 @@ public class Win32Helper {
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hWnd);
 }
-"@
+"@ -ErrorAction SilentlyContinue
+}
 
 Write-Host "===============================================================================" -ForegroundColor Yellow
 Write-Host "  HUETTENCUP 2026 - HIGH-PERFORMANCE ALL-IN-ONE LAUNCHER" -ForegroundColor Yellow
 Write-Host "===============================================================================" -ForegroundColor Yellow
 Write-Host ""
 
-# [1/4] Server frisch starten (damit alle Updates sofort aktiv sind)
-Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*server.js*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+# [1/4] Server frisch und garantiert sauber starten
+Write-Host "[1/4] Pruefe und starte Huettencup Server auf Port 3000..." -ForegroundColor Cyan
+
+# A. Alle Prozesse beenden, die Port 3000 blockieren (verhindert EADDRINUSE)
+$activePorts = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue
+if ($activePorts) {
+    $activePorts | ForEach-Object {
+        try { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } catch {}
+    }
+    Start-Sleep -Milliseconds 400
+}
+
+# B. Alte server.js Instanzen beenden
+Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*server.js*" } | ForEach-Object { 
+    try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch {}
+}
 Start-Sleep -Milliseconds 300
 
-Write-Host "[1/4] Starte Huettencup Server auf Port 3000..." -ForegroundColor Cyan
-Start-Process cmd.exe -ArgumentList "/k title Huettencup Server && node server.js" -WorkingDirectory $PSScriptRoot
-Start-Sleep -Seconds 2
-Write-Host "  -> Server erfolgreich gestartet!" -ForegroundColor Green
+# C. Server starten
+Start-Process cmd.exe -ArgumentList '/k "title Huettencup Server && node server.js"' -WorkingDirectory $PSScriptRoot
+
+# D. Aktiv warten (Polling), bis der Server WIRKLICH auf Port 3000 lauscht & antwortet
+Write-Host "  Warte auf Initialisierung des Servers..." -NoNewline
+$serverReady = $false
+$maxAttempts = 30 # Bis zu 15 Sekunden
+$attempts = 0
+
+while (-not $serverReady -and $attempts -lt $maxAttempts) {
+    Start-Sleep -Milliseconds 500
+    $attempts++
+    Write-Host "." -NoNewline
+    
+    $tcp = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
+    if ($tcp) {
+        try {
+            $resp = Invoke-WebRequest -Uri "http://localhost:3000/api/state" -TimeoutSec 1 -UseBasicParsing -ErrorAction SilentlyContinue
+            if ($resp -and $resp.StatusCode -eq 200) {
+                $serverReady = $true
+            }
+        } catch {
+            $serverReady = $true
+        }
+    }
+}
+Write-Host ""
+
+if ($serverReady) {
+    Write-Host "  -> Server erfolgreich gestartet und bereit auf Port 3000!" -ForegroundColor Green
+} else {
+    Write-Host "  [WARNUNG] Server brauchte ungewoehnlich lange. Starte Browser dennoch..." -ForegroundColor Yellow
+}
 
 # [2/4] Browser ermitteln
 $chrome = "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
