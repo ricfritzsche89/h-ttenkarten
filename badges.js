@@ -3,6 +3,14 @@
 /* ============================================================ */
 
 const BADGES_CONFIG = {
+  champion_cup: {
+    id: 'champion_cup',
+    name: 'Hüttencup Champion',
+    desc: 'Offizieller Champion & Titelverteidiger der Grillhütte',
+    icon: 'assets/badges/champion_cup.png',
+    xp: 500,
+    isChampion: true
+  },
   beer_pong_god: {
     id: 'beer_pong_god',
     name: 'Pong-Gott',
@@ -134,6 +142,15 @@ function renderCardWithBadgesHtml(player, options = {}) {
     <div class="relative inline-block card-badges-container select-none group">
       <!-- The FUT Card Image -->
       <img src="${cardImg}" alt="${player.name}" class="${imgClass}">
+
+      ${badges.includes('champion_cup') ? `
+        <!-- TOP-CENTER: Champion Crown Ribbon -->
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 border border-yellow-100 shadow-[0_0_20px_rgba(245,158,11,0.9),0_4px_10px_rgba(0,0,0,0.9)] text-slate-950 font-fut font-black text-[11px] tracking-widest uppercase flex items-center space-x-1 whitespace-nowrap animate-pulse">
+          <span>👑</span>
+          <span>CHAMPION</span>
+          <span>★</span>
+        </div>
+      ` : ''}
 
       <!-- TOP-RIGHT: Level-Pin (Option A) -->
       <div class="absolute top-2.5 right-2.5 z-30 flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-black/90 border ${lvl.border} ${lvl.glow} backdrop-blur-md transition-transform group-hover:scale-110">

@@ -15,6 +15,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const CARDS_DIR = path.join(__dirname, 'cards');
 const PHOTOS_DIR = path.join(__dirname, 'photos');
 const DATA_FILE = path.join(DATA_DIR, 'gut_tournament.json');
+const HALL_OF_FAME_FILE = path.join(DATA_DIR, 'hall_of_fame.json');
 
 // Ensure directories exist
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -209,12 +210,53 @@ function saveTournamentData() {
 }
 
 /* ============================================================ */
+/* HALL OF FAME & PERMANENT CHAMPION ENGINE                     */
+/* ============================================================ */
+let hallOfFame = { champions: [] };
+try {
+  if (fs.existsSync(HALL_OF_FAME_FILE)) {
+    hallOfFame = JSON.parse(fs.readFileSync(HALL_OF_FAME_FILE, 'utf8'));
+    if (!Array.isArray(hallOfFame.champions)) hallOfFame.champions = [];
+  } else {
+    fs.writeFileSync(HALL_OF_FAME_FILE, JSON.stringify(hallOfFame, null, 2), 'utf8');
+  }
+} catch (e) {
+  console.error('Error loading Hall of Fame:', e);
+}
+
+function saveHallOfFame() {
+  try {
+    fs.writeFileSync(HALL_OF_FAME_FILE, JSON.stringify(hallOfFame, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving Hall of Fame:', err);
+  }
+}
+
+function checkChampionStatus(player) {
+  if (!player || !player.name) return false;
+  const isChamp = (hallOfFame.champions || []).some(c => 
+    c.winnerName && c.winnerName.toLowerCase().trim() === player.name.toLowerCase().trim()
+  );
+  if (isChamp) {
+    if (!Array.isArray(player.badges)) player.badges = ['alpine_shield'];
+    if (!player.badges.includes('champion_cup')) {
+      player.badges.unshift('champion_cup');
+      if (typeof player.xp === 'number') player.xp += 500;
+    }
+    player.isChampion = true;
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================ */
 /* LEVEL & BADGES ENGINE                                        */
 /* ============================================================ */
 function ensurePlayerBadgeDefaults(p) {
   if (typeof p.xp !== 'number') p.xp = 100;
   if (!Array.isArray(p.badges)) p.badges = ['alpine_shield'];
   if (!p.badges.includes('alpine_shield')) p.badges.unshift('alpine_shield');
+  checkChampionStatus(p);
   p.level = getPlayerLevel(p.xp).level;
 }
 
@@ -322,8 +364,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static file serving
-app.use(express.static(__dirname));
+// Static file serving with high-performance caching for assets/images
+app.use(express.static(__dirname, {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    // HTML pages must revalidate so updates are immediately visible
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (filePath.match(/\.(png|jpg|jpeg|webp|gif|svg|woff2?|ttf|mp3|wav|ogg)$/i)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    }
+  }
+}));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -741,6 +793,39 @@ function handleClientMessage(msg) {
 
     case 'TRIGGER_TEKKEN_CLASH': {
       broadcast({ type: 'TEKKEN_CLASH', payload });
+      break;
+    }
+
+    case 'CROWN_CHAMPION': {
+      const p = (tournamentData.players || []).find(x => x.id === payload.playerId);
+      if (p) {
+        awardPlayerBadge(p.id, 'champion_cup');
+        p.isChampion = true;
+        const year = payload.year || new Date().getFullYear();
+        const champEntry = {
+          id: `champ_${year}_${p.id}`,
+          year: year,
+          tournament: payload.tournamentName || `Hüttencup ${year}`,
+          winnerId: p.id,
+          winnerName: p.name,
+          title: `Hüttencup Champion ${year}`,
+          points: payload.points || 0,
+          cardImage: p.cardImage || p.portrait,
+          crownedAt: new Date().toISOString()
+        };
+        hallOfFame.champions = (hallOfFame.champions || []).filter(c => c.year !== year);
+        hallOfFame.champions.unshift(champEntry);
+        saveHallOfFame();
+        saveTournamentData();
+        broadcast({
+          type: 'CHAMPION_CROWNED',
+          payload: {
+            player: p,
+            entry: champEntry
+          }
+        });
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      }
       break;
     }
 
@@ -1186,9 +1271,18 @@ async function syncFromGoogleDrive() {
   }
 }
 
-// Auto-Sync mit Google Drive alle 5 Sekunden (blitzschneller Fotostream)
-setInterval(syncFromGoogleDrive, 5000);
+// Auto-Sync mit Google Drive alle 15 Sekunden im Leerlauf (ressourcenschonend für CPU & WLAN)
+const DRIVE_SYNC_INTERVAL = 15000;
+setInterval(syncFromGoogleDrive, DRIVE_SYNC_INTERVAL);
 setTimeout(syncFromGoogleDrive, 1500);
+
+let fastSyncTimer = null;
+function triggerFastDriveSync() {
+  if (fastSyncTimer) clearTimeout(fastSyncTimer);
+  fastSyncTimer = setTimeout(() => {
+    syncFromGoogleDrive();
+  }, 200);
+}
 
 // Helper: adds an inbox card object into active players
 function addCardToPlayers_(card) {
@@ -1228,7 +1322,7 @@ app.post('/api/submit_card', (req, res) => {
     // If base64 file is attached, save to /cards/
     if (payload.file && typeof payload.file === 'string' && payload.file.includes('base64,')) {
       const parts = payload.file.split(';base64,');
-      const ext = parts[0].includes('jpeg') || parts[0].includes('jpg') ? 'jpg' : 'png';
+      const ext = parts[0].includes('jpeg') || parts[0].includes('jpg') ? 'jpg' : (parts[0].includes('webp') ? 'webp' : 'png');
       const cleanName = name.replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
       imageFilename = `cards/${Date.now()}_${cleanName}.${ext}`;
       const fullPath = path.join(__dirname, imageFilename);
@@ -1256,6 +1350,9 @@ app.post('/api/submit_card', (req, res) => {
     // Broadcast live to Admin and TV
     broadcast({ type: 'CARD_RECEIVED', payload: cardItem });
     broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    // Triggere auch sofortigen schnellen Drive-Sync im Hintergrund
+    triggerFastDriveSync();
 
     console.log(`📥 Neue Karte in der Inbox: ${cardItem.name} (${cardItem.ovr} OVR)`);
     res.json({ ok: true, id, name: cardItem.name });
@@ -1285,7 +1382,7 @@ app.post('/api/upload_photo', (req, res) => {
     }
 
     const parts = payload.file.split(';base64,');
-    const ext = parts[0].includes('png') ? 'png' : 'jpg';
+    const ext = parts[0].includes('png') ? 'png' : (parts[0].includes('webp') ? 'webp' : 'jpg');
     const cleanName = name.replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
     filename = `photos/${Date.now()}_${cleanName}.${ext}`;
     const fullPath = path.join(__dirname, filename);
@@ -1319,6 +1416,9 @@ app.post('/api/upload_photo', (req, res) => {
     broadcast({ type: 'NEW_PHOTO', payload: photoItem });
     broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
 
+    // Triggere auch sofortigen schnellen Drive-Sync im Hintergrund
+    triggerFastDriveSync();
+
     console.log(`📸 Neues Party-Foto hochgeladen von: ${photoItem.sender} ("${photoItem.caption}")`);
     res.json({ ok: true, photo: photoItem });
   } catch (err) {
@@ -1349,6 +1449,7 @@ app.post('/api/delete_photo', (req, res) => {
 
 // REST Endpoints
 app.get('/api/state', (req, res) => res.json(tournamentData));
+app.get('/api/hall_of_fame', (req, res) => res.json(hallOfFame));
 
 app.get('/api/network', async (req, res) => {
   const localIp = getLocalIpAddress();

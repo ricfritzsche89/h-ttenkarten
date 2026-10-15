@@ -8,8 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="badges.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&family=Teko:wght@600;700;800;900&display=swap" rel="stylesheet">
   
   <script>
     tailwind.config = {
@@ -393,18 +392,32 @@
           </div>
         </div>
 
-        <!-- 5. SIEGEREHRUNG (PODEST) -->
-        <div id="tv-card-ceremony" class="lodge-card p-3.5 flex items-center justify-between border border-white/10 hover:border-amber-400 transition-all shadow">
-          <div class="flex items-center space-x-3">
-            <span class="text-3xl">🏆</span>
-            <div>
-              <div class="font-fut font-black text-sm text-amber-400 uppercase tracking-wider">5. GROSSE SIEGEREHRUNG</div>
-              <div class="text-[11px] text-slate-400">Das goldene Sieger-Treppchen zum Finale</div>
+        <!-- 5. SIEGEREHRUNG (PODEST & SIEGERURKUNDE) -->
+        <div id="tv-card-ceremony" class="lodge-card p-3.5 flex flex-col space-y-2.5 border border-white/10 hover:border-amber-400 transition-all shadow">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="text-3xl">🏆</span>
+              <div>
+                <div class="font-fut font-black text-sm text-amber-400 uppercase tracking-wider">5. GROSSE SIEGEREHRUNG</div>
+                <div class="text-[11px] text-slate-400">Das goldene Sieger-Treppchen zum Finale & Urkunde</div>
+              </div>
             </div>
+            <button id="btn-tv-card-ceremony" onclick="setTvViewMode('ceremony')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-white/10 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+              STARTEN
+            </button>
           </div>
-          <button id="btn-tv-card-ceremony" onclick="setTvViewMode('ceremony')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-white/10 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
-            STARTEN
-          </button>
+
+          <!-- Quick Action Buttons for Urkunde & Champion -->
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
+            <button onclick="openSiegerurkundeModal()" class="touch-btn py-2 px-3 rounded-lg bg-gradient-to-r from-amber-600/30 via-amber-500/40 to-amber-600/30 hover:from-amber-500/40 hover:to-amber-400/40 border border-amber-400/60 text-amber-300 font-fut font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow">
+              <span>📜</span>
+              <span>SIEGERURKUNDE ERSTELLEN</span>
+            </button>
+            <button onclick="openHallOfFameQuickModal()" class="touch-btn py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-slate-200 font-fut font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow">
+              <span>🏛️</span>
+              <span>HALL OF FAME</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -956,6 +969,89 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: OFFIZIELLE SIEGERURKUNDE & CHAMPION-VERLEIHUNG        -->
+  <!-- ============================================================ -->
+  <div id="modal-siegerurkunde" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
+    <div class="lodge-card w-full max-w-4xl p-4 sm:p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl">📜</span>
+          <div>
+            <h3 class="font-fut font-black text-xl text-amber-400 uppercase tracking-wider">OFFIZIELLE SIEGERURKUNDE 2026</h3>
+            <p class="text-xs text-slate-400">Hochauflösendes Meisterschafts-Plakat für WhatsApp & DIN A4 Ausdruck</p>
+          </div>
+        </div>
+        <button onclick="closeSiegerurkundeModal()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <!-- Live Canvas Preview Container (Responsive 16:9 / A4 Preview) -->
+      <div class="relative bg-black/60 rounded-xl border border-white/10 p-2 overflow-hidden flex flex-col items-center justify-center shadow-inner min-h-[320px]">
+        <canvas id="certificate-canvas" class="max-w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-amber-500/30"></canvas>
+        <div id="certificate-loading-spinner" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center space-y-3 text-amber-300 font-fut font-bold text-sm hidden">
+          <span class="text-4xl animate-spin">⏳</span>
+          <span class="text-base tracking-wider uppercase">Erstelle hochauflösende Urkunde...</span>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <!-- 1. Download PNG -->
+        <button onclick="downloadSiegerurkundePNG()" class="touch-btn py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-slate-950 font-fut font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+          <span>📥</span>
+          <span>BILD HERUNTERLADEN</span>
+        </button>
+
+        <!-- 2. Print A4 -->
+        <button onclick="printSiegerurkunde()" class="touch-btn py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-fut font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+          <span>🖨️</span>
+          <span>A4 DRUCKANSICHT</span>
+        </button>
+
+        <!-- 3. Crown Champion in Hall of Fame -->
+        <button id="btn-crown-champion" onclick="crownCurrentChampion()" class="touch-btn py-3 px-4 rounded-xl bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-500 hover:from-yellow-400 hover:to-amber-300 text-slate-950 font-fut font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center justify-center space-x-2">
+          <span>👑</span>
+          <span id="btn-crown-champion-text">CHAMPION-GRAVUR VERLEIHEN</span>
+        </button>
+      </div>
+
+      <div class="text-[11px] text-center text-slate-400 font-fut">
+        Tipp: Die Champion-Gravur bleibt dauerhaft im Profil gespeichert – beim nächsten Fest ist der Spieler sofort als Titelverteidiger markiert!
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: HALL OF FAME / EWIGE MEISTER-LISTE                    -->
+  <!-- ============================================================ -->
+  <div id="modal-hall-of-fame" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
+    <div class="lodge-card w-full max-w-lg p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl">🏛️</span>
+          <div>
+            <h3 class="font-fut font-black text-xl text-amber-400 uppercase tracking-wider">HALL OF FAME & REKORDE</h3>
+            <p class="text-xs text-slate-400">Ewige Champions & Titelverteidiger des Hüttencups</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-hall-of-fame')" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <div id="hall-of-fame-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+        <!-- Dynamically loaded from /api/hall_of_fame -->
+      </div>
+
+      <div class="pt-2 border-t border-white/10 flex justify-end">
+        <button onclick="closeModal('modal-hall-of-fame')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+          Schließen
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3054,6 +3150,11 @@
                 <div class="flex items-center space-x-2">
                   <span class="font-fut font-bold text-base text-white uppercase tracking-wider">${p.name}</span>
                   ${p.nickname ? `<span class="text-xs text-amber-400 font-bold uppercase tracking-wider">"${p.nickname}"</span>` : ''}
+                  ${pBadges.includes('champion_cup') ? `
+                    <span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-fut font-black text-[10px] tracking-wider uppercase shadow flex items-center space-x-1">
+                      <span>👑</span> <span>CHAMPION</span>
+                    </span>
+                  ` : ''}
                 </div>
                 <div class="text-[11px] text-gray-400">OVR: <span class="text-amber-300 font-bold">${p.ovr || 85}</span> • Pos: ${p.pos || 'ST'} • Edition: ${p.editionName || p.edition}</div>
               </div>
@@ -3327,6 +3428,490 @@
         showToast('Upload-Link in die Zwischenablage kopiert!');
       } else {
         showToast(`Link: ${guestUploadPageUrl}`);
+      }
+    }
+
+    /* ============================================================ */
+    /* OFFIZIELLE SIEGERURKUNDE & CHAMPION-GRAVUR ENGINE            */
+    /* ============================================================ */
+    let currentCertificateDataUrl = null;
+
+    function calculateAdminTotals() {
+      const totals = {};
+      (tournament.players || []).forEach(p => {
+        totals[p.id] = { player: p, total: 0, byGame: {} };
+      });
+
+      (tournament.games || []).forEach(g => {
+        const factor = Number(g.multiplier) || 1;
+        (tournament.players || []).forEach(p => {
+          const rawScore = Number((g.scores && g.scores[p.id]) || 0);
+          const pts = rawScore * factor;
+          totals[p.id].byGame[g.id] = pts;
+          totals[p.id].total += pts;
+        });
+      });
+
+      return Object.values(totals).sort((a, b) => b.total - a.total);
+    }
+
+    function loadImageAsync(src) {
+      return new Promise((resolve) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    async function openSiegerurkundeModal() {
+      const modal = document.getElementById('modal-siegerurkunde');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+
+      const spinner = document.getElementById('certificate-loading-spinner');
+      if (spinner) spinner.classList.remove('hidden');
+
+      const btnCrown = document.getElementById('btn-crown-champion-text');
+      if (btnCrown) btnCrown.textContent = 'CHAMPION-GRAVUR VERLEIHEN';
+
+      try {
+        await generateSiegerurkundeCanvas();
+      } catch (err) {
+        console.error('Fehler beim Erstellen der Urkunde:', err);
+        showToast('Fehler beim Rendern der Urkunde.');
+      } finally {
+        if (spinner) spinner.classList.add('hidden');
+      }
+    }
+
+    function closeSiegerurkundeModal() {
+      const modal = document.getElementById('modal-siegerurkunde');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function generateSiegerurkundeCanvas() {
+      const canvas = document.getElementById('certificate-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const W = 2400;
+      const H = 1700;
+      canvas.width = W;
+      canvas.height = H;
+
+      const totals = calculateAdminTotals();
+      const p1 = totals[0] || null;
+      const p2 = totals[1] || null;
+      const p3 = totals[2] || null;
+
+      // 1. Asynchron benötigte Grafiken vorladen
+      const [trophyImg, p1Img, p2Img, p3Img, bgImg] = await Promise.all([
+        loadImageAsync('assets/badges/champion_cup.png'),
+        loadImageAsync(p1 ? (p1.player.cardImage || p1.player.portrait || 'chef.jfif') : null),
+        loadImageAsync(p2 ? (p2.player.cardImage || p2.player.portrait || 'chef.jfif') : null),
+        loadImageAsync(p3 ? (p3.player.cardImage || p3.player.portrait || 'chef.jfif') : null),
+        loadImageAsync('assets/volcanic_lodge_bg.jpg')
+      ]);
+
+      // 2. Hintergrund: Edler Schiefer & Magma-Lodge Farbverlauf
+      ctx.fillStyle = '#080B10';
+      ctx.fillRect(0, 0, W, H);
+
+      if (bgImg) {
+        ctx.save();
+        ctx.globalAlpha = 0.28;
+        ctx.drawImage(bgImg, 0, 0, W, H);
+        ctx.restore();
+      }
+
+      // Vignette / Shadow Overlay
+      const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, W * 0.75);
+      bgGrad.addColorStop(0, 'rgba(12, 16, 25, 0.4)');
+      bgGrad.addColorStop(1, 'rgba(4, 6, 9, 0.96)');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // 3. Luxuriöser Doppelter Gold-Rahmen
+      ctx.save();
+      // Äußerer Hauptrahmen
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#D4AF37';
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.45)';
+      ctx.shadowBlur = 20;
+      ctx.strokeRect(40, 40, W - 80, H - 80);
+
+      // Innerer Zierrahmen
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#F59E0B';
+      ctx.shadowBlur = 0;
+      ctx.strokeRect(58, 58, W - 116, H - 116);
+
+      // Zier-Ecken (Goldene Eckwinkel)
+      const cornerSize = 45;
+      const drawCorner = (x, y, dx, dy) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y + dy * cornerSize);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + dx * cornerSize, y);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#FFD700';
+        ctx.stroke();
+      };
+      drawCorner(70, 70, 1, 1);
+      drawCorner(W - 70, 70, -1, 1);
+      drawCorner(70, H - 70, 1, -1);
+      drawCorner(W - 70, H - 70, -1, -1);
+      ctx.restore();
+
+      // 4. Header: Offizielles Wappen & Typografie
+      ctx.textAlign = 'center';
+      
+      // Trophy Icon
+      if (trophyImg) {
+        ctx.drawImage(trophyImg, W / 2 - 70, 80, 140, 140);
+      } else {
+        ctx.font = '70px sans-serif';
+        ctx.fillText('🏆', W / 2, 150);
+      }
+
+      // Title Subtitle
+      ctx.font = '800 32px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#F59E0B';
+      ctx.letterSpacing = '4px';
+      ctx.fillText('GRILLHÜTTE ULTIMATE TEAM 2026', W / 2, 255);
+
+      // Main Header Title
+      ctx.save();
+      ctx.font = '900 80px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = 'rgba(245, 158, 11, 0.7)';
+      ctx.shadowBlur = 25;
+      ctx.fillText('OFFIZIELLE SIEGERURKUNDE', W / 2, 330);
+      ctx.restore();
+
+      ctx.font = '700 26px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#E5C483';
+      ctx.fillText('MEISTERSCHAFT & CHAMPION DES HÜTTENCUPS', W / 2, 370);
+
+      // Zierlinie
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 - 400, 395);
+      ctx.lineTo(W / 2 + 400, 395);
+      ctx.stroke();
+
+      // Urkunden-Text
+      ctx.font = '500 21px Inter, sans-serif';
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillText('In feierlicher Anerkennung überragender Treffsicherheit, eisernem Siegeswillen und beispielloser Trinkfestigkeit', W / 2, 435);
+      ctx.fillText('wird der offizielle Meistertitel der Grillhütte für das Jahr 2026 verliehen an:', W / 2, 465);
+
+      // 5. DAS SIEGER-TREPPCHEN (PODIUM)
+
+      // --- PLATZ 1: DER CHAMPION (Mitte) ---
+      if (p1) {
+        const cX = W / 2;
+        const cardW = 420;
+        const cardH = 530;
+        const cardX = cX - cardW / 2;
+        const cardY = 515;
+
+        // Goldene Aura hinter der Champion-Karte
+        ctx.save();
+        const goldHalo = ctx.createRadialGradient(cX, cardY + cardH / 2, 60, cX, cardY + cardH / 2, 380);
+        goldHalo.addColorStop(0, 'rgba(245, 158, 11, 0.45)');
+        goldHalo.addColorStop(0.6, 'rgba(212, 175, 55, 0.15)');
+        goldHalo.addColorStop(1, 'transparent');
+        ctx.fillStyle = goldHalo;
+        ctx.beginPath();
+        ctx.arc(cX, cardY + cardH / 2, 380, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Champion Crown Ribbon oben
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 2;
+        const ribbonW = 340;
+        ctx.beginPath();
+        ctx.roundRect(cX - ribbonW / 2, cardY - 26, ribbonW, 36, 18);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '900 18px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#FFD700';
+        ctx.fillText('👑 HÜTTENCUP GESAMTSIEGER 2026 👑', cX, cardY - 2);
+
+        // Die Karte zeichnen
+        if (p1Img) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+          ctx.shadowBlur = 35;
+          ctx.shadowOffsetY = 15;
+          ctx.drawImage(p1Img, cardX, cardY, cardW, cardH);
+          ctx.restore();
+        }
+
+        // Details unter der Karte
+        ctx.save();
+        ctx.font = '900 66px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#FFD700';
+        ctx.shadowColor = 'rgba(245, 158, 11, 0.8)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(p1.player.name.toUpperCase(), cX, cardY + cardH + 68);
+        ctx.restore();
+
+        if (p1.player.nickname) {
+          ctx.font = '600 24px Teko, "Barlow Condensed", sans-serif';
+          ctx.fillStyle = '#E5C483';
+          ctx.fillText(`"${p1.player.nickname}"`, cX, cardY + cardH + 98);
+        }
+
+        // Score Badge
+        const scorePillY = cardY + cardH + (p1.player.nickname ? 112 : 88);
+        ctx.fillStyle = '#111827';
+        ctx.strokeStyle = '#D4AF37';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(cX - 150, scorePillY, 300, 40, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '900 24px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(`${p1.total.toLocaleString('de-DE')} GESAMPUNKTE`, cX, scorePillY + 28);
+      } else {
+        ctx.font = '700 32px Teko, sans-serif';
+        ctx.fillStyle = '#64748B';
+        ctx.fillText('NOCH KEIN TURNIER-ERGEBNIS VORHANDEN', W / 2, 750);
+      }
+
+      // --- PLATZ 2: SILBER (Links) ---
+      if (p2) {
+        const cX = 540;
+        const cardW = 270;
+        const cardH = 345;
+        const cardX = cX - cardW / 2;
+        const cardY = 660;
+
+        // Badge oben
+        ctx.font = '800 20px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#CBD5E1';
+        ctx.fillText('02. PLATZ (SILBER)', cX, cardY - 12);
+
+        if (p2Img) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+          ctx.shadowBlur = 25;
+          ctx.drawImage(p2Img, cardX, cardY, cardW, cardH);
+          ctx.restore();
+        }
+
+        ctx.font = '900 44px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(p2.player.name.toUpperCase(), cX, cardY + cardH + 45);
+
+        ctx.font = '700 22px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#CBD5E1';
+        ctx.fillText(`${p2.total.toLocaleString('de-DE')} PKT`, cX, cardY + cardH + 74);
+      }
+
+      // --- PLATZ 3: BRONZE (Rechts) ---
+      if (p3) {
+        const cX = 1860;
+        const cardW = 255;
+        const cardH = 325;
+        const cardX = cX - cardW / 2;
+        const cardY = 680;
+
+        // Badge oben
+        ctx.font = '800 20px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#CD7F32';
+        ctx.fillText('03. PLATZ (BRONZE)', cX, cardY - 12);
+
+        if (p3Img) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+          ctx.shadowBlur = 25;
+          ctx.drawImage(p3Img, cardX, cardY, cardW, cardH);
+          ctx.restore();
+        }
+
+        ctx.font = '900 42px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(p3.player.name.toUpperCase(), cX, cardY + cardH + 45);
+
+        ctx.font = '700 22px Teko, "Barlow Condensed", sans-serif';
+        ctx.fillStyle = '#CD7F32';
+        ctx.fillText(`${p3.total.toLocaleString('de-DE')} PKT`, cX, cardY + cardH + 74);
+      }
+
+      // 6. FUSSZEILE: Beglaubigung, Siegel & Unterschrift
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(100, 1480);
+      ctx.lineTo(W - 100, 1480);
+      ctx.stroke();
+
+      // Links: Ort & Datum
+      ctx.textAlign = 'left';
+      ctx.font = '700 18px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#F59E0B';
+      ctx.fillText('ORT & DATUM:', 120, 1530);
+
+      ctx.font = '600 20px Inter, sans-serif';
+      ctx.fillStyle = '#E2E8F0';
+      const curDateStr = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+      ctx.fillText(`Grillhütte, ${curDateStr}`, 120, 1560);
+
+      ctx.font = '500 14px Inter, sans-serif';
+      ctx.fillStyle = '#64748B';
+      ctx.fillText(`Dokument-Code: GUT-2026-CHAMPION-${Date.now().toString().slice(-6)}`, 120, 1590);
+
+      // Mitte: Goldenes Ehren-Siegel
+      ctx.textAlign = 'center';
+      const sealX = W / 2;
+      const sealY = 1560;
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(sealX, sealY, 48, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(sealX, sealY, 42, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.font = '900 13px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('★ AMTLICH ★', sealX, sealY - 12);
+      ctx.fillText('BEGLAUBIGT', sealX, sealY + 6);
+      ctx.fillText('2026', sealX, sealY + 24);
+
+      // Rechts: Unterschrift
+      ctx.textAlign = 'right';
+      ctx.font = '700 18px Teko, "Barlow Condensed", sans-serif';
+      ctx.fillStyle = '#F59E0B';
+      ctx.fillText('FÜR DIE TURNIERLEITUNG:', W - 120, 1530);
+
+      ctx.font = '600 20px Inter, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText('Riccardo (The Chef) ✍️', W - 120, 1560);
+
+      ctx.font = '500 14px Inter, sans-serif';
+      ctx.fillStyle = '#64748B';
+      ctx.fillText('Grillhütte Ultimate Team Game Studio', W - 120, 1590);
+
+      // Save Data URL cache for download
+      currentCertificateDataUrl = canvas.toDataURL('image/png');
+    }
+
+    function downloadSiegerurkundePNG() {
+      if (!currentCertificateDataUrl) {
+        const canvas = document.getElementById('certificate-canvas');
+        if (canvas) currentCertificateDataUrl = canvas.toDataURL('image/png');
+      }
+      if (!currentCertificateDataUrl) {
+        showToast('Bitte Urkunde zuerst generieren.');
+        return;
+      }
+      const link = document.createElement('a');
+      link.download = `Huettencup_Siegerurkunde_2026.png`;
+      link.href = currentCertificateDataUrl;
+      link.click();
+      showToast('Siegerurkunde in voller Auflösung heruntergeladen! 📥', 'success');
+    }
+
+    function printSiegerurkunde() {
+      if (!currentCertificateDataUrl) {
+        const canvas = document.getElementById('certificate-canvas');
+        if (canvas) currentCertificateDataUrl = canvas.toDataURL('image/png');
+      }
+      if (!currentCertificateDataUrl) return;
+
+      const printWin = window.open('', '_blank');
+      if (!printWin) {
+        alert('Bitte Popup-Fenster für Druck erlauben!');
+        return;
+      }
+
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Hüttencup 2026 - Offizielle Siegerurkunde</title>
+          <style>
+            @page { size: A4 landscape; margin: 0; }
+            body { margin: 0; padding: 0; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; }
+            img { width: 100vw; height: 100vh; object-fit: contain; }
+          </style>
+        </head>
+        <body>
+          <img src="${currentCertificateDataUrl}" onload="window.print();" />
+        </body>
+        </html>
+      `);
+      printWin.document.close();
+    }
+
+    function crownCurrentChampion() {
+      const totals = calculateAdminTotals();
+      if (!totals.length) {
+        showToast('Keine Spieler im Turnier vorhanden.', 'warning');
+        return;
+      }
+      const winner = totals[0];
+      if (!confirm(`Soll ${winner.player.name} offiziell als Champion des Hüttencups 2026 gekrönt werden?\n\nEr erhält die dauerhafte Meister-Gravur (Pokal-Badge), die bei allen zukünftigen Festen erhalten bleibt!`)) {
+        return;
+      }
+      sendWs('CROWN_CHAMPION', {
+        playerId: winner.player.id,
+        year: 2026,
+        tournamentName: 'Hüttencup 2026',
+        points: winner.total
+      });
+      const btn = document.getElementById('btn-crown-champion-text');
+      if (btn) btn.textContent = '👑 CHAMPION-GRAVUR VERLIEHEN!';
+      showToast(`👑 ${winner.player.name} wurde als Champion gekrönt & in der Hall of Fame verewigt!`, 'success', 5000);
+    }
+
+    async function openHallOfFameQuickModal() {
+      try {
+        const res = await fetch('/api/hall_of_fame');
+        const data = await res.json();
+        const champions = data.champions || [];
+        let listHtml = champions.map(c => `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-400/40">
+            <div class="flex items-center space-x-3">
+              <span class="text-3xl">🏆</span>
+              <div>
+                <div class="font-fut font-black text-base text-amber-300 uppercase">${c.winnerName}</div>
+                <div class="text-xs text-slate-300">${c.tournament || `Hüttencup ${c.year}`} • ${c.points ? c.points + ' Punkte' : 'Meister'}</div>
+              </div>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-xs font-fut font-black uppercase">
+              ${c.year}
+            </span>
+          </div>
+        `).join('');
+
+        if (!champions.length) {
+          listHtml = '<div class="text-xs text-slate-400 text-center py-6">Noch keine historischen Champions eingetragen.</div>';
+        }
+
+        const modal = document.getElementById('modal-hall-of-fame');
+        if (modal) {
+          document.getElementById('hall-of-fame-list').innerHTML = listHtml;
+          modal.classList.remove('hidden');
+        }
+      } catch (e) {
+        showToast('Fehler beim Laden der Hall of Fame.');
       }
     }
 

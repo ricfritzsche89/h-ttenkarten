@@ -169,6 +169,21 @@
       animation: spotlight-timer-bar 9s linear forwards;
     }
 
+    /* GPU Hardware Acceleration for Legacy & Integrated GPUs (Mobility Radeon & Nehalem CPU offloading) */
+    #welcome-card-stage, 
+    .showcase-column, 
+    #slide-layer-1, 
+    #slide-layer-2, 
+    #tekken-vs-centerpiece, 
+    .game-panel, 
+    #podium-cards,
+    .card-clean-shadow {
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      contain: layout paint;
+    }
+
     /* High-Precision Sports Timing Rank Badges (Chrono Titanium & Champagne) */
     .rank-badge-1 {
       background: #D4AF37;
@@ -757,6 +772,15 @@
           } else if (msg.type === 'LEVEL_UP') {
             showTvBanner(`🌟 LEVEL UP! ${msg.payload.playerName.toUpperCase()} ERREICHT LEVEL ${msg.payload.newLevel} (${msg.payload.title.toUpperCase()})! 🌟`);
             playFanfare();
+          } else if (msg.type === 'CHAMPION_CROWNED') {
+            const champ = msg.payload.player;
+            showTvBanner(`👑 NEUER HÜTTENCUP CHAMPION: ${champ.name.toUpperCase()} GEKRÖNT! 🏆`);
+            playFanfare();
+            renderAll();
+          } else if (msg.type === 'CHAMPION_JOINED') {
+            const champ = msg.payload.player;
+            showTvBanner(`👑 TITELVERTEIDIGER AM START: ${champ.name.toUpperCase()} BETRITT DAS TURNIER! 🏆`);
+            playFanfare();
           }
         } catch (e) {
           console.error('Error parsing WS message:', e);
@@ -975,6 +999,7 @@
         stopTekkenMusic();
         renderFullscreenLive(ev);
       }
+      return activeView;
     }
 
     function renderFullscreenAnnounced(ev) {
@@ -1610,10 +1635,15 @@
     }
 
     function renderAll(highlightGameId = null, highlightPlayerId = null) {
-      updateScreenView();
-      renderTablesGrid(highlightGameId, highlightPlayerId);
-      renderTop3Podium();
-      renderWelcomeLobby();
+      const activeView = updateScreenView();
+      if (activeView === 'scoreboard') {
+        renderTablesGrid(highlightGameId, highlightPlayerId);
+        renderTop3Podium();
+      } else if (activeView === 'welcome') {
+        renderWelcomeLobby();
+      } else if (activeView === 'ceremony') {
+        renderFullscreenCeremony();
+      }
     }
 
     // Calculate total scores per player across all games

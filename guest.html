@@ -2077,14 +2077,14 @@
     }
 
     /* High-Resolution 1800x2700 Canvas Drawing Engine (1:1 with Main App) */
-    async function renderHighResPNG() {
+    async function renderHighResPNG(targetHeight = 1400) {
       const ed = GUEST_EDITIONS.find(e => e.id === selectedEditionId) || GUEST_EDITIONS[0];
       const layout = loadedCardLayouts ? loadedCardLayouts[ed.id] : null;
 
       const canvas = document.getElementById('export-canvas');
       const ctx = canvas.getContext('2d');
 
-      const H = 2700;
+      const H = targetHeight || 1400;
       let ratioVal = 986 / 1200;
       if (ed.ratio) {
         const parts = ed.ratio.split('/');
@@ -2348,7 +2348,7 @@
 
     /* Save to Smartphone / Download */
     async function downloadGuestCardPNG() {
-      const dataUrl = await renderHighResPNG();
+      const dataUrl = await renderHighResPNG(2400);
       const rawName = document.getElementById('guest-name').value.trim() || 'Gast';
       const safeName = rawName.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, '_');
       const link = document.createElement('a');
