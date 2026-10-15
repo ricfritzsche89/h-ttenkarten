@@ -3840,8 +3840,8 @@
       // --- PLATZ 1: DER CHAMPION (Mitte) ---
       if (p1) {
         const cX = W / 2;
-        const cardW = 420;
         const cardH = 530;
+        const cardW = Math.round(cardH * (796 / 1200)); // 352px Leder-Standard
         const cardX = cX - cardW / 2;
         const cardY = 515;
 
@@ -3918,8 +3918,8 @@
       // --- PLATZ 2: SILBER (Links) ---
       if (p2) {
         const cX = 540;
-        const cardW = 270;
         const cardH = 345;
+        const cardW = Math.round(cardH * (796 / 1200)); // 229px Leder-Standard
         const cardX = cX - cardW / 2;
         const cardY = 660;
 
@@ -3948,8 +3948,8 @@
       // --- PLATZ 3: BRONZE (Rechts) ---
       if (p3) {
         const cX = 1860;
-        const cardW = 255;
         const cardH = 325;
+        const cardW = Math.round(cardH * (796 / 1200)); // 216px Leder-Standard
         const cardX = cX - cardW / 2;
         const cardY = 680;
 

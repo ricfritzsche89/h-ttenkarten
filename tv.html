@@ -1927,8 +1927,8 @@
 
         <!-- The Pure Card Shield with Badges Option A -->
         <div class="relative flex items-center justify-center my-0.5 transition-transform duration-300 hover:scale-105">
-          ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `h-[215px] w-auto max-w-full object-contain ${cardShadowClass}`, beltSize: 'sm' }) : `
-            <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] w-auto max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
+          ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}`, beltSize: 'sm' }) : `
+            <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
           `}
         </div>
 
@@ -2010,8 +2010,8 @@
           </div>
 
           <div class="my-1">
-            ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow`, beltSize: 'md' }) : `
-              <img src="${cardImgSrc}" alt="${p.name}" class="${cardHeightClass} w-auto max-w-full object-contain card-clean-shadow" onerror="this.onerror=null; this.src='${ed.img}';">
+            ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `${cardHeightClass} aspect-[796/1200] max-w-full object-contain card-clean-shadow`, beltSize: 'md' }) : `
+              <img src="${cardImgSrc}" alt="${p.name}" class="${cardHeightClass} aspect-[796/1200] max-w-full object-contain card-clean-shadow" onerror="this.onerror=null; this.src='${ed.img}';">
             `}
           </div>
           
@@ -2556,10 +2556,10 @@
           <div class="relative group">
             <div class="relative z-10 transition-transform duration-500 hover:scale-105">
               ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, {
-                imgClass: 'h-[460px] sm:h-[480px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
+                imgClass: 'h-[460px] sm:h-[480px] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
                 beltSize: 'lg'
               }) : `
-                <img src="${cardImg}" alt="${p.name}" class="h-[460px] sm:h-[480px] w-auto max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
+                <img src="${cardImg}" alt="${p.name}" class="h-[460px] sm:h-[480px] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
               `}
             </div>
 

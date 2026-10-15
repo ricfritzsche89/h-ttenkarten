@@ -546,7 +546,7 @@
 
       <!-- MASTER FUT CARD CONTAINER (Exact Aspect Ratio from Calibration) -->
       <div class="card-perspective w-full max-w-[320px] select-none mx-auto flex items-center justify-center">
-        <div id="fut-card-render" class="fut-card-shield relative w-full select-none transition-all duration-300 drop-shadow-2xl" style="aspect-ratio: 986 / 1200;">
+        <div id="fut-card-render" class="fut-card-shield relative w-full select-none transition-all duration-300 drop-shadow-2xl" style="aspect-ratio: 796 / 1200;">
           
           <div id="card-inner-layer" class="relative w-full h-full overflow-hidden select-none rounded-2xl">
             <!-- Custom Template Background Image (100% object-fill matching Editor) -->
@@ -762,7 +762,7 @@
         name: 'Bierfest-Edition',
         subtitle: 'Goldrahmen & Bier-Aura',
         imageUrl: 'vorlagen/karte_bier_gold.png',
-        ratio: '986 / 1200',
+        ratio: '796 / 1200',
         badge: 'beer',
         accentColor: '#FBBF24'
       },
@@ -771,7 +771,7 @@
         name: 'Edelweiß-Wappen',
         subtitle: 'Salbei, Roségold & Hirsch',
         imageUrl: 'vorlagen/karte_blau_tracht.png',
-        ratio: '780 / 1200',
+        ratio: '796 / 1200',
         badge: 'target',
         accentColor: '#6EE7B7'
       },
@@ -780,7 +780,7 @@
         name: 'Glitzer-Glamour',
         subtitle: 'Pink, Rosé & Party',
         imageUrl: 'vorlagen/karte_glitzer_pink.png',
-        ratio: '986 / 1200',
+        ratio: '796 / 1200',
         badge: 'flower',
         accentColor: '#F472B6'
       },
@@ -789,7 +789,7 @@
         name: 'Holz & Eisen',
         subtitle: 'Rustikal & Funkenflug',
         imageUrl: 'vorlagen/karte_holz_eisen.png',
-        ratio: '831 / 1200',
+        ratio: '796 / 1200',
         badge: 'fire',
         accentColor: '#F59E0B'
       },
@@ -798,7 +798,7 @@
         name: 'Eichenlaub & Wald',
         subtitle: 'Goldrahmen & Smaragd',
         imageUrl: 'vorlagen/karte_gruen_gold.png',
-        ratio: '809 / 1200',
+        ratio: '796 / 1200',
         badge: 'trophy',
         accentColor: '#34D399'
       },
@@ -807,7 +807,7 @@
         name: '👑 Kaiserliche Krone',
         subtitle: 'Roségold & Kaiserlicher Lila Samt',
         imageUrl: 'vorlagen/karte_lila_krone.png',
-        ratio: '931 / 1200',
+        ratio: '796 / 1200',
         badge: 'crown',
         accentColor: '#E9D5FF'
       },
@@ -816,7 +816,7 @@
         name: '🪩 Neon-Nachtschicht',
         subtitle: 'Lila/Pink Rave, Laser & Discokugel',
         imageUrl: 'vorlagen/karte_neon_rave.png',
-        ratio: '809 / 1200',
+        ratio: '796 / 1200',
         badge: 'trophy',
         accentColor: '#C084FC'
       },
@@ -825,7 +825,7 @@
         name: '🍺 Brauerei & Sudhaus',
         subtitle: 'Kupferrohre, Hopfen & Manometer',
         imageUrl: 'vorlagen/karte_brauerei_sudhaus.png',
-        ratio: '874 / 1200',
+        ratio: '796 / 1200',
         badge: 'beer',
         accentColor: '#F59E0B'
       },
@@ -834,7 +834,7 @@
         name: '⚙️ Schrauber & Werkstatt',
         subtitle: 'Zahnräder, Kolben & Schraubenschlüssel',
         imageUrl: 'vorlagen/karte_werkstatt_schrauber.png',
-        ratio: '1125 / 1200',
+        ratio: '796 / 1200',
         badge: 'fire',
         accentColor: '#E5C483'
       },
@@ -843,7 +843,7 @@
         name: '🎯 Carbon & Munition',
         subtitle: 'Carbon, Patronen & Scharfschütze',
         imageUrl: 'vorlagen/karte_carbon_munition.png',
-        ratio: '847 / 1200',
+        ratio: '796 / 1200',
         badge: 'target',
         accentColor: '#FBBF24'
       },
@@ -2085,12 +2085,12 @@
       const ctx = canvas.getContext('2d');
 
       const H = targetHeight || 1400;
-      let ratioVal = 986 / 1200;
-      if (ed.ratio) {
+      let ratioVal = 796 / 1200; // Gold-Standard: Lederkarten-Verhältnis (~0.6633)
+      if (ed && ed.ratio) {
         const parts = ed.ratio.split('/');
         if (parts.length === 2) ratioVal = parseFloat(parts[0]) / parseFloat(parts[1]);
       }
-      const W = Math.round(H * ratioVal);
+      const W = Math.round(H * ratioVal); // 929 px
       canvas.width = W;
       canvas.height = H;
 
