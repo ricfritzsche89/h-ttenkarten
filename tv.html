@@ -227,20 +227,20 @@
     <!-- Top Bar: Bavarian Accent & Discreet Time -->
     <header class="flex items-center justify-between px-6 py-2.5 bg-[#0B0F17]/95 rounded-2xl border border-white/10 shadow-xl flex-shrink-0">
       <div class="flex items-center space-x-3">
-        <span class="text-2xl">🍻</span>
-        <span class="font-fut font-black text-xl tracking-wider text-amber-400 uppercase">HÜTTENCUP 2026</span>
+        <span id="welcome-header-icon-left" class="text-2xl">🍻</span>
+        <span id="welcome-header-title" class="font-fut font-black text-xl tracking-wider text-amber-400 uppercase">HÜTTENCUP 2026</span>
       </div>
       <div class="flex items-center space-x-3">
-        <span class="text-xl">🥨</span>
+        <span id="welcome-badge-icon-left" class="text-xl">🥨</span>
         <div class="flex flex-col items-center">
-          <span class="font-fut font-black text-sm tracking-widest text-slate-100 uppercase bg-amber-500/20 px-4 py-0.5 rounded-full border border-amber-500/30 shadow">
+          <span id="welcome-edition-badge" class="font-fut font-black text-sm tracking-widest text-slate-100 uppercase bg-amber-500/20 px-4 py-0.5 rounded-full border border-amber-500/30 shadow">
             OKTOBERFEST-EDITION
           </span>
           <span id="welcome-sub-header" class="text-[9px] font-fut font-bold tracking-widest text-amber-300 uppercase mt-0.5">
             5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE
           </span>
         </div>
-        <span class="text-xl">🥨</span>
+        <span id="welcome-badge-icon-right" class="text-xl">🥨</span>
       </div>
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2 font-mono text-sm tracking-widest text-slate-300 bg-black/40 px-3 py-1 rounded-lg border border-white/10">
@@ -346,7 +346,7 @@
             <span id="welcome-players-count-badge">SPIELER-SPOTLIGHT • DIE STARS DES ABENDS</span>
             <span>★</span>
           </div>
-          <h1 class="font-fut font-black text-5xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)] mt-1">
+          <h1 id="welcome-event-main-heading" class="font-fut font-black text-5xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)] mt-1">
             OKTOBERFEST 2026
           </h1>
         </div>
@@ -536,10 +536,11 @@
   <div id="screen-ceremony" class="fixed inset-0 w-screen h-screen slate-lodge-bg z-30 select-none overflow-hidden hidden flex flex-col justify-between p-6 transition-opacity duration-700">
     <!-- Top Plaque -->
     <div class="text-center pt-2">
-      <div class="inline-flex items-center px-5 py-1 rounded bg-amber-500 text-slate-950 font-fut font-bold text-xs tracking-widest uppercase shadow">
-        SIEGEREHRUNG
+      <div class="inline-flex items-center space-x-2 px-5 py-1 rounded-full bg-amber-500 text-slate-950 font-fut font-bold text-xs tracking-widest uppercase shadow">
+        <span id="ceremony-badge-icon">🏆</span>
+        <span id="ceremony-badge-text">SIEGEREHRUNG</span>
       </div>
-      <h1 class="font-fut font-black text-6xl tracking-wider text-amber-300 uppercase drop-shadow mt-1">
+      <h1 id="ceremony-main-title" class="font-fut font-black text-6xl tracking-wider text-amber-300 uppercase drop-shadow mt-1">
         DAS PODIUM
       </h1>
     </div>
@@ -641,7 +642,7 @@
 
         <div class="text-right">
           <div id="spotlight-time" class="text-xs font-mono font-bold text-slate-400">19:42 Uhr</div>
-          <div class="text-[10px] text-amber-400/80 font-fut uppercase tracking-wider">Hüttencup 2026</div>
+          <div id="spotlight-event-name" class="text-[10px] text-amber-400/80 font-fut uppercase tracking-wider">Hüttencup 2026</div>
         </div>
       </div>
 
@@ -1969,6 +1970,14 @@
     /* FULLSCREEN CEREMONY (PODEST SIEGEREHRUNG)                    */
     /* ============================================================ */
     function renderFullscreenCeremony() {
+      const meta = tournament.meta || {};
+      const ceremonyBadge = document.getElementById('ceremony-badge-text');
+      const ceremonyIcon = document.getElementById('ceremony-badge-icon');
+      const ceremonyTitle = document.getElementById('ceremony-main-title');
+      if (ceremonyBadge) ceremonyBadge.textContent = `${(meta.eventName || 'HÜTTENCUP').toUpperCase()} • SIEGEREHRUNG`;
+      if (ceremonyIcon) ceremonyIcon.textContent = meta.icon || '🏆';
+      if (ceremonyTitle) ceremonyTitle.textContent = `${(meta.eventName || 'HÜTTENCUP').toUpperCase()} MEISTERSCHAFT`;
+
       const totalsList = calculatePlayerTotals();
       const p1 = totalsList[0] || null;
       const p2 = totalsList[1] || null;
@@ -2185,6 +2194,11 @@
       if (sender) sender.textContent = (photo.sender || 'Party-Gast').toUpperCase();
       if (caption) caption.textContent = photo.caption ? `„${photo.caption}“` : 'Neuer Party-Schnappschuss!';
       if (time) time.textContent = photo.uploadedAt || (new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr');
+      const evNameEl = document.getElementById('spotlight-event-name');
+      if (evNameEl) {
+        const meta = tournament.meta || {};
+        evNameEl.textContent = `${meta.eventName || 'Hüttencup'} ${meta.eventYear || 2026}`;
+      }
 
       // Trigger Audio & Visual Flash
       playCameraShutterSound();
@@ -2298,16 +2312,33 @@
     }
 
     function updateWelcomeHeader() {
+      const meta = tournament.meta || {};
       const subHeader = document.getElementById('welcome-sub-header');
       const playerCountBadge = document.getElementById('welcome-players-count-badge');
       const arenasCountBadge = document.getElementById('welcome-arenas-count-badge');
+      const headerTitle = document.getElementById('welcome-header-title');
+      const editionBadge = document.getElementById('welcome-edition-badge');
+      const mainHeading = document.getElementById('welcome-event-main-heading');
+      const badgeIconLeft = document.getElementById('welcome-badge-icon-left');
+      const badgeIconRight = document.getElementById('welcome-badge-icon-right');
+      const headerIconLeft = document.getElementById('welcome-header-icon-left');
 
       const gamesCount = (tournament.games || []).length;
       const playersCount = (tournament.players || []).length;
 
-      if (subHeader) {
-        subHeader.textContent = `${gamesCount} ${gamesCount === 1 ? 'WETTKAMPF' : 'WETTKÄMPFE'} • ${playersCount} ${playersCount === 1 ? 'SPIELER' : 'SPIELER'} • LIVE WETTPOTT • FOTO-WALL • FINALE`;
-      }
+      const eventTitle = meta.title || 'HÜTTENCUP 2026';
+      const eventName = meta.eventName || 'Oktoberfest-Edition';
+      const eventIcon = meta.icon || '🥨';
+      const eventSubtitle = meta.eventSubtitle || `${gamesCount} ${gamesCount === 1 ? 'WETTKAMPF' : 'WETTKÄMPFE'} • ${playersCount} ${playersCount === 1 ? 'SPIELER' : 'SPIELER'} • LIVE WETTPOTT • FOTO-WALL • FINALE`;
+
+      if (headerTitle) headerTitle.textContent = eventTitle.toUpperCase();
+      if (editionBadge) editionBadge.textContent = eventName.toUpperCase();
+      if (mainHeading) mainHeading.textContent = `${eventName.toUpperCase()} ${meta.eventYear || 2026}`;
+      if (subHeader) subHeader.textContent = eventSubtitle.toUpperCase();
+      if (badgeIconLeft) badgeIconLeft.textContent = eventIcon;
+      if (badgeIconRight) badgeIconRight.textContent = eventIcon;
+      if (headerIconLeft) headerIconLeft.textContent = eventIcon;
+
       if (playerCountBadge) {
         playerCountBadge.textContent = playersCount > 0
           ? `SPIELER-SPOTLIGHT • ${playersCount} STARS DES ABENDS`

@@ -200,6 +200,18 @@ if (tournamentData.activeEvent && !tournamentData.activeEvent.betting) {
   };
 }
 
+function ensureTournamentMetaDefaults() {
+  if (!tournamentData.meta) tournamentData.meta = {};
+  if (!tournamentData.meta.title) tournamentData.meta.title = 'Hüttencup 2026';
+  if (!tournamentData.meta.eventTheme) tournamentData.meta.eventTheme = 'oktoberfest';
+  if (!tournamentData.meta.eventName) tournamentData.meta.eventName = 'Oktoberfest-Edition';
+  if (!tournamentData.meta.eventSubtitle) tournamentData.meta.eventSubtitle = '5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE';
+  if (!tournamentData.meta.icon) tournamentData.meta.icon = '🥨';
+  if (!tournamentData.meta.hostName) tournamentData.meta.hostName = 'Ric (The Boss)';
+  if (!tournamentData.meta.eventYear) tournamentData.meta.eventYear = 2026;
+}
+ensureTournamentMetaDefaults();
+
 function saveTournamentData() {
   try {
     tournamentData.meta.updatedAt = new Date().toISOString();
@@ -802,18 +814,19 @@ function handleClientMessage(msg) {
         awardPlayerBadge(p.id, 'champion_cup');
         p.isChampion = true;
         const year = payload.year || new Date().getFullYear();
+        const eventName = payload.tournamentName || tournamentData.meta?.eventName || 'Hüttencup';
         const champEntry = {
           id: `champ_${year}_${p.id}`,
           year: year,
-          tournament: payload.tournamentName || `Hüttencup ${year}`,
+          tournament: `${eventName} ${year}`,
           winnerId: p.id,
           winnerName: p.name,
-          title: `Hüttencup Champion ${year}`,
+          title: `Champion – ${eventName} ${year}`,
           points: payload.points || 0,
           cardImage: p.cardImage || p.portrait,
           crownedAt: new Date().toISOString()
         };
-        hallOfFame.champions = (hallOfFame.champions || []).filter(c => c.year !== year);
+        hallOfFame.champions = (hallOfFame.champions || []).filter(c => !(c.year === year && c.tournament === champEntry.tournament));
         hallOfFame.champions.unshift(champEntry);
         saveHallOfFame();
         saveTournamentData();
@@ -826,6 +839,24 @@ function handleClientMessage(msg) {
         });
         broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
       }
+      break;
+    }
+
+    case 'UPDATE_EVENT_CONFIG': {
+      if (!tournamentData.meta) tournamentData.meta = {};
+      tournamentData.meta = {
+        ...tournamentData.meta,
+        title: payload.title || tournamentData.meta.title || 'Hüttencup 2026',
+        eventTheme: payload.eventTheme || tournamentData.meta.eventTheme || 'oktoberfest',
+        eventName: payload.eventName || tournamentData.meta.eventName || 'Oktoberfest-Edition',
+        eventSubtitle: payload.eventSubtitle !== undefined ? payload.eventSubtitle : tournamentData.meta.eventSubtitle,
+        icon: payload.icon || tournamentData.meta.icon || '🏆',
+        hostName: payload.hostName || tournamentData.meta.hostName || 'Ric (The Boss)',
+        eventYear: payload.eventYear || tournamentData.meta.eventYear || 2026
+      };
+      saveTournamentData();
+      broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      console.log(`🎉 Event-Konfiguration aktualisiert: ${tournamentData.meta.eventName} (${tournamentData.meta.icon})`);
       break;
     }
 

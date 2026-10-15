@@ -122,8 +122,14 @@
       </div>
     </div>
 
-    <!-- Wettbüro Button & Connection Indicator -->
+    <!-- Event Switcher, Wettbüro Button & Connection Indicator -->
     <div class="flex items-center space-x-2">
+      <button type="button" onclick="openEventConfigModal()" class="touch-btn px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow" title="Event & Anlass anpassen (Oktoberfest, Schützenfest, Silvester, Geburtstag)">
+        <span id="header-event-icon">🥨</span>
+        <span id="header-event-name" class="max-w-[110px] truncate">OKTOBERFEST</span>
+        <span class="text-[10px] opacity-75">⚙️</span>
+      </button>
+
       <button type="button" onclick="openWettbueroModal()" class="touch-btn px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow">
         <span>💰</span> <span>WETTBÜRO</span> <span id="header-pot-badge" class="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[10px] font-black">0 €</span>
       </button>
@@ -983,7 +989,7 @@
         <div class="flex items-center space-x-3">
           <span class="text-3xl">📜</span>
           <div>
-            <h3 class="font-fut font-black text-xl text-amber-400 uppercase tracking-wider">OFFIZIELLE SIEGERURKUNDE 2026</h3>
+            <h3 id="siegerurkunde-modal-title" class="font-fut font-black text-xl text-amber-400 uppercase tracking-wider">OFFIZIELLE SIEGERURKUNDE 2026</h3>
             <p class="text-xs text-slate-400">Hochauflösendes Meisterschafts-Plakat für WhatsApp & DIN A4 Ausdruck</p>
           </div>
         </div>
@@ -1051,6 +1057,104 @@
         <button onclick="closeModal('modal-hall-of-fame')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
           Schließen
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: EVENT- & ANLASS-MANAGER (OKTOBERFEST, SCHÜTZENFEST)   -->
+  <!-- ============================================================ -->
+  <div id="modal-event-config" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
+    <div class="lodge-card w-full max-w-lg p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl">⚙️</span>
+          <div>
+            <h3 class="font-fut font-black text-xl text-amber-400 uppercase tracking-wider">EVENT- & ANLASS-MANAGER</h3>
+            <p class="text-xs text-slate-400">Passe Anlass, Thema & Turnierleitung für jedes Fest an</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-event-config')" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <!-- Quick Preset Buttons (1-Click Auswahl) -->
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">1-Click Anlass-Vorlagen:</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="applyEventPreset('oktoberfest')" class="p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-left transition-all">
+            <div class="text-xl">🥨</div>
+            <div class="font-fut font-black text-xs text-amber-300 uppercase">Oktoberfest</div>
+            <div class="text-[9px] text-slate-400">Bierfest & Wiesn</div>
+          </button>
+          <button type="button" onclick="applyEventPreset('schuetzenfest')" class="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/30 border border-emerald-500/40 text-left transition-all">
+            <div class="text-xl">🎯</div>
+            <div class="font-fut font-black text-xs text-emerald-300 uppercase">Schützenfest</div>
+            <div class="text-[9px] text-slate-400">Königsschießen</div>
+          </button>
+          <button type="button" onclick="applyEventPreset('silvester')" class="p-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/30 border border-purple-500/40 text-left transition-all">
+            <div class="text-xl">🎆</div>
+            <div class="font-fut font-black text-xs text-purple-300 uppercase">Silvester</div>
+            <div class="text-[9px] text-slate-400">Neujahrs-Turnier</div>
+          </button>
+          <button type="button" onclick="applyEventPreset('geburtstag')" class="p-2 rounded-xl bg-pink-500/15 hover:bg-pink-500/30 border border-pink-500/40 text-left transition-all">
+            <div class="text-xl">🎂</div>
+            <div class="font-fut font-black text-xs text-pink-300 uppercase">Geburtstag</div>
+            <div class="text-[9px] text-slate-400">Party-Disziplinen</div>
+          </button>
+          <button type="button" onclick="applyEventPreset('klassik')" class="p-2 rounded-xl bg-amber-600/15 hover:bg-amber-600/30 border border-amber-600/40 text-left transition-all">
+            <div class="text-xl">🏆</div>
+            <div class="font-fut font-black text-xs text-amber-200 uppercase">Hüttencup</div>
+            <div class="text-[9px] text-slate-400">Klassisch / Verein</div>
+          </button>
+          <button type="button" onclick="applyEventPreset('custom')" class="p-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-500/40 text-left transition-all">
+            <div class="text-xl">✏️</div>
+            <div class="font-fut font-black text-xs text-cyan-300 uppercase">Eigenes Event</div>
+            <div class="text-[9px] text-slate-400">Frei gestaltbar</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Config Form -->
+      <div class="space-y-3 bg-black/40 p-3.5 rounded-xl border border-white/10">
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="col-span-2 space-y-1">
+            <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">Event- / Anlass-Name:</label>
+            <input type="text" id="cfg-event-name" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-fut font-bold text-white focus:border-amber-400 focus:outline-none" placeholder="z.B. Oktoberfest-Edition">
+          </div>
+          <div class="space-y-1">
+            <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">Symbol / Emoji:</label>
+            <input type="text" id="cfg-event-icon" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-center font-fut font-black text-amber-300 focus:border-amber-400 focus:outline-none" placeholder="🥨">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">Untertitel / Highlights (auf TV & Urkunde):</label>
+          <input type="text" id="cfg-event-subtitle" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:border-amber-400 focus:outline-none" placeholder="5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="space-y-1">
+            <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">Turnierleitung (Unterschrift):</label>
+            <input type="text" id="cfg-event-host" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-fut font-bold text-amber-300 focus:border-amber-400 focus:outline-none" value="Ric (The Boss)">
+          </div>
+          <div class="space-y-1">
+            <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">Turnier-Jahr:</label>
+            <input type="number" id="cfg-event-year" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-fut font-bold text-white focus:border-amber-400 focus:outline-none" value="2026">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+        <span class="text-[11px] text-slate-400">Wird sofort live übertragen.</span>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="closeModal('modal-event-config')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs uppercase tracking-wider rounded-lg">
+            Abbrechen
+          </button>
+          <button type="button" onclick="saveEventConfig()" class="touch-btn px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow-lg flex items-center space-x-1.5">
+            <span>💾</span>
+            <span>Einstellung Speichern</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2855,9 +2959,118 @@
     }
 
     /* ============================================================ */
+    /* EVENT- & ANLASS-MANAGER                                       */
+    /* ============================================================ */
+    const EVENT_PRESETS = {
+      oktoberfest: {
+        eventName: 'Oktoberfest-Edition',
+        icon: '🥨',
+        eventSubtitle: '5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE',
+        eventTheme: 'oktoberfest'
+      },
+      schuetzenfest: {
+        eventName: 'Schützenfest',
+        icon: '🎯',
+        eventSubtitle: 'KÖNIGSSCHIESSEN • ZIELSCHEIBE • BIERPONG • POKALFINALE',
+        eventTheme: 'schuetzenfest'
+      },
+      silvester: {
+        eventName: 'Silvester-Cup',
+        icon: '🎆',
+        eventSubtitle: 'NEUJAHRSTURNIER • LIVE WETTPOTT • MITTERNACHTSFINALE',
+        eventTheme: 'silvester'
+      },
+      geburtstag: {
+        eventName: 'Geburtstags-Turnier',
+        icon: '🎂',
+        eventSubtitle: 'EHRENTAG-CUP • PARTY-DISZIPLINEN • MEISTERFEIER',
+        eventTheme: 'geburtstag'
+      },
+      klassik: {
+        eventName: 'Hüttencup Klassik',
+        icon: '🏆',
+        eventSubtitle: 'VEREINS- & HÜTTENFEST • ALPEN-CHALLENGES • SIEGEREHRUNG',
+        eventTheme: 'klassik'
+      },
+      custom: {
+        eventName: 'Party-Meisterschaft',
+        icon: '🎉',
+        eventSubtitle: 'TURNIER • LIVE-DASHBOARD • SIEGEREHRUNG',
+        eventTheme: 'custom'
+      }
+    };
+
+    function openEventConfigModal() {
+      const meta = tournament?.meta || {};
+      const nameInput = document.getElementById('cfg-event-name');
+      const iconInput = document.getElementById('cfg-event-icon');
+      const subInput = document.getElementById('cfg-event-subtitle');
+      const hostInput = document.getElementById('cfg-event-host');
+      const yearInput = document.getElementById('cfg-event-year');
+
+      if (nameInput) nameInput.value = meta.eventName || 'Oktoberfest-Edition';
+      if (iconInput) iconInput.value = meta.icon || '🥨';
+      if (subInput) subInput.value = meta.eventSubtitle || '5 WETTKÄMPFE • LIVE WETTPOTT • FOTO-WALL • FINALE';
+      if (hostInput) hostInput.value = meta.hostName || 'Ric (The Boss)';
+      if (yearInput) yearInput.value = meta.eventYear || 2026;
+
+      const modal = document.getElementById('modal-event-config');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function applyEventPreset(key) {
+      const preset = EVENT_PRESETS[key];
+      if (!preset) return;
+      const nameInput = document.getElementById('cfg-event-name');
+      const iconInput = document.getElementById('cfg-event-icon');
+      const subInput = document.getElementById('cfg-event-subtitle');
+      if (nameInput) nameInput.value = preset.eventName;
+      if (iconInput) iconInput.value = preset.icon;
+      if (subInput) subInput.value = preset.eventSubtitle;
+      showToast(`Vorlage "${preset.eventName}" übernommen!`, 'info');
+    }
+
+    function saveEventConfig() {
+      const nameInput = document.getElementById('cfg-event-name');
+      const iconInput = document.getElementById('cfg-event-icon');
+      const subInput = document.getElementById('cfg-event-subtitle');
+      const hostInput = document.getElementById('cfg-event-host');
+      const yearInput = document.getElementById('cfg-event-year');
+
+      const eventName = (nameInput ? nameInput.value : 'Hüttencup').trim() || 'Hüttencup';
+      const icon = (iconInput ? iconInput.value : '🏆').trim() || '🏆';
+      const eventSubtitle = subInput ? subInput.value.trim() : '';
+      const hostName = (hostInput ? hostInput.value : 'Ric (The Boss)').trim() || 'Ric (The Boss)';
+      const eventYear = parseInt(yearInput ? yearInput.value : '2026', 10) || 2026;
+
+      sendWs('UPDATE_EVENT_CONFIG', {
+        title: `${eventName} ${eventYear}`,
+        eventName: eventName,
+        icon: icon,
+        eventSubtitle: eventSubtitle,
+        hostName: hostName,
+        eventYear: eventYear
+      });
+
+      closeModal('modal-event-config');
+      showToast(`🎉 Anlass "${eventName}" erfolgreich gespeichert & live übertragen!`, 'success');
+    }
+
+    function renderEventHeader() {
+      const meta = tournament?.meta || {};
+      const icon = meta.icon || '🥨';
+      const name = meta.eventName || 'OKTOBERFEST';
+      const iconEl = document.getElementById('header-event-icon');
+      const nameEl = document.getElementById('header-event-name');
+      if (iconEl) iconEl.textContent = icon;
+      if (nameEl) nameEl.textContent = name.toUpperCase();
+    }
+
+    /* ============================================================ */
     /* SCORING ENGINE                                               */
     /* ============================================================ */
     function renderAll() {
+      renderEventHeader();
       renderRegieView();
       updateGameDropdown();
       renderScoringList();
@@ -3471,6 +3684,12 @@
       if (!modal) return;
       modal.classList.remove('hidden');
 
+      const titleEl = document.getElementById('siegerurkunde-modal-title');
+      const meta = tournament?.meta || {};
+      if (titleEl) {
+        titleEl.textContent = `OFFIZIELLE SIEGERURKUNDE • ${(meta.eventName || 'HÜTTENCUP').toUpperCase()} ${meta.eventYear || 2026}`;
+      }
+
       const spinner = document.getElementById('certificate-loading-spinner');
       if (spinner) spinner.classList.remove('hidden');
 
@@ -3577,11 +3796,17 @@
         ctx.fillText('🏆', W / 2, 150);
       }
 
-      // Title Subtitle
+      const meta = tournament?.meta || {};
+      const eventName = (meta.eventName || 'Hüttencup').toUpperCase();
+      const eventYear = meta.eventYear || 2026;
+      const eventIcon = meta.icon || '🏆';
+      const hostName = meta.hostName || 'Ric (The Boss)';
+
+      // Title Subtitle (Dynamischer Anlass statt Grillhütte Ultimate Team)
       ctx.font = '800 32px Teko, "Barlow Condensed", sans-serif';
       ctx.fillStyle = '#F59E0B';
       ctx.letterSpacing = '4px';
-      ctx.fillText('GRILLHÜTTE ULTIMATE TEAM 2026', W / 2, 255);
+      ctx.fillText(`${eventIcon}  ${eventName}  ${eventYear}  ${eventIcon}`, W / 2, 255);
 
       // Main Header Title
       ctx.save();
@@ -3594,7 +3819,7 @@
 
       ctx.font = '700 26px Teko, "Barlow Condensed", sans-serif';
       ctx.fillStyle = '#E5C483';
-      ctx.fillText('MEISTERSCHAFT & CHAMPION DES HÜTTENCUPS', W / 2, 370);
+      ctx.fillText(`OFFIZIELLER CHAMPION & TITELTRÄGER`, W / 2, 370);
 
       // Zierlinie
       ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
@@ -3608,7 +3833,7 @@
       ctx.font = '500 21px Inter, sans-serif';
       ctx.fillStyle = '#94A3B8';
       ctx.fillText('In feierlicher Anerkennung überragender Treffsicherheit, eisernem Siegeswillen und beispielloser Trinkfestigkeit', W / 2, 435);
-      ctx.fillText('wird der offizielle Meistertitel der Grillhütte für das Jahr 2026 verliehen an:', W / 2, 465);
+      ctx.fillText(`wird der offizielle Titel des Champions für ${eventName} ${eventYear} feierlich verliehen an:`, W / 2, 465);
 
       // 5. DAS SIEGER-TREPPCHEN (PODIUM)
 
@@ -3792,7 +4017,7 @@
       ctx.fillStyle = '#FFD700';
       ctx.fillText('★ AMTLICH ★', sealX, sealY - 12);
       ctx.fillText('BEGLAUBIGT', sealX, sealY + 6);
-      ctx.fillText('2026', sealX, sealY + 24);
+      ctx.fillText(`${eventYear}`, sealX, sealY + 24);
 
       // Rechts: Unterschrift
       ctx.textAlign = 'right';
@@ -3802,11 +4027,11 @@
 
       ctx.font = '600 20px Inter, sans-serif';
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillText('Riccardo (The Chef) ✍️', W - 120, 1560);
+      ctx.fillText(`${hostName} ✍️`, W - 120, 1560);
 
       ctx.font = '500 14px Inter, sans-serif';
       ctx.fillStyle = '#64748B';
-      ctx.fillText('Grillhütte Ultimate Team Game Studio', W - 120, 1590);
+      ctx.fillText('Turnierleitung & Schiedsgericht', W - 120, 1590);
 
       // Save Data URL cache for download
       currentCertificateDataUrl = canvas.toDataURL('image/png');
@@ -3821,8 +4046,10 @@
         showToast('Bitte Urkunde zuerst generieren.');
         return;
       }
+      const meta = tournament?.meta || {};
+      const cleanEventName = (meta.eventName || 'Huettencup').replace(/[^a-zA-Z0-9_-]/g, '_');
       const link = document.createElement('a');
-      link.download = `Huettencup_Siegerurkunde_2026.png`;
+      link.download = `${cleanEventName}_Siegerurkunde_${meta.eventYear || 2026}.png`;
       link.href = currentCertificateDataUrl;
       link.click();
       showToast('Siegerurkunde in voller Auflösung heruntergeladen! 📥', 'success');
@@ -3867,13 +4094,16 @@
         return;
       }
       const winner = totals[0];
-      if (!confirm(`Soll ${winner.player.name} offiziell als Champion des Hüttencups 2026 gekrönt werden?\n\nEr erhält die dauerhafte Meister-Gravur (Pokal-Badge), die bei allen zukünftigen Festen erhalten bleibt!`)) {
+      const meta = tournament?.meta || {};
+      const eventName = meta.eventName || 'Hüttencup';
+      const year = meta.eventYear || 2026;
+      if (!confirm(`Soll ${winner.player.name} offiziell als Champion von "${eventName} ${year}" gekrönt werden?\n\nEr erhält die dauerhafte Meister-Gravur (Pokal-Badge), die bei allen zukünftigen Festen erhalten bleibt!`)) {
         return;
       }
       sendWs('CROWN_CHAMPION', {
         playerId: winner.player.id,
-        year: 2026,
-        tournamentName: 'Hüttencup 2026',
+        year: year,
+        tournamentName: `${eventName} ${year}`,
         points: winner.total
       });
       const btn = document.getElementById('btn-crown-champion-text');
