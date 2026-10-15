@@ -1055,7 +1055,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-2">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1109,7 +1109,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-2">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1249,7 +1249,7 @@
           <div class="flex-1 flex items-center justify-center space-x-12 my-6">
             ${activeP ? `
               <div class="flex flex-col items-center">
-                ${renderCardWithBadgesHtml(activeP, { imgClass: 'h-[440px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                ${renderCardWithBadgesHtml(activeP, { imgClass: 'h-[440px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                 <div class="text-center mt-3">
                   <span class="px-3 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-fut font-bold uppercase tracking-wider border border-amber-500/30">ALS NÄCHSTES AM START</span>
                   <div class="font-fut font-black italic text-3xl uppercase tracking-wider text-white mt-1 leading-tight">${activeP.name}</div>
@@ -1356,7 +1356,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-3">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1387,7 +1387,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-3">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1584,8 +1584,8 @@
             ${activeP ? `
               <!-- Giant Card with Hearth Plinth & Badges -->
               <div class="flex flex-col items-center">
-                ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(activeP, { imgClass: 'h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300', beltSize: 'md' }) : `
-                  <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[460px] w-auto max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
+                ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(activeP, { imgClass: 'h-[460px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300', beltSize: 'md' }) : `
+                  <img src="${activeP.cardImage || activeP.portrait || 'chef.jfif'}" alt="${activeP.name}" class="h-[460px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300">
                 `}
                 <div class="w-32 h-1 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full mt-3"></div>
               </div>

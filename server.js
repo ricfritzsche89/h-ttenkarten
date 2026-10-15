@@ -380,11 +380,14 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname, {
   maxAge: '1d',
   setHeaders: (res, filePath) => {
-    // HTML pages must revalidate so updates are immediately visible
-    if (filePath.endsWith('.html')) {
+    // HTML pages and JS scripts must revalidate so updates are immediately visible
+    if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
       res.setHeader('Cache-Control', 'no-cache');
+    } else if (filePath.includes(path.sep + 'cards' + path.sep) || filePath.includes('/cards/')) {
+      // Dynamic player cards should revalidate immediately!
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     } else if (filePath.match(/\.(png|jpg|jpeg|webp|gif|svg|woff2?|ttf|mp3|wav|ogg)$/i)) {
-      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
     }
   }
 }));
