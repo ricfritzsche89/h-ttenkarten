@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Hüttencup • Gäste-Portal</title>
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎉</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Barlow Condensed', 'sans-serif'],
+            fut: ['Barlow Condensed', 'sans-serif']
+          },
+          colors: {
+            gold: {
+              300: '#F5E7B2',
+              400: '#E5C483',
+              500: '#D4AF37',
+              600: '#B89326',
+              700: '#94741B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+      background: #07090D url('assets/volcanic_lodge_bg.jpg') no-repeat center bottom fixed;
+      background-size: cover;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+    }
+
+    .lodge-card {
+      background: rgba(14, 18, 26, 0.94);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 14px;
+    }
+
+    .lodge-card-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .lodge-card-glow::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .lodge-inner {
+      background: rgba(8, 11, 16, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+    }
+
+    .touch-btn {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease, background 0.15s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.96);
+      filter: brightness(1.2);
+    }
+
+    /* Auto Return Progress Bar Animation */
+    @keyframes returnProgress {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+    .animate-progress-countdown {
+      animation: returnProgress 2.5s linear forwards;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4AF37;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between max-w-lg mx-auto p-3 sm:p-4 pb-8">
+
+  <!-- TOP APP BAR -->
+  <header class="lodge-card p-3.5 mb-3 flex items-center justify-between shadow-xl">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-fut font-black text-lg shadow">
+        🏔️
+      </div>
+      <div>
+        <div class="flex items-center space-x-1.5">
+          <span class="font-fut font-black text-sm tracking-widest text-[#D4AF37] uppercase">HÜTTENCUP 2026</span>
+          <span id="ws-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live verbunden"></span>
+        </div>
+        <div class="flex items-center space-x-1 cursor-pointer" onclick="openNameModal()">
+          <span id="guest-name-display" class="font-sans font-bold text-xs text-white max-w-[130px] sm:max-w-[180px] truncate">
+            Gast
+          </span>
+          <span class="text-[10px] text-amber-400/80 hover:text-amber-300">✏️ ändern</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Hub Reset / Info -->
+    <div class="flex items-center space-x-2">
+      <button onclick="showView('hub')" class="touch-btn px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-fut font-bold text-xs uppercase flex items-center space-x-1">
+        <span>🏠</span>
+        <span class="hidden sm:inline">ÜBERSICHT</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- VIEW 1: THE 3-CARD MAIN HUB                                  -->
+  <!-- ============================================================ -->
+  <main id="view-hub" class="flex-1 flex flex-col justify-center space-y-3.5 my-auto">
+    <div class="text-center mb-1">
+      <h1 class="font-fut font-black text-2xl sm:text-3xl tracking-wider uppercase text-white drop-shadow">
+        WAS MÖCHTEST DU TUN?
+      </h1>
+      <p class="text-xs text-slate-300">
+        Tippe auf eine Aktion – dein Handy ist die Fernbedienung!
+      </p>
+    </div>
+
+    <!-- CARD 1: MUSIKWUNSCH & JUKEBOX -->
+    <div onclick="showView('music')" class="lodge-card lodge-card-glow p-4 cursor-pointer touch-btn border-2 border-amber-500/40 hover:border-amber-400 relative group">
+      <div class="flex items-center space-x-4">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-600 to-amber-500 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shrink-0">
+          🎵
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <span class="font-fut font-black text-xl sm:text-2xl text-amber-300 uppercase tracking-wide">
+              MUSIKWUNSCH
+            </span>
+            <span id="badge-music-count" class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[#D4AF37] font-fut font-bold text-xs">
+              0 Banger
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Song zur Live-Playlist hinzufügen & Banger nach oben voten!
+          </p>
+        </div>
+        <div class="text-amber-400 text-xl font-bold pr-1">➔</div>
+      </div>
+    </div>
+
+    <!-- CARD 2: BILD ZUR DIASHOW HOCHLADEN -->
+    <div onclick="showView('photo')" class="lodge-card lodge-card-glow p-4 cursor-pointer touch-btn border-2 border-emerald-500/40 hover:border-emerald-400 relative group">
+      <div class="flex items-center space-x-4">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shrink-0">
+          📸
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <span class="font-fut font-black text-xl sm:text-2xl text-emerald-300 uppercase tracking-wide">
+              FOTO FÜR DIASHOW
+            </span>
+            <span id="badge-photo-count" class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-fut font-bold text-xs">
+              TV LIVE
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Schnappschuss machen – landet sofort auf dem 47" Fernseher!
+          </p>
+        </div>
+        <div class="text-emerald-400 text-xl font-bold pr-1">➔</div>
+      </div>
+    </div>
+
+    <!-- CARD 3: GÄSTEBUCH -->
+    <div onclick="showView('guestbook')" class="lodge-card lodge-card-glow p-4 cursor-pointer touch-btn border-2 border-amber-500/40 hover:border-amber-400 relative group">
+      <div class="flex items-center space-x-4">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 flex items-center justify-center text-3xl sm:text-4xl shadow-xl shrink-0">
+          📖
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <span class="font-fut font-black text-xl sm:text-2xl text-orange-300 uppercase tracking-wide">
+              GÄSTEBUCH
+            </span>
+            <span id="badge-guestbook-count" class="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-300 font-fut font-bold text-xs">
+              0 Einträge
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Verewige deinen Gruß, Suff-Weisheit oder ein Selfie für die Ewigkeit!
+          </p>
+        </div>
+        <div class="text-orange-400 text-xl font-bold pr-1">➔</div>
+      </div>
+    </div>
+
+    <!-- HINT BOX -->
+    <div class="text-center pt-2">
+      <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-slate-400">
+        <span>💡</span>
+        <span>Nach jeder Aktion kehrst du automatisch hierher zurück</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- VIEW 2: 🎵 MUSIKWUNSCH & JUKEBOX VIEW                        -->
+  <!-- ============================================================ -->
+  <section id="view-music" class="flex-1 flex flex-col space-y-4 hidden">
+    <!-- Back to Hub Header -->
+    <div class="flex items-center justify-between">
+      <button onclick="showView('hub')" class="touch-btn px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 font-fut font-bold text-xs uppercase flex items-center space-x-1 shadow">
+        <span>←</span> <span>ZURÜCK ZUR AUSWAHL</span>
+      </button>
+      <span class="font-fut font-bold text-xs text-amber-400 uppercase tracking-wider">🎵 PARTY JUKEBOX</span>
+    </div>
+
+    <!-- Song Request Form Card -->
+    <div class="lodge-card p-4 space-y-3">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🔥</span>
+        <div>
+          <h2 class="font-fut font-black text-lg text-white uppercase tracking-wider leading-none">
+            SONG WÜNSCHEN
+          </h2>
+          <p class="text-[11px] text-slate-300">Bring die Hütte zum Kochen!</p>
+        </div>
+      </div>
+
+      <div class="space-y-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-amber-300 uppercase mb-1">Song-Titel *</label>
+          <input id="music-title-input" type="text" placeholder="z.B. Cordula Grün, Layla, Atemlos..." class="w-full bg-slate-900/90 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 placeholder-slate-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Künstler / Interpret (optional)</label>
+          <input id="music-artist-input" type="text" placeholder="z.B. Josh., Mickie Krause, Helene Fischer..." class="w-full bg-slate-900/90 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 placeholder-slate-500">
+        </div>
+
+        <button id="btn-submit-song" onclick="submitSongRequest()" class="touch-btn w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-fut font-black text-base uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+          <span>🔥</span>
+          <span>SONG WÜNSCHEN (+1 BANGER)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Ranked Playlist Card -->
+    <div class="lodge-card p-4 space-y-3 flex-1 flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📊</span>
+          <h3 class="font-fut font-black text-base text-amber-400 uppercase tracking-wider">
+            LIVE PLAYLIST-RANKING
+          </h3>
+        </div>
+        <span id="music-queue-counter" class="text-[11px] text-slate-400">0 Songs</span>
+      </div>
+
+      <!-- Live List -->
+      <div id="music-queue-list" class="space-y-2 overflow-y-auto max-h-[420px] pr-1">
+        <div class="text-center py-8 text-slate-400 text-xs">
+          Lade Playlist...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- VIEW 3: 📸 BILD ZUR DIASHOW HOCHLADEN                        -->
+  <!-- ============================================================ -->
+  <section id="view-photo" class="flex-1 flex flex-col space-y-4 hidden">
+    <!-- Back Header -->
+    <div class="flex items-center justify-between">
+      <button onclick="showView('hub')" class="touch-btn px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 font-fut font-bold text-xs uppercase flex items-center space-x-1 shadow">
+        <span>←</span> <span>ZURÜCK ZUR AUSWAHL</span>
+      </button>
+      <span class="font-fut font-bold text-xs text-emerald-400 uppercase tracking-wider">📸 LIVE TV-WALL</span>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="lodge-card p-4 space-y-4">
+      <div>
+        <h2 class="font-fut font-black text-xl text-white uppercase tracking-wider leading-none">
+          FOTO AUF DEN FERNSEHER
+        </h2>
+        <p class="text-xs text-slate-300 mt-1">
+          Mache einen Schnappschuss – er erscheint live auf der 47" Leinwand!
+        </p>
+      </div>
+
+      <!-- Photo Picker Area -->
+      <div id="photo-picker-box" onclick="document.getElementById('photo-file-input').click()" class="lodge-inner min-h-[220px] flex flex-col items-center justify-center p-3 cursor-pointer border-2 border-dashed border-emerald-500/40 hover:border-emerald-400 text-center relative overflow-hidden group">
+        <div id="photo-placeholder-ui" class="space-y-2">
+          <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mx-auto shadow group-hover:scale-105 transition-transform">
+            📸
+          </div>
+          <div class="font-fut font-bold text-base text-emerald-300 uppercase">
+            Hier tippen zum Fotografieren
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Kamera öffnen oder aus Galerie wählen
+          </p>
+        </div>
+
+        <img id="photo-preview-img" class="hidden w-full h-[260px] object-cover rounded-lg shadow-md" alt="Vorschau">
+
+        <button id="btn-retake-photo" onclick="event.stopPropagation(); document.getElementById('photo-file-input').click()" class="hidden absolute bottom-2 right-2 px-2.5 py-1 rounded bg-black/80 border border-white/20 text-xs text-slate-200 font-fut font-bold uppercase">
+          Anderes Foto
+        </button>
+      </div>
+
+      <input id="photo-file-input" type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoSelected(event)">
+
+      <!-- Caption & Emojis -->
+      <div class="space-y-2">
+        <label class="block text-[11px] font-bold text-slate-300 uppercase">Witziger Spruch oder Gruß (optional)</label>
+        <input id="photo-caption-input" type="text" placeholder="z.B. Beste Runde des Abends! 😂🍻" class="w-full bg-slate-900/90 border border-white/20 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-400 placeholder-slate-500">
+        
+        <!-- Emoji Pills -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto py-1">
+          <button type="button" onclick="addPhotoEmoji('🍻')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🍻</button>
+          <button type="button" onclick="addPhotoEmoji('🤪')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🤪</button>
+          <button type="button" onclick="addPhotoEmoji('🔥')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🔥</button>
+          <button type="button" onclick="addPhotoEmoji('🏆')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🏆</button>
+          <button type="button" onclick="addPhotoEmoji('🥂')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🥂</button>
+          <button type="button" onclick="addPhotoEmoji('💥')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">💥</button>
+          <button type="button" onclick="addPhotoEmoji('❤️')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">❤️</button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button id="btn-submit-photo" onclick="uploadPhotoDirect()" class="touch-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 text-slate-950 font-fut font-black text-base uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+        <span>🚀</span>
+        <span>FOTO JETZT AUF FERNSEHER WERFEN</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- VIEW 4: 📖 DIGITALES GÄSTEBUCH                               -->
+  <!-- ============================================================ -->
+  <section id="view-guestbook" class="flex-1 flex flex-col space-y-4 hidden">
+    <!-- Back Header -->
+    <div class="flex items-center justify-between">
+      <button onclick="showView('hub')" class="touch-btn px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 font-fut font-bold text-xs uppercase flex items-center space-x-1 shadow">
+        <span>←</span> <span>ZURÜCK ZUR AUSWAHL</span>
+      </button>
+      <span class="font-fut font-bold text-xs text-orange-400 uppercase tracking-wider">📖 HÜTTEN-GÄSTEBUCH</span>
+    </div>
+
+    <!-- Entry Input Card -->
+    <div class="lodge-card p-4 space-y-3">
+      <div>
+        <h2 class="font-fut font-black text-xl text-white uppercase tracking-wider leading-none">
+          EINTRAG VERFASSEN
+        </h2>
+        <p class="text-xs text-slate-300 mt-1">
+          Hinterlasse deinen Gruß, deine Suff-Weisheit oder ein Bild!
+        </p>
+      </div>
+
+      <div class="space-y-2.5">
+        <textarea id="gb-message-input" rows="3" placeholder="Schreib etwas für die Nachwelt... (z.B. 'Wer das liest, muss 2 Schlücke trinken!')" class="w-full bg-slate-900/90 border border-white/20 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-400 placeholder-slate-500 resize-none"></textarea>
+
+        <!-- Emoji Pills -->
+        <div class="flex items-center space-x-1.5 overflow-x-auto py-1">
+          <button type="button" onclick="addGbEmoji('🍻')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🍻</button>
+          <button type="button" onclick="addGbEmoji('🎉')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🎉</button>
+          <button type="button" onclick="addGbEmoji('🔥')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🔥</button>
+          <button type="button" onclick="addGbEmoji('🍺')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🍺</button>
+          <button type="button" onclick="addGbEmoji('❤️')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">❤️</button>
+          <button type="button" onclick="addGbEmoji('😂')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">😂</button>
+          <button type="button" onclick="addGbEmoji('🏆')" class="touch-btn px-2.5 py-1 rounded bg-white/5 border border-white/10 text-sm">🏆</button>
+        </div>
+
+        <!-- Optional Photo for Guestbook -->
+        <div class="pt-1">
+          <div class="flex items-center justify-between">
+            <button type="button" onclick="document.getElementById('gb-photo-input').click()" class="touch-btn px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-slate-300 font-fut font-bold uppercase flex items-center space-x-1.5">
+              <span>📸</span>
+              <span id="gb-photo-btn-label">Selfie/Foto anhängen (optional)</span>
+            </button>
+            <button id="btn-remove-gb-photo" onclick="removeGbPhoto()" class="hidden text-xs text-rose-400 font-bold hover:underline">
+              Entfernen ✕
+            </button>
+          </div>
+          <input id="gb-photo-input" type="file" accept="image/*" class="hidden" onchange="handleGbPhotoSelected(event)">
+          <img id="gb-photo-preview" class="hidden w-full h-36 object-cover rounded-lg mt-2 border border-white/10" alt="Selfie Vorschau">
+        </div>
+
+        <!-- Submit Button -->
+        <button id="btn-submit-gb" onclick="submitGuestbookEntry()" class="touch-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 text-slate-950 font-fut font-black text-base uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+          <span>✍️</span>
+          <span>EINTRAG VEREWIGEN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Guestbook Feed -->
+    <div class="lodge-card p-4 space-y-3 flex-1 flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📜</span>
+          <h3 class="font-fut font-black text-base text-orange-400 uppercase tracking-wider">
+            DAS PARTY-BUCH
+          </h3>
+        </div>
+        <span id="gb-entries-counter" class="text-[11px] text-slate-400">0 Einträge</span>
+      </div>
+
+      <div id="gb-entries-feed" class="space-y-3 overflow-y-auto max-h-[420px] pr-1">
+        <div class="text-center py-8 text-slate-400 text-xs">
+          Noch keine Einträge vorhanden. Sei der Erste! 🍻
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- MODAL 1: AUTO-RETURN SUCCESS CELEBRATION MODAL               -->
+  <!-- ============================================================ -->
+  <div id="modal-success" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="lodge-card p-6 max-w-sm w-full text-center space-y-4 border-2 border-amber-400 shadow-2xl relative overflow-hidden">
+      <!-- Top Glow -->
+      <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-400 to-amber-600 mx-auto flex items-center justify-center text-4xl shadow-xl animate-bounce">
+        <span id="success-icon">🎉</span>
+      </div>
+
+      <div>
+        <h3 id="success-title" class="font-fut font-black text-2xl text-white uppercase tracking-wider">
+          ERFOLGREICH!
+        </h3>
+        <p id="success-subtitle" class="text-xs text-slate-300 mt-1">
+          Deine Eingabe wurde live übertragen!
+        </p>
+      </div>
+
+      <!-- Auto Return Timer Bar -->
+      <div class="space-y-1.5 pt-2">
+        <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+          <div id="success-progress-bar" class="bg-gradient-to-r from-amber-400 to-amber-500 h-full w-full"></div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium px-1">
+          <span>Kehre zur Auswahl zurück...</span>
+          <span id="success-seconds">2s</span>
+        </div>
+      </div>
+
+      <!-- Immediate Return Button -->
+      <button onclick="closeSuccessNow()" class="touch-btn w-full py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-slate-200 font-fut font-bold text-xs uppercase tracking-wider">
+        SOFORT ZURÜCK ZUR AUSWAHL ➔
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL 2: GUEST NAME PICKER                                   -->
+  <!-- ============================================================ -->
+  <div id="modal-name" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="lodge-card p-6 max-w-sm w-full space-y-4 border-2 border-amber-500 shadow-2xl">
+      <div class="text-center">
+        <div class="text-3xl mb-1">👋</div>
+        <h3 class="font-fut font-black text-2xl text-white uppercase tracking-wider">
+          WIE HEISST DU?
+        </h3>
+        <p class="text-xs text-slate-300 mt-1">
+          Dein Name wird für Musikwünsche, Fotos und Gästebuch gespeichert.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-amber-300 uppercase mb-1">Dein Vorname / Spitzname</label>
+        <input id="modal-name-input" type="text" placeholder="z.B. Markus, Ric, Nadine, Bierkönig..." class="w-full bg-slate-900 border border-amber-500/50 rounded-xl px-3.5 py-3 text-base text-white font-bold focus:outline-none focus:border-amber-400 placeholder-slate-500" onkeydown="if(event.key==='Enter') saveGuestName()">
+      </div>
+
+      <div class="flex space-x-2 pt-1">
+        <button onclick="saveGuestName()" class="touch-btn flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-fut font-black text-sm uppercase tracking-wider shadow">
+          SPEICHERN & WEITER
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TOAST NOTIFICATION CONTAINER                                 -->
+  <!-- ============================================================ -->
+  <div id="toast-container" class="fixed bottom-4 inset-x-4 max-w-md mx-auto pointer-events-none z-50 flex flex-col space-y-2"></div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ============================================================ */
+    /* STATE & PERSISTENCE MANAGEMENT (DUAL-CHANNEL: WLAN & LTE/5G) */
+    /* ============================================================ */
+    const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
+    const DUMMY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAQuery=';
+
+    // Parse host parameter from URL for seamless local + global switching
+    const urlParams = new URLSearchParams(window.location.search);
+    const hostParam = urlParams.get('host');
+    if (hostParam) {
+      try { localStorage.setItem('gut_local_host', hostParam); } catch (e) {}
+    }
+    const localHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
+
+    let currentGuestName = localStorage.getItem('party_guest_name') || '';
+    let upvotedSongIds = JSON.parse(localStorage.getItem('party_upvoted_songs') || '[]');
+    let currentPhotoBase64 = null;
+    let currentGbPhotoBase64 = null;
+    let returnTimer = null;
+    let returnCountdownInterval = null;
+    let currentMusicQueue = [];
+    let currentGuestbookEntries = [];
+
+    // Screen restoration: restore name or ask
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!currentGuestName || currentGuestName.trim() === '' || currentGuestName === 'Gast') {
+        openNameModal();
+      } else {
+        updateGuestNameUi();
+      }
+
+      // Check URL query parameters for view override (e.g. ?view=music)
+      const requestedView = urlParams.get('view');
+      if (['music', 'photo', 'guestbook'].includes(requestedView)) {
+        showView(requestedView);
+      } else {
+        showView('hub');
+      }
+
+      initWebSocket();
+      fetchMusicQueue();
+      fetchGuestbook();
+      fetchStateBadgeCounts();
+    });
+
+    function updateGuestNameUi() {
+      const displayEl = document.getElementById('guest-name-display');
+      if (displayEl) {
+        displayEl.textContent = currentGuestName || 'Gast';
+      }
+    }
+
+    function openNameModal() {
+      const modal = document.getElementById('modal-name');
+      const input = document.getElementById('modal-name-input');
+      input.value = currentGuestName || '';
+      modal.classList.remove('hidden');
+      setTimeout(() => input.focus(), 150);
+    }
+
+    function saveGuestName() {
+      const input = document.getElementById('modal-name-input');
+      const val = (input.value || '').trim();
+      if (!val) {
+        alert('Bitte gib deinen Namen ein!');
+        return;
+      }
+      currentGuestName = val;
+      localStorage.setItem('party_guest_name', currentGuestName);
+      updateGuestNameUi();
+      document.getElementById('modal-name').classList.add('hidden');
+      showToast(`Servus ${currentGuestName}! Mach die Party unsicher! 🎉`);
+    }
+
+    /* ============================================================ */
+    /* DUAL-CHANNEL TRANSMITTER: LOKAL (WLAN) & CLOUD (LTE/5G)      */
+    /* ============================================================ */
+    async function sendDualChannel(localPath, localPayload, cloudPayload) {
+      let delivered = false;
+      let responseData = null;
+
+      // 1. Lokaler Direktversand (falls Gast im selben WLAN oder auf lokalem Host ist)
+      const candidateUrls = [];
+      if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        candidateUrls.push(localPath);
+      }
+      if (localHost) {
+        candidateUrls.push(`http://${localHost}${localPath}`);
+      }
+
+      for (const u of candidateUrls) {
+        if (delivered) break;
+        try {
+          const ctrl = new AbortController();
+          const tId = setTimeout(() => ctrl.abort(), 2000); // 2s Timeout
+          const res = await fetch(u, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(localPayload),
+            signal: ctrl.signal
+          });
+          clearTimeout(tId);
+          const json = await res.json();
+          if (json && json.ok) {
+            delivered = true;
+            responseData = json;
+            break;
+          }
+        } catch (e) {
+          // Lokaler Server nicht erreichbar -> Gast ist im mobilen Handynetz (LTE / 5G)
+        }
+      }
+
+      // 2. Cloud-Relay via Google Apps Script (funktioniert weltweit über Handynetz LTE/5G ohne WLAN!)
+      if (!delivered) {
+        try {
+          const res = await fetch(GUT_SUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(cloudPayload)
+          });
+          const json = await res.json();
+          if (json && json.ok) {
+            delivered = true;
+            responseData = json;
+          }
+        } catch (e) {
+          try {
+            await fetch(GUT_SUBMIT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify(cloudPayload),
+              mode: 'no-cors'
+            });
+            delivered = true;
+            responseData = { ok: true };
+          } catch (e2) {}
+        }
+      }
+
+      return { delivered, data: responseData };
+    }
+
+    /* ============================================================ */
+    /* VIEW SWITCHING & IDIOT-PROOF AUTO-RETURN UX                  */
+    /* ============================================================ */
+    function showView(viewId) {
+      const views = ['hub', 'music', 'photo', 'guestbook'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          if (v === viewId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (viewId === 'music') {
+        fetchMusicQueue();
+        setTimeout(() => {
+          const input = document.getElementById('music-title-input');
+          if (input) input.focus();
+        }, 200);
+      } else if (viewId === 'guestbook') {
+        fetchGuestbook();
+      }
+    }
+
+    function triggerAutoReturn(icon, title, subtitle, durationSeconds = 2.5) {
+      const modal = document.getElementById('modal-success');
+      const iconEl = document.getElementById('success-icon');
+      const titleEl = document.getElementById('success-title');
+      const subEl = document.getElementById('success-subtitle');
+      const barEl = document.getElementById('success-progress-bar');
+      const secEl = document.getElementById('success-seconds');
+
+      iconEl.textContent = icon || '🎉';
+      titleEl.textContent = title || 'ERFOLGREICH!';
+      subEl.textContent = subtitle || 'Deine Eingabe wurde live übertragen!';
+
+      modal.classList.remove('hidden');
+
+      // Setup CSS progress bar animation
+      barEl.style.width = '100%';
+      barEl.style.transition = `width ${durationSeconds}s linear`;
+      setTimeout(() => {
+        barEl.style.width = '0%';
+      }, 20);
+
+      let remaining = durationSeconds;
+      secEl.textContent = `${Math.ceil(remaining)}s`;
+
+      if (returnCountdownInterval) clearInterval(returnCountdownInterval);
+      returnCountdownInterval = setInterval(() => {
+        remaining -= 0.5;
+        if (remaining <= 0) {
+          clearInterval(returnCountdownInterval);
+        } else {
+          secEl.textContent = `${Math.ceil(remaining)}s`;
+        }
+      }, 500);
+
+      if (returnTimer) clearTimeout(returnTimer);
+      returnTimer = setTimeout(() => {
+        closeSuccessNow();
+      }, durationSeconds * 1000);
+    }
+
+    function closeSuccessNow() {
+      if (returnTimer) clearTimeout(returnTimer);
+      if (returnCountdownInterval) clearInterval(returnCountdownInterval);
+      document.getElementById('modal-success').classList.add('hidden');
+      showView('hub');
+    }
+
+    /* ============================================================ */
+    /* WEBSOCKET REAL-TIME SYNC                                     */
+    /* ============================================================ */
+    let socket = null;
+    function initWebSocket() {
+      let wsHost = location.host;
+      if (location.hostname.includes('github.io')) {
+        if (!localHost) {
+          const ind = document.getElementById('ws-indicator');
+          if (ind) {
+            ind.classList.remove('bg-rose-500');
+            ind.classList.add('bg-emerald-400');
+            ind.title = 'Online via LTE / 5G';
+          }
+          return;
+        }
+        wsHost = localHost;
+      }
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${wsHost}`;
+      try {
+        socket = new WebSocket(wsUrl);
+        socket.onopen = () => {
+          const ind = document.getElementById('ws-indicator');
+          if (ind) {
+            ind.classList.remove('bg-rose-500');
+            ind.classList.add('bg-emerald-400');
+          }
+        };
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'MUSIC_QUEUE_UPDATED' || data.type === 'NEW_SONG_REQUEST') {
+              fetchMusicQueue();
+            } else if (data.type === 'GUESTBOOK_UPDATED' || data.type === 'NEW_GUESTBOOK_ENTRY') {
+              fetchGuestbook();
+            } else if (data.type === 'NEW_PHOTO') {
+              fetchStateBadgeCounts();
+            } else if (data.type === 'STATE_UPDATE') {
+              fetchStateBadgeCounts();
+            }
+          } catch (e) {}
+        };
+        socket.onclose = () => {
+          const ind = document.getElementById('ws-indicator');
+          if (ind) {
+            ind.classList.remove('bg-emerald-400');
+            ind.classList.add('bg-rose-500');
+          }
+          setTimeout(initWebSocket, 4000);
+        };
+      } catch (e) {
+        setTimeout(initWebSocket, 5000);
+      }
+    }
+
+    /* ============================================================ */
+    /* 1. MUSIKWUNSCH & JUKEBOX ENGINE                              */
+    /* ============================================================ */
+    async function fetchMusicQueue() {
+      const candidateUrls = [];
+      if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        candidateUrls.push('/api/music/queue');
+      }
+      if (localHost) {
+        candidateUrls.push(`http://${localHost}/api/music/queue`);
+      }
+
+      for (const u of candidateUrls) {
+        try {
+          const ctrl = new AbortController();
+          const tId = setTimeout(() => ctrl.abort(), 2000);
+          const res = await fetch(u, { signal: ctrl.signal });
+          clearTimeout(tId);
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.queue)) {
+            currentMusicQueue = data.queue;
+            renderMusicQueue(currentMusicQueue);
+            updateMusicBadgeCount(currentMusicQueue.length);
+            return;
+          }
+        } catch (e) {}
+      }
+    }
+
+    function updateMusicBadgeCount(count) {
+      const badge = document.getElementById('badge-music-count');
+      const counter = document.getElementById('music-queue-counter');
+      if (badge) badge.textContent = `${count} Banger`;
+      if (counter) counter.textContent = `${count} Songs in Queue`;
+    }
+
+    function renderMusicQueue(queue) {
+      const listEl = document.getElementById('music-queue-list');
+      if (!listEl) return;
+
+      if (!queue || queue.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-8 text-slate-400 text-xs">
+            Noch keine Musikwünsche! Wünsche dir den ersten Song 🔥
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = queue.map((song, index) => {
+        const votes = (song.votes || []).length;
+        const hasVoted = (song.votes || []).includes(currentGuestName) || upvotedSongIds.includes(song.id);
+        const isPlaying = song.status === 'playing';
+        const isPlayed = song.status === 'played';
+
+        let rankBadge = `<span class="w-6 h-6 rounded-md bg-white/10 font-fut font-bold text-xs flex items-center justify-center text-slate-300">#${index + 1}</span>`;
+        if (index === 0) {
+          rankBadge = `<span class="w-6 h-6 rounded-md bg-amber-400 font-fut font-black text-xs flex items-center justify-center text-slate-950 shadow">🥇</span>`;
+        } else if (index === 1) {
+          rankBadge = `<span class="w-6 h-6 rounded-md bg-slate-300 font-fut font-black text-xs flex items-center justify-center text-slate-950 shadow">🥈</span>`;
+        } else if (index === 2) {
+          rankBadge = `<span class="w-6 h-6 rounded-md bg-amber-700 font-fut font-black text-xs flex items-center justify-center text-white shadow">🥉</span>`;
+        }
+
+        let statusPill = '';
+        if (isPlaying) {
+          statusPill = `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold animate-pulse">LÄUFT JETZT 🎵</span>`;
+        } else if (isPlayed) {
+          statusPill = `<span class="px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30 text-[10px] font-bold">GESPIELT ✅</span>`;
+        }
+
+        return `
+          <div class="lodge-inner p-3 flex items-center justify-between border ${isPlaying ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-white/10'} shadow-sm">
+            <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+              ${rankBadge}
+              <div class="min-w-0">
+                <div class="flex items-center space-x-2">
+                  <span class="font-fut font-bold text-sm text-white truncate max-w-[170px] sm:max-w-[220px]">
+                    ${escapeHtml(song.title)}
+                  </span>
+                  ${statusPill}
+                </div>
+                <div class="text-[11px] text-slate-400 truncate max-w-[170px] sm:max-w-[220px]">
+                  ${escapeHtml(song.artist || 'Unbekannt')} • <span class="text-amber-400/80">${escapeHtml(song.requestedBy)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upvote Button -->
+            <button onclick="voteSong('${song.id}')" class="touch-btn px-2.5 py-1.5 rounded-lg ${hasVoted ? 'bg-amber-500 text-slate-950 font-black shadow-md border border-amber-400' : 'bg-white/5 hover:bg-white/10 text-amber-400 border border-amber-400/30'} flex items-center space-x-1.5 shrink-0">
+              <span class="text-xs">🔥</span>
+              <span class="font-fut font-black text-xs">${votes}</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function submitSongRequest() {
+      const titleInput = document.getElementById('music-title-input');
+      const artistInput = document.getElementById('music-artist-input');
+      const title = (titleInput.value || '').trim();
+      const artist = (artistInput.value || '').trim();
+
+      if (!title) {
+        alert('Bitte gib mindestens den Songtitel ein!');
+        titleInput.focus();
+        return;
+      }
+
+      if (!currentGuestName) {
+        openNameModal();
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-song');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+
+      try {
+        const { delivered, data } = await sendDualChannel(
+          '/api/music/request',
+          { title, artist, requestedBy: currentGuestName },
+          {
+            file: DUMMY_PNG,
+            name: currentGuestName,
+            title: title,
+            artist: artist,
+            caption: JSON.stringify({ type: 'song_request', title, artist, name: currentGuestName }),
+            type: 'song_request'
+          }
+        );
+
+        if (delivered) {
+          titleInput.value = '';
+          artistInput.value = '';
+
+          // Add locally to immediate queue view
+          const localSong = (data && data.song) ? data.song : {
+            id: 'local_' + Date.now(),
+            title: title,
+            artist: artist || 'Unbekannt',
+            requestedBy: currentGuestName,
+            votes: [currentGuestName],
+            status: 'pending'
+          };
+          if (!upvotedSongIds.includes(localSong.id)) {
+            upvotedSongIds.push(localSong.id);
+            localStorage.setItem('party_upvoted_songs', JSON.stringify(upvotedSongIds));
+          }
+          if (!currentMusicQueue.some(s => s.title.toLowerCase() === title.toLowerCase())) {
+            currentMusicQueue.unshift(localSong);
+            renderMusicQueue(currentMusicQueue);
+            updateMusicBadgeCount(currentMusicQueue.length);
+          }
+
+          triggerAutoReturn(
+            '🎵',
+            'SONG EINGEREICHT!',
+            `"${title}" steht auf der Playlist! Die Hütte bebt!`
+          );
+        } else {
+          alert('Übertragung fehlgeschlagen. Bitte prüfe deine mobile Internetverbindung!');
+        }
+      } catch (err) {
+        alert('Verbindungsfehler: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+    async function voteSong(songId) {
+      if (!currentGuestName) {
+        openNameModal();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/music/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            songId,
+            voterName: currentGuestName
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          if (data.voted) {
+            if (!upvotedSongIds.includes(songId)) upvotedSongIds.push(songId);
+            showToast('🔥 Banger gestimmt (+1)!');
+          } else {
+            upvotedSongIds = upvotedSongIds.filter(id => id !== songId);
+            showToast('Stimme zurückgezogen');
+          }
+          localStorage.setItem('party_upvoted_songs', JSON.stringify(upvotedSongIds));
+          fetchMusicQueue();
+        }
+      } catch (e) {
+        console.error('Error voting song:', e);
+      }
+    }
+
+    /* ============================================================ */
+    /* 2. LIVE FOTO-UPLOAD & DIASHOW ENGINE                         */
+    /* ============================================================ */
+    function handlePhotoSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Canvas downscale max 1920 to guarantee ultra-fast transmission & crisp TV look
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1920;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          // Update Preview
+          const previewImg = document.getElementById('photo-preview-img');
+          previewImg.src = currentPhotoBase64;
+          previewImg.classList.remove('hidden');
+          document.getElementById('photo-placeholder-ui').classList.add('hidden');
+          document.getElementById('btn-retake-photo').classList.remove('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addPhotoEmoji(emoji) {
+      const input = document.getElementById('photo-caption-input');
+      input.value += emoji;
+      input.focus();
+    }
+
+    async function uploadPhotoDirect() {
+      if (!currentPhotoBase64) {
+        alert('Bitte wähle zuerst ein Foto aus oder mach einen Schnappschuss!');
+        document.getElementById('photo-file-input').click();
+        return;
+      }
+
+      if (!currentGuestName) {
+        openNameModal();
+        return;
+      }
+
+      const caption = (document.getElementById('photo-caption-input').value || '').trim();
+      const btn = document.getElementById('btn-submit-photo');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      btn.innerHTML = `<span>⏳</span> <span>WIRD ÜBERTRAGEN...</span>`;
+
+      try {
+        const { delivered } = await sendDualChannel(
+          '/api/upload_photo',
+          { file: currentPhotoBase64, name: currentGuestName, caption },
+          { file: currentPhotoBase64, name: currentGuestName, caption, type: 'photo' }
+        );
+
+        if (delivered) {
+          // Reset Photo form
+          currentPhotoBase64 = null;
+          document.getElementById('photo-file-input').value = '';
+          document.getElementById('photo-caption-input').value = '';
+          document.getElementById('photo-preview-img').classList.add('hidden');
+          document.getElementById('btn-retake-photo').classList.add('hidden');
+          document.getElementById('photo-placeholder-ui').classList.remove('hidden');
+
+          fetchStateBadgeCounts();
+          triggerAutoReturn(
+            '📸',
+            'FOTO IST LIVE!',
+            'Dein Schnappschuss läuft jetzt auf dem großen 47" Fernseher!'
+          );
+        } else {
+          alert('Upload fehlgeschlagen. Bitte prüfe deine mobile Internetverbindung!');
+        }
+      } catch (err) {
+        alert('Verbindungsfehler beim Foto-Upload: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        btn.innerHTML = `<span>🚀</span> <span>FOTO JETZT AUF FERNSEHER WERFEN</span>`;
+      }
+    }
+
+    /* ============================================================ */
+    /* 3. DIGITALES GÄSTEBUCH ENGINE                                */
+    /* ============================================================ */
+    async function fetchGuestbook() {
+      const candidateUrls = [];
+      if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        candidateUrls.push('/api/guestbook');
+      }
+      if (localHost) {
+        candidateUrls.push(`http://${localHost}/api/guestbook`);
+      }
+
+      for (const u of candidateUrls) {
+        try {
+          const ctrl = new AbortController();
+          const tId = setTimeout(() => ctrl.abort(), 2000);
+          const res = await fetch(u, { signal: ctrl.signal });
+          clearTimeout(tId);
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.entries)) {
+            currentGuestbookEntries = data.entries;
+            renderGuestbookFeed(currentGuestbookEntries);
+            updateGbBadgeCount(currentGuestbookEntries.length);
+            return;
+          }
+        } catch (e) {}
+      }
+    }
+
+    function updateGbBadgeCount(count) {
+      const badge = document.getElementById('badge-guestbook-count');
+      const counter = document.getElementById('gb-entries-counter');
+      if (badge) badge.textContent = `${count} Einträge`;
+      if (counter) counter.textContent = `${count} Einträge`;
+    }
+
+    function renderGuestbookFeed(entries) {
+      const feedEl = document.getElementById('gb-entries-feed');
+      if (!feedEl) return;
+
+      if (!entries || entries.length === 0) {
+        feedEl.innerHTML = `
+          <div class="text-center py-8 text-slate-400 text-xs">
+            Noch keine Einträge vorhanden. Sei der Erste! 🍻
+          </div>
+        `;
+        return;
+      }
+
+      feedEl.innerHTML = entries.map(entry => {
+        let photoMarkup = '';
+        if (entry.photoUrl) {
+          photoMarkup = `
+            <div class="mt-2.5 rounded-lg overflow-hidden border border-white/10 shadow max-h-48">
+              <img src="${entry.photoUrl}" alt="Selfie" class="w-full h-full object-cover">
+            </div>
+          `;
+        }
+
+        return `
+          <div class="lodge-inner p-3.5 border border-white/10 shadow-sm space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-fut font-black text-xs flex items-center justify-center shadow">
+                  ${(entry.name || 'G')[0].toUpperCase()}
+                </span>
+                <span class="font-fut font-bold text-sm text-white">${escapeHtml(entry.name)}</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-mono">${entry.createdAt || ''}</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed break-words whitespace-pre-wrap pl-9">
+              ${escapeHtml(entry.message || '')}
+            </p>
+            ${photoMarkup}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addGbEmoji(emoji) {
+      const input = document.getElementById('gb-message-input');
+      input.value += emoji;
+      input.focus();
+    }
+
+    function handleGbPhotoSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentGbPhotoBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          const preview = document.getElementById('gb-photo-preview');
+          preview.src = currentGbPhotoBase64;
+          preview.classList.remove('hidden');
+          document.getElementById('btn-remove-gb-photo').classList.remove('hidden');
+          document.getElementById('gb-photo-btn-label').textContent = 'Foto ändern';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeGbPhoto() {
+      currentGbPhotoBase64 = null;
+      document.getElementById('gb-photo-input').value = '';
+      document.getElementById('gb-photo-preview').classList.add('hidden');
+      document.getElementById('btn-remove-gb-photo').classList.add('hidden');
+      document.getElementById('gb-photo-btn-label').textContent = 'Selfie/Foto anhängen (optional)';
+    }
+
+    async function submitGuestbookEntry() {
+      const messageInput = document.getElementById('gb-message-input');
+      const message = (messageInput.value || '').trim();
+
+      if (!message && !currentGbPhotoBase64) {
+        alert('Bitte schreibe eine Nachricht oder wähle ein Foto aus!');
+        messageInput.focus();
+        return;
+      }
+
+      if (!currentGuestName) {
+        openNameModal();
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-gb');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+
+      try {
+        const { delivered, data } = await sendDualChannel(
+          '/api/guestbook',
+          { name: currentGuestName, message, photo: currentGbPhotoBase64 },
+          {
+            file: currentGbPhotoBase64 || DUMMY_PNG,
+            name: currentGuestName,
+            message: message,
+            caption: JSON.stringify({
+              type: 'guestbook',
+              message: message,
+              name: currentGuestName,
+              hasRealPhoto: !!currentGbPhotoBase64
+            }),
+            type: 'guestbook'
+          }
+        );
+
+        if (delivered) {
+          // Add locally to immediate feed view
+          const localEntry = (data && data.entry) ? data.entry : {
+            id: 'local_gb_' + Date.now(),
+            name: currentGuestName,
+            message: message,
+            photoUrl: currentGbPhotoBase64,
+            createdAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+          };
+          currentGuestbookEntries.unshift(localEntry);
+          renderGuestbookFeed(currentGuestbookEntries);
+          updateGbBadgeCount(currentGuestbookEntries.length);
+
+          messageInput.value = '';
+          removeGbPhoto();
+          triggerAutoReturn(
+            '📖',
+            'EINTRAG VEREWIGT!',
+            'Danke für deine Worte! Du bist nun Teil der Hütten-Geschichte!'
+          );
+        } else {
+          alert('Übertragung fehlgeschlagen. Bitte prüfe deine mobile Internetverbindung!');
+        }
+      } catch (err) {
+        alert('Verbindungsfehler: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+    /* ============================================================ */
+    /* GLOBAL STATE & BADGES                                        */
+    /* ============================================================ */
+    async function fetchStateBadgeCounts() {
+      try {
+        const res = await fetch('/api/state');
+        const state = await res.json();
+        if (state) {
+          if (Array.isArray(state.musicQueue)) updateMusicBadgeCount(state.musicQueue.length);
+          if (Array.isArray(state.guestbook)) updateGbBadgeCount(state.guestbook.length);
+        }
+      } catch (e) {}
+    }
+
+    /* Toast Helper */
+    function showToast(text) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'px-4 py-2.5 rounded-xl bg-slate-900/95 border border-amber-500/50 text-white font-sans text-xs font-bold shadow-2xl flex items-center space-x-2 transition-all duration-300 transform translate-y-4 opacity-0';
+      toast.innerHTML = `<span>✨</span> <span>${escapeHtml(text)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      }, 20);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

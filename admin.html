@@ -4,9 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Turnier-Regie – Mobile Admin</title>
+
+  <!-- PWA & Mobile Web App Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#D4AF37">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hüttencup">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="icon" type="image/png" href="/assets/icon-192.png">
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="badges.js"></script>
+  <script src="badges.js?v=4"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=Inter:wght@400;500;600;700;800;900&family=Teko:wght@600;700;800;900&display=swap" rel="stylesheet">
   
@@ -96,6 +106,14 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.9);
       backdrop-filter: blur(20px);
+      padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+    }
+
+    /* iOS background attachment fix */
+    @media (max-width: 768px) {
+      html, body {
+        background-attachment: scroll;
+      }
     }
 
     /* Custom Scrollbar */
@@ -109,34 +127,38 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col text-gray-100 select-none pb-24">
+<body class="min-h-screen flex flex-col text-gray-100 select-none pb-28 sm:pb-24">
 
-  <!-- TOP HEADER (Compact for Mobile) -->
-  <header class="bg-[#090D14]/98 backdrop-blur-md border-b border-white/[0.08] px-4 py-2.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
-    <div class="flex items-center space-x-2.5">
+  <!-- TOP HEADER (Ultra Compact & Responsive for Mobile) -->
+  <header class="bg-[#090D14]/98 backdrop-blur-md border-b border-white/[0.08] px-2.5 sm:px-4 py-2 sm:py-2.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-2 shrink-0">
       <span class="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
       <div>
-        <h1 class="font-fut font-bold text-base tracking-wider text-[#D4AF37] uppercase leading-none">
+        <h1 class="font-fut font-bold text-sm sm:text-base tracking-wider text-[#D4AF37] uppercase leading-none">
           TURNIER-REGIE
         </h1>
       </div>
     </div>
 
     <!-- Event Switcher, Wettbüro Button & Connection Indicator -->
-    <div class="flex items-center space-x-2">
-      <button type="button" onclick="openEventConfigModal()" class="touch-btn px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow" title="Event & Anlass anpassen (Oktoberfest, Schützenfest, Silvester, Geburtstag)">
+    <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+      <button id="btn-pwa-install" type="button" onclick="triggerPwaInstall()" class="hidden touch-btn px-2 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-fut font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow-lg animate-pulse" title="Als App auf Smartphone installieren">
+        <span>📲</span> <span class="hidden xs:inline">APP</span>
+      </button>
+
+      <button type="button" onclick="openEventConfigModal()" class="touch-btn px-2 sm:px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow" title="Event & Anlass anpassen (Oktoberfest, Schützenfest, Silvester, Geburtstag)">
         <span id="header-event-icon">🥨</span>
-        <span id="header-event-name" class="max-w-[110px] truncate">OKTOBERFEST</span>
+        <span id="header-event-name" class="hidden sm:inline-block max-w-[110px] truncate">OKTOBERFEST</span>
         <span class="text-[10px] opacity-75">⚙️</span>
       </button>
 
-      <button type="button" onclick="openWettbueroModal()" class="touch-btn px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow">
-        <span>💰</span> <span>WETTBÜRO</span> <span id="header-pot-badge" class="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[10px] font-black">0 €</span>
+      <button type="button" onclick="openWettbueroModal()" class="touch-btn px-2 sm:px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow">
+        <span>💰</span> <span class="hidden sm:inline">WETTBÜRO</span> <span id="header-pot-badge" class="px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 text-[10px] font-black">0 €</span>
       </button>
 
-      <div class="flex items-center space-x-1.5 border-l border-white/10 pl-2">
+      <div class="flex items-center space-x-1.5 border-l border-white/10 pl-1.5 sm:pl-2">
         <span id="ws-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span id="ws-label" class="font-fut text-xs font-bold text-emerald-400 tracking-wider">LIVE</span>
+        <span id="ws-label" class="hidden sm:inline font-fut text-xs font-bold text-emerald-400 tracking-wider">LIVE</span>
       </div>
     </div>
   </header>
@@ -229,8 +251,8 @@
               <button type="button" id="btn-timer-10m" onclick="selectTimerMinutes(10)" class="timer-pill touch-btn py-1 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-[11px] font-fut font-bold tracking-wider uppercase border border-white/10">10m</button>
             </div>
             <input type="hidden" id="regie-custom-minutes" value="5">
-            <button type="button" id="btn-timer-go" onclick="startAnnounceTimer()" class="touch-btn px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow flex items-center space-x-1">
-              <span>GO</span>
+            <button type="button" id="btn-timer-go" onclick="startAnnounceTimer()" class="touch-btn px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow flex items-center justify-center space-x-1 shrink-0 min-w-[72px]">
+              <span>GO (5m)</span>
             </button>
           </div>
 
@@ -382,19 +404,67 @@
         </div>
 
         <!-- 4. GÄSTE-FOTOS & SLIDESHOW -->
-        <div id="tv-card-slideshow" class="lodge-card p-3.5 flex items-center justify-between border border-white/10 hover:border-emerald-400 transition-all shadow">
-          <div class="flex items-center space-x-3">
-            <span class="text-3xl">📸</span>
-            <div>
-              <div class="font-fut font-black text-sm text-emerald-300 uppercase tracking-wider">4. FOTO-SLIDESHOW</div>
-              <div class="text-[11px] text-slate-400">Party-Schnappschüsse der Gäste in Vollbild</div>
+        <div id="tv-card-slideshow" class="lodge-card p-3.5 flex flex-col space-y-2.5 border border-white/10 hover:border-emerald-400 transition-all shadow">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="text-3xl">📸</span>
+              <div>
+                <div class="font-fut font-black text-sm text-emerald-300 uppercase tracking-wider">4. FOTO-SLIDESHOW</div>
+                <div class="text-[11px] text-slate-400">Party-Schnappschüsse der Gäste in Vollbild</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="tv-photos-badge" class="text-xs px-2 py-0.5 rounded font-fut font-bold uppercase bg-amber-500 text-black shadow">0 Fotos</span>
+              <button id="btn-tv-card-slideshow" onclick="setTvViewMode('slideshow')" class="touch-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-white/10 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
+                STARTEN
+              </button>
             </div>
           </div>
-          <div class="flex items-center space-x-2">
-            <span id="tv-photos-badge" class="text-xs px-2 py-0.5 rounded font-fut font-bold uppercase bg-amber-500 text-black shadow">0 Fotos</span>
-            <button id="btn-tv-card-slideshow" onclick="setTvViewMode('slideshow')" class="touch-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-white/10 font-fut font-bold text-xs uppercase tracking-wider rounded-lg shadow">
-              STARTEN
-            </button>
+          <div class="pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-400">Party-Schnappschüsse & KI-Bilder sichern:</span>
+            <a href="/api/download_photos_zip" class="touch-btn px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow text-center">
+              <span>📦</span> <span>ALBUM ALS ZIP (1-KLICK)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- PARTY-PORTAL & MUSIKWÜNSCHE REGIE -->
+        <div id="tv-card-party-hub" class="lodge-card p-3.5 space-y-3 border-2 border-amber-500/40 bg-gradient-to-b from-slate-900 via-amber-950/20 to-slate-900 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-white/10 gap-2">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-3xl">🎉</span>
+              <div>
+                <div class="font-fut font-black text-sm text-amber-300 uppercase tracking-wider">
+                  GÄSTE-PORTAL & MUSIKWÜNSCHE
+                </div>
+                <div class="text-[11px] text-slate-400">A4 Poster für Gäste zum Aufhängen & Live-Playlist mit Voting</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <a href="party_qr.html" target="_blank" class="touch-btn px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-fut font-black text-xs uppercase tracking-wider shadow flex items-center space-x-1">
+                <span>🖨️</span>
+                <span>A4 POSTER</span>
+              </a>
+              <a href="party.html" target="_blank" class="touch-btn px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/15 font-fut font-bold text-xs uppercase tracking-wider">
+                📱 GAST-HUB
+              </a>
+            </div>
+          </div>
+
+          <!-- Music Queue List -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-fut font-black text-white uppercase tracking-wider flex items-center space-x-1">
+                <span>🎵</span> <span>EINGEREICHTE SONGS:</span>
+              </span>
+              <button onclick="copyAllSongsToClipboard()" class="text-[10px] text-amber-400 font-bold hover:underline">
+                📋 Alle Songs kopieren (Spotify)
+              </button>
+            </div>
+            
+            <div id="admin-music-queue-list" class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              <div class="text-center py-4 text-xs text-slate-500">Lade Musikwünsche...</div>
+            </div>
           </div>
         </div>
 
@@ -414,7 +484,7 @@
           </div>
 
           <!-- Quick Action Buttons for Urkunde & Champion -->
-          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-white/10">
             <button onclick="openSiegerurkundeModal()" class="touch-btn py-2 px-3 rounded-lg bg-gradient-to-r from-amber-600/30 via-amber-500/40 to-amber-600/30 hover:from-amber-500/40 hover:to-amber-400/40 border border-amber-400/60 text-amber-300 font-fut font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow">
               <span>📜</span>
               <span>SIEGERURKUNDE ERSTELLEN</span>
@@ -422,6 +492,189 @@
             <button onclick="openHallOfFameQuickModal()" class="touch-btn py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-slate-200 font-fut font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow">
               <span>🏛️</span>
               <span>HALL OF FAME</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- CHATGPT KI-GRUPPENBILD STUDIO (OPTION B)                 -->
+      <!-- ======================================================== -->
+      <div class="lodge-card p-4 space-y-4 shadow-xl border-2 border-emerald-500/50 bg-gradient-to-b from-slate-900 via-emerald-950/20 to-slate-900 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-2.5 gap-2">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xl">🤖</span>
+              <h3 class="font-fut font-black text-sm text-emerald-300 uppercase tracking-wider">
+                CHATGPT KI-GRUPPENBILD STUDIO
+              </h3>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Echte Gesichter per ChatGPT & Prompt in ein filmreifes Kunstwerk verwandeln</p>
+          </div>
+          <a href="checkin.html" class="touch-btn px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-fut font-black text-[11px] uppercase tracking-wider shadow flex items-center justify-center space-x-1 shrink-0 self-start sm:self-auto">
+            <span>📸</span> <span>GÄSTE-CHECKIN</span>
+          </a>
+        </div>
+
+        <!-- SCHRITT 1: MOTTO & PERSONEN (MIT GESCHLECHT ♂️ / ♀️) -->
+        <div class="space-y-2 bg-black/30 p-3 rounded-xl border border-white/10">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-fut font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5">
+              <span class="w-4 h-4 rounded-full bg-amber-500 text-black flex items-center justify-center text-[10px]">1</span>
+              <span>MOTTO & PERSONEN PRÜFEN</span>
+            </span>
+            <span id="selected-theme-label" class="text-xs text-amber-300 font-fut font-bold">The Hangover (Chalet)</span>
+          </div>
+
+          <!-- THEMEN CHIPS -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" id="group-photo-theme-selector">
+            <button type="button" onclick="selectGroupPhotoTheme('hangover')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-emerald-500/20 border-emerald-400 text-emerald-200 shadow" data-theme="hangover">
+              <span class="text-xl">🍾</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">The Hangover</div>
+                <div class="text-[9px] text-slate-400 truncate">Der Morgen danach</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('altersheim')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50" data-theme="altersheim">
+              <span class="text-xl">🧓</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">Altersheim</div>
+                <div class="text-[9px] text-slate-400 truncate">Rollator-Eskalation</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('disco80s')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50" data-theme="disco80s">
+              <span class="text-xl">🕺</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">80er Disco</div>
+                <div class="text-[9px] text-slate-400 truncate">Studio 54 & Vokuhila</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('sm_party')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50" data-theme="sm_party">
+              <span class="text-xl">⛓️</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">Lack & Leder</div>
+                <div class="text-[9px] text-slate-400 truncate">Fetisch-Fehlalarm</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('haushalt')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50" data-theme="haushalt">
+              <span class="text-xl">🧹</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">Männer vs. Frauen</div>
+                <div class="text-[9px] text-slate-400 truncate">Großputz-Rollen</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('sextoy')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50" data-theme="sextoy">
+              <span class="text-xl">🧸</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">Sextoy-Party</div>
+                <div class="text-[9px] text-slate-400 truncate">Kaffeeklatsch</div>
+              </div>
+            </button>
+            <button type="button" onclick="selectGroupPhotoTheme('camper')" class="theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50 col-span-2 sm:col-span-1" data-theme="camper">
+              <span class="text-xl">🩴</span>
+              <div class="min-w-0">
+                <div class="font-fut font-bold text-xs truncate">Die Dauercamper</div>
+                <div class="text-[9px] text-slate-400 truncate">Vorzelt & Dosenbier</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- PERSONEN-LISTE MIT GESCHLECHT-TOGGLE -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] font-fut font-bold uppercase tracking-wider text-slate-300">
+              <div class="space-x-2">
+                <span>PERSONEN:</span>
+                <button type="button" onclick="toggleAllChatGptPlayers(true)" class="text-emerald-400 hover:underline">Alle</button>
+                <span class="text-slate-600">•</span>
+                <button type="button" onclick="toggleAllChatGptPlayers(false)" class="text-slate-400 hover:underline">Keine</button>
+              </div>
+              <span class="text-[9px] text-slate-400">Tippe auf ♂️ / ♀️ zum Wechseln</span>
+            </div>
+            <div id="group-players-selection-chips" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-black/50 rounded-lg border border-white/10">
+              <!-- Dynamisch gerendert -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHRITT 2: CHATGPT-PAKET ERSTELLEN -->
+        <div class="space-y-2 bg-black/30 p-3 rounded-xl border border-white/10">
+          <span class="text-[11px] font-fut font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5">
+            <span class="w-4 h-4 rounded-full bg-emerald-500 text-black flex items-center justify-center text-[10px]">2</span>
+            <span>CHATGPT-PAKET ERZEUGEN</span>
+          </span>
+          <p class="text-[11px] text-slate-300 leading-snug">
+            Erstellt automatisch das nummerierte <strong>Gesichter-Referenzblatt</strong> und kopiert den maßgeschneiderten englischen Film-Prompt in deine Zwischenablage.
+          </p>
+          <button id="btn-create-chatgpt-bundle" onclick="createChatGptBundle()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-black font-fut font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/25 active:scale-98 transition-all">
+            <span class="text-base">📦</span>
+            <span id="btn-create-bundle-text">CHATGPT-PAKET ERSTELLEN & PROMPT KOPIEREN</span>
+          </button>
+
+          <!-- BUNDLE VORSCHAU & WEITERLEITUNG -->
+          <div id="bundle-result-box" class="hidden space-y-2.5 pt-2 border-t border-white/10">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-emerald-300 font-fut font-bold">REFERENZ-SHEET BEREIT!</span>
+              <a id="btn-download-sheet" href="#" download="chatgpt_face_reference.jpg" class="text-amber-400 hover:underline font-fut font-bold text-[11px] flex items-center space-x-1">
+                <span>⬇️</span> <span>BILD HERUNTERLADEN</span>
+              </a>
+            </div>
+            <div class="aspect-video bg-black rounded-lg overflow-hidden border border-white/10 flex items-center justify-center">
+              <img id="bundle-preview-sheet" src="" alt="Face Reference Sheet" class="w-full h-full object-contain">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="copyGeneratedPromptAgain()" class="touch-btn py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-white font-fut font-bold text-[11px] uppercase tracking-wider flex items-center justify-center space-x-1.5 border border-white/15">
+                <span>📋</span> <span>PROMPT KOPIEREN</span>
+              </button>
+              <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="touch-btn py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-fut font-black text-[11px] uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow">
+                <span>🚀</span> <span>CHATGPT ÖFFNEN</span>
+              </a>
+            </div>
+            <div class="text-[10px] text-slate-400 bg-white/5 p-2 rounded border border-white/5 leading-relaxed">
+              <strong>Anleitung in ChatGPT:</strong><br>
+              1. Ziehe das heruntergeladene Referenz-Sheet ins Chatfenster.<br>
+              2. Füge den kopierten Prompt mit <code>Strg+V</code> ein und drücke Enter.<br>
+              3. Speichere das fertige KI-Bild auf deinem Smartphone/PC!
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHRITT 3: FERTIGES KI-BILD HOCHLADEN & LIVE ENTHÜLLEN -->
+        <div class="space-y-2 bg-black/30 p-3 rounded-xl border border-white/10">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-fut font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5">
+              <span class="w-4 h-4 rounded-full bg-amber-500 text-black flex items-center justify-center text-[10px]">3</span>
+              <span>BILD HOCHLADEN & AM TV ENTHÜLLEN</span>
+            </span>
+            <span class="text-[10px] text-amber-300 font-fut font-bold">DRIVE SYNC</span>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            Lade das von ChatGPT generierte Meisterwerk hier hoch. Es wird <strong>automatisch in deinen Google Drive Ordner</strong> gesichert und sofort <strong>auf dem 47" Fernseher enthüllt</strong>!
+          </p>
+
+          <!-- Upload Dropzone -->
+          <div id="dropzone-ai-image" onclick="document.getElementById('input-ai-image').click()" class="border-2 border-dashed border-amber-500/40 hover:border-amber-400/80 rounded-xl p-4 text-center cursor-pointer transition-all bg-amber-500/5 hover:bg-amber-500/10 space-y-1.5">
+            <div class="text-3xl">📸</div>
+            <div class="font-fut font-bold text-xs text-amber-300 uppercase tracking-wider">
+              BILD HIER REINZIEHEN ODER TIPPEN
+            </div>
+            <div class="text-[10px] text-slate-400">JPG, PNG oder WebP aus ChatGPT</div>
+            <input type="file" id="input-ai-image" accept="image/*" class="hidden" onchange="handleAiImageSelected(this.files[0])">
+          </div>
+
+          <!-- Status / Letztes Bild -->
+          <div id="published-group-photo-box" class="hidden lodge-inner p-2.5 rounded-lg border border-amber-400/40 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-amber-300 font-fut font-bold uppercase tracking-wider">AKTIV AUF DEM TV:</span>
+              <span id="published-group-photo-time" class="text-[10px] text-slate-400"></span>
+            </div>
+            <div class="aspect-video bg-black rounded-lg overflow-hidden border border-white/10 flex items-center justify-center">
+              <img id="published-group-photo-img" src="" alt="Gruppenbild auf TV" class="w-full h-full object-cover">
+            </div>
+            <button onclick="revealPublishedPhotoAgain()" class="w-full touch-btn py-1.5 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-fut font-bold text-xs uppercase tracking-wider">
+              📺 ERNEUT AUF DEM TV ENTHÜLLEN
             </button>
           </div>
         </div>
@@ -491,14 +744,14 @@
     <section id="view-players" class="space-y-4 hidden">
       
       <!-- Section Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h2 class="font-fut font-bold text-base tracking-wider text-amber-400 uppercase">
             KADER & TURNIER-SETUP
           </h2>
           <span class="text-[11px] text-slate-400">Karten freigeben, Spieler verwalten & Disziplinen</span>
         </div>
-        <div class="flex space-x-1.5">
+        <div class="flex space-x-1.5 shrink-0">
           <button onclick="document.getElementById('card-file-input').click()" class="touch-btn px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
             IMPORTIEREN
           </button>
@@ -537,14 +790,14 @@
 
       <!-- SPIELE-VERWALTUNG (EHEMALS TAB SPIELE) -->
       <div id="section-games-manage" class="lodge-card p-4 space-y-3 border border-white/10 shadow-lg">
-        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-2 gap-2">
           <div>
             <h3 class="font-fut font-bold text-sm tracking-wider text-amber-400 uppercase">
               WETTKAMPF-DISZIPLINEN
             </h3>
             <p class="text-[11px] text-slate-400">Spiele bearbeiten, Punkte-Multiplikatoren anpassen</p>
           </div>
-          <button onclick="openNewGameModal()" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs tracking-wider uppercase rounded shadow">
+          <button onclick="openNewGameModal()" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs tracking-wider uppercase rounded shadow shrink-0 self-start sm:self-auto">
             + NEUES SPIEL
           </button>
         </div>
@@ -596,9 +849,66 @@
     </div>
   </nav>
 
+  <!-- MODAL: PWA APP INSTALLIEREN -->
+  <div id="modal-pwa-install" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="lodge-card p-5 max-w-sm w-full space-y-4 border border-amber-500/50 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xl shadow-lg">
+            🏆
+          </div>
+          <div>
+            <h3 class="font-fut font-black text-base text-amber-300 uppercase tracking-wider">HÜTTENCUP APP</h3>
+            <p class="text-[11px] text-slate-400">Als echte Smartphone-App installieren</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-pwa-install')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <p class="text-slate-200 font-medium">
+          Installiere die Turnier-Regie direkt auf deinem Homescreen – funktioniert im blitzschnellen Vollbild ohne störende Adressleiste!
+        </p>
+
+        <!-- Android Chrome Box -->
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-white/10 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-amber-400 font-fut font-bold text-xs uppercase tracking-wider">
+              <span>🤖</span> <span>ANDROID (CHROME)</span>
+            </div>
+            <button id="btn-pwa-direct-install" onclick="triggerNativeInstallPrompt()" class="hidden touch-btn px-2.5 py-1 bg-amber-500 text-slate-950 font-fut font-black text-[10px] uppercase rounded">
+              INSTALLIEREN ➔
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            Tippe oben rechts auf <span class="text-amber-300 font-bold">⋮ (Drei Punkte)</span> und wähle <span class="text-amber-300 font-bold">"App installieren"</span> oder <span class="text-amber-300 font-bold">"Zum Startbildschirm hinzufügen"</span>.
+          </p>
+        </div>
+
+        <!-- iOS Safari Box -->
+        <div class="p-3 rounded-xl bg-slate-800/80 border border-white/10 space-y-1.5">
+          <div class="flex items-center space-x-2 text-amber-400 font-fut font-bold text-xs uppercase tracking-wider">
+            <span>🍎</span> <span>APPLE IPHONE (SAFARI)</span>
+          </div>
+          <ol class="text-[11px] text-slate-300 space-y-1 list-decimal list-inside">
+            <li>Tippe unten in Safari auf das <span class="text-amber-300 font-bold">Teilen-Symbol</span> (Viereck mit Pfeil nach oben 📤).</li>
+            <li>Scrolle etwas herunter und wähle <span class="text-amber-300 font-bold">"Zum Home-Bildschirm"</span> (➕).</li>
+            <li>Oben rechts auf <span class="text-amber-300 font-bold">"Hinzufügen"</span> tippen – fertig!</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeModal('modal-pwa-install')" class="touch-btn w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-black text-xs uppercase tracking-wider shadow text-center">
+          VERSTANDEN
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: NEUES SPIEL ANLEGEN -->
-  <div id="modal-game" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+  <div id="modal-game" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-2">
         <h3 id="modal-game-title" class="font-display font-extrabold text-lg text-amber-400 uppercase">NEUES SPIEL ANLEGEN</h3>
         <button onclick="closeModal('modal-game')" class="text-gray-400 hover:text-white text-lg">✕</button>
@@ -653,9 +963,8 @@
   </div>
 
   <!-- MODAL: NEUER SPIELER ANLEGEN -->
-  <!-- MODAL: NEUER SPIELER ANLEGEN -->
-  <div id="modal-player" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-white/15 rounded-xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+  <div id="modal-player" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-slate-900 border border-white/15 rounded-xl p-5 max-w-sm w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-2">
         <h3 class="font-fut font-bold text-lg text-amber-400 uppercase tracking-wider">NEUER SPIELER</h3>
         <button onclick="closeModal('modal-player')" class="text-slate-400 hover:text-white font-fut text-sm font-bold uppercase">X</button>
@@ -892,11 +1201,11 @@
         <!-- 1. Wer wettet? -->
         <div class="space-y-1">
           <label class="text-[10px] font-fut font-bold text-slate-400 uppercase">1. WER WETTET? (SPIELER ODER GAST)</label>
-          <div class="flex space-x-2">
+          <div class="flex flex-col sm:flex-row gap-2">
             <select id="wb-player-select" onchange="onWbPlayerSelect(this.value)" class="flex-1 bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-amber-500">
               <!-- Dynamically populated with tournament players -->
             </select>
-            <input type="text" id="wb-custom-name" placeholder="Oder Gast-Name" class="w-36 bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="wb-custom-name" placeholder="Oder Gast-Name" class="w-full sm:w-40 bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
           </div>
         </div>
 
@@ -923,8 +1232,8 @@
             <button type="button" id="wb-pill-10" onclick="selectBetAmount(10)" class="wb-amount-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10">10 €</button>
             <button type="button" id="wb-pill-20" onclick="selectBetAmount(20)" class="wb-amount-pill touch-btn py-1.5 bg-slate-800 hover:bg-amber-500/20 text-amber-300 rounded text-xs font-fut font-bold tracking-wider uppercase border border-white/10">20 €</button>
           </div>
-          <div class="flex items-center space-x-2 pt-1">
-            <div class="flex items-center space-x-1.5 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 flex-1">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1">
+            <div class="flex items-center space-x-1.5 bg-black/40 border border-white/10 rounded-lg px-2.5 py-1">
               <span class="text-[10px] font-fut font-bold text-slate-400 uppercase">EIGENER BETRAG:</span>
               <input type="number" id="wb-custom-amount" min="0.5" step="0.5" value="5" oninput="onCustomBetAmount(this.value)" class="w-16 bg-black border border-white/20 rounded py-0.5 px-1.5 text-xs text-center font-bold text-amber-300 focus:outline-none focus:border-amber-500">
               <span class="text-[10px] text-slate-400 font-fut font-bold">€</span>
@@ -982,7 +1291,7 @@
   <!-- MODAL: OFFIZIELLE SIEGERURKUNDE & CHAMPION-VERLEIHUNG        -->
   <!-- ============================================================ -->
   <div id="modal-siegerurkunde" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
-    <div class="lodge-card w-full max-w-4xl p-4 sm:p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+    <div class="lodge-card w-full max-w-4xl p-4 sm:p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto max-h-[94vh] overflow-y-auto">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -997,7 +1306,7 @@
       </div>
 
       <!-- Live Canvas Preview Container (Responsive 16:9 / A4 Preview) -->
-      <div class="relative bg-black/60 rounded-xl border border-white/10 p-2 overflow-hidden flex flex-col items-center justify-center shadow-inner min-h-[320px]">
+      <div class="relative bg-black/60 rounded-xl border border-white/10 p-2 overflow-hidden flex flex-col items-center justify-center shadow-inner min-h-[220px] sm:min-h-[320px]">
         <canvas id="certificate-canvas" class="max-w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-2xl border border-amber-500/30"></canvas>
         <div id="certificate-loading-spinner" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center space-y-3 text-amber-300 font-fut font-bold text-sm hidden">
           <span class="text-4xl animate-spin">⏳</span>
@@ -1037,7 +1346,7 @@
   <!-- MODAL: HALL OF FAME / EWIGE MEISTER-LISTE                    -->
   <!-- ============================================================ -->
   <div id="modal-hall-of-fame" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
-    <div class="lodge-card w-full max-w-lg p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+    <div class="lodge-card w-full max-w-lg p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center space-x-3">
           <span class="text-3xl">🏛️</span>
@@ -1065,7 +1374,7 @@
   <!-- MODAL: EVENT- & ANLASS-MANAGER (OKTOBERFEST, SCHÜTZENFEST)   -->
   <!-- ============================================================ -->
   <div id="modal-event-config" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 hidden select-none overflow-y-auto">
-    <div class="lodge-card w-full max-w-lg p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto">
+    <div class="lodge-card w-full max-w-lg p-4 sm:p-5 border border-amber-400/50 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <div class="flex items-center space-x-3">
           <span class="text-3xl">⚙️</span>
@@ -1080,7 +1389,7 @@
       <!-- Quick Preset Buttons (1-Click Auswahl) -->
       <div class="space-y-1.5">
         <label class="text-[11px] font-fut font-bold text-slate-300 uppercase tracking-wider">1-Click Anlass-Vorlagen:</label>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <button type="button" onclick="applyEventPreset('oktoberfest')" class="p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/40 text-left transition-all">
             <div class="text-xl">🥨</div>
             <div class="font-fut font-black text-xs text-amber-300 uppercase">Oktoberfest</div>
@@ -1142,19 +1451,39 @@
             <input type="number" id="cfg-event-year" class="w-full bg-slate-900 border border-white/20 rounded-lg px-3 py-1.5 text-sm font-fut font-bold text-white focus:border-amber-400 focus:outline-none" value="2026">
           </div>
         </div>
+
+        <!-- SAUBERER NEUSTART VOR DEM EVENT -->
+        <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 space-y-2 mt-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div class="flex items-center space-x-2 text-rose-400 font-fut font-bold text-xs uppercase tracking-wider">
+              <span>🔄</span> <span>SAUBERER NEUSTART VOR DEM FEST</span>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold shrink-0 self-start sm:self-auto">AUTOMATISCHES BACKUP</span>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            Setzt Punkte, Wetten und Duelle für das neue Fest zurück. Ein komplettes Backup wird automatisch im Ordner <code>archive/</code> gesichert. Die Hall of Fame bleibt erhalten!
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <button type="button" onclick="confirmResetTournament('scores_only')" class="touch-btn py-2 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-fut font-bold text-[10px] uppercase tracking-wider text-center">
+              PUNKTE AUF 0 (KADER BEHALTEN)
+            </button>
+            <button type="button" onclick="confirmResetTournament('full')" class="touch-btn py-2 px-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 border border-rose-500/40 font-fut font-bold text-[10px] uppercase tracking-wider text-center">
+              KOMPLETT LEEREN (FRISCHER START)
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="pt-2 border-t border-white/10 flex items-center justify-between">
-        <span class="text-[11px] text-slate-400">Wird sofort live übertragen.</span>
-        <div class="flex items-center space-x-2">
-          <button type="button" onclick="closeModal('modal-event-config')" class="touch-btn px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs uppercase tracking-wider rounded-lg">
+      <div class="pt-2 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <span class="text-[11px] text-slate-400 text-center sm:text-left">Wird sofort live übertragen.</span>
+        <div class="flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeModal('modal-event-config')" class="touch-btn flex-1 sm:flex-none px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-fut font-bold text-xs uppercase tracking-wider rounded-lg text-center">
             Abbrechen
           </button>
-          <button type="button" onclick="saveEventConfig()" class="touch-btn px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow-lg flex items-center space-x-1.5">
+          <button type="button" onclick="saveEventConfig()" class="touch-btn flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black text-xs uppercase tracking-wider rounded-lg shadow-lg flex items-center justify-center space-x-1.5 text-center">
             <span>💾</span>
             <span>Einstellung Speichern</span>
           </button>
-        </div>
       </div>
     </div>
   </div>
@@ -1252,6 +1581,16 @@
             showToast(`⭐ LEVEL UP: ${msg.payload.playerName} ist jetzt Level ${msg.payload.newLevel} (${msg.payload.title})!`);
             haptic();
             playAdminSound('gong');
+          } else if (msg.type === 'NEW_SONG_REQUEST') {
+            showToast(`🎵 Neuer Musikwunsch: "${msg.payload.title}" von ${msg.payload.requestedBy}`);
+            haptic();
+            renderAdminMusicQueue();
+          } else if (msg.type === 'MUSIC_QUEUE_UPDATED') {
+            if (tournament) tournament.musicQueue = msg.payload;
+            renderAdminMusicQueue();
+          } else if (msg.type === 'NEW_GUESTBOOK_ENTRY') {
+            showToast(`📖 Neuer Gästebuch-Eintrag von ${msg.payload.name}`);
+            haptic();
           }
         } catch (e) {
           console.error(e);
@@ -1286,15 +1625,18 @@
         const navEl = document.getElementById(`nav-${t}`);
         if (t === tabId) {
           if (viewEl) viewEl.classList.remove('hidden');
-          if (navEl) navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-[#D4AF37] font-bold border-t-2 border-[#D4AF37] transition-all bg-white/[0.02]';
+          if (navEl) navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-[#D4AF37] font-bold border-t-2 border-[#D4AF37] transition-all bg-white/[0.02] relative';
         } else {
           if (viewEl) viewEl.classList.add('hidden');
-          if (navEl) navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all';
+          if (navEl) navEl.className = 'nav-btn flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 border-t-2 border-transparent transition-all relative';
         }
       });
       if (tabId === 'players') {
         renderPlayersManageList();
         renderGamesManageList();
+      }
+      if (tabId === 'tv') {
+        loadGroupPortraits();
       }
       haptic();
     }
@@ -1415,14 +1757,14 @@
         dynContainer.innerHTML = `
           <!-- BIERPONG MATCH CONTROLS -->
           <div class="lodge-card p-4 border border-red-500/40 space-y-4">
-            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-2 gap-2">
               <div>
                 <h3 class="font-fut font-bold text-sm text-amber-300 uppercase tracking-wider">
                   BIERPONG • TEAM-DUELL (RUNDE ${ev.round || 1})
                 </h3>
                 <p class="text-[11px] text-slate-400">Zufällige Teams 2v2 oder 2v1 mit automatischem Handicap</p>
               </div>
-              <button onclick="generateRandomTeams('${activeGame.id}')" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs rounded uppercase tracking-wider shadow">
+              <button onclick="generateRandomTeams('${activeGame.id}')" class="touch-btn px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-xs rounded uppercase tracking-wider shadow shrink-0 self-start sm:self-auto">
                 TEAMS AUSLOSEN
               </button>
             </div>
@@ -1549,17 +1891,17 @@
               </div>
 
               <!-- 10 Touch-Friendly Star Chips (2 rows of 5) -->
-              <div class="grid grid-cols-5 gap-2">
+              <div class="grid grid-cols-5 gap-1.5 sm:gap-2">
                 ${Array.from({ length: max }, (_, i) => {
                   const isHit = !!localTurnShots[i];
                   return `
-                    <button onclick="toggleStarShot(${i}, '${activeGame.id}')" class="touch-btn py-3 px-1 rounded-lg flex flex-col items-center justify-center border transition-all duration-150 font-fut ${
+                    <button onclick="toggleStarShot(${i}, '${activeGame.id}')" class="touch-btn py-2.5 px-1 rounded-lg flex flex-col items-center justify-center border transition-all duration-150 font-fut ${
                       isHit 
                         ? 'bg-amber-500 text-slate-950 border-amber-300 shadow ring-1 ring-amber-300' 
                         : 'bg-[#090d14] border-white/10 text-slate-400 hover:border-slate-500'
                     }">
-                      <span class="text-base font-bold leading-none">${isHit ? 'TREFFER' : '—'}</span>
-                      <span class="text-[10px] font-bold mt-1 ${isHit ? 'text-black' : 'text-slate-400'}">Schuss ${i + 1}</span>
+                      <span class="text-xs sm:text-sm font-black leading-none">${isHit ? 'TREFFER' : '—'}</span>
+                      <span class="text-[9px] font-fut font-bold mt-1 ${isHit ? 'text-black' : 'text-slate-400'}">#${i + 1}</span>
                     </button>
                   `;
                 }).join('')}
@@ -2238,7 +2580,7 @@
       }
 
       if (goBtn) {
-        goBtn.innerHTML = `<span>GO: JETZT AUF TV STARTEN (${wizardSelectedMinutes} MIN)</span>`;
+        goBtn.innerHTML = `<span>GO: TV START (${wizardSelectedMinutes}M)</span>`;
       }
     }
 
@@ -2297,7 +2639,7 @@
 
       const goBtn = document.getElementById('btn-timer-go');
       if (goBtn) {
-        goBtn.innerHTML = `<span>GO: TIMER STARTEN (${selectedTimerMinutes} MIN)</span>`;
+        goBtn.innerHTML = `<span>GO (${selectedTimerMinutes}m)</span>`;
       }
     }
 
@@ -2319,7 +2661,7 @@
 
       const goBtn = document.getElementById('btn-timer-go');
       if (goBtn) {
-        goBtn.innerHTML = `<span>GO: TIMER STARTEN (${selectedTimerMinutes} MIN)</span>`;
+        goBtn.innerHTML = `<span>GO (${selectedTimerMinutes}m)</span>`;
       }
     }
 
@@ -3056,6 +3398,32 @@
       showToast(`🎉 Anlass "${eventName}" erfolgreich gespeichert & live übertragen!`, 'success');
     }
 
+    async function confirmResetTournament(mode) {
+      const modeText = mode === 'full' 
+        ? '⚠️ ACHTUNG: Möchtest du wirklich einen KOMPLETTEN NEUSTART durchführen?\n\n- Alle aktuellen Spieler & Fotos werden geleert\n- Alle Punkte & Wetten werden auf 0 gesetzt\n- Ein automatisches Backup wird in "archive/" gesichert\n- Die Hall of Fame bleibt erhalten'
+        : '🔄 Möchtest du alle Punkte & Wetten auf 0 setzen?\n\n- Die Spieler im Kader bleiben erhalten\n- Alle Spielstände & Wetten werden auf 0 gesetzt\n- Ein automatisches Backup wird in "archive/" gesichert';
+
+      if (!confirm(modeText)) return;
+
+      haptic();
+      try {
+        const res = await fetch('/api/tournament/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          closeModal('modal-event-config');
+          showToast(`✅ Sauberer Neustart erfolgreich! Backup gesichert.`, 'success', 5000);
+        } else {
+          showToast('Fehler beim Zurücksetzen: ' + (data.error || 'Unbekannt'), 'error');
+        }
+      } catch (err) {
+        showToast('Verbindungsfehler beim Zurücksetzen.', 'error');
+      }
+    }
+
     function renderEventHeader() {
       const meta = tournament?.meta || {};
       const icon = meta.icon || '🥨';
@@ -3078,6 +3446,7 @@
       renderPlayersManageList();
       renderPhotosAdmin();
       renderWettbueroUI();
+      renderAdminMusicQueue();
     }
 
     function updateGameDropdown() {
@@ -3137,39 +3506,39 @@
       sorted.forEach((p, index) => {
         const score = (game.scores && game.scores[p.id]) || 0;
         const row = document.createElement('div');
-        row.className = 'bg-[#0E121A] border border-white/[0.08] rounded-md p-3 flex items-center justify-between shadow-sm';
+        row.className = 'bg-[#0E121A] border border-white/[0.08] rounded-md p-2.5 sm:p-3 flex items-center justify-between shadow-sm gap-2';
 
         row.innerHTML = `
           <!-- Player Info -->
-          <div class="flex items-center space-x-3 min-w-0">
-            <span class="w-6 text-xs font-fut font-bold text-gray-400 text-center">${index + 1}.</span>
-            <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-10 h-10 rounded-full object-cover border border-[#D4AF37]/60">
-            <div class="min-w-0">
-              <div class="font-bold text-sm text-white truncate">${p.name}</div>
-              <div class="text-[11px] text-[#D4AF37]/90 font-medium">OVR ${p.ovr || 85} • ${p.nickname || ''}</div>
+          <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+            <span class="w-5 text-xs font-fut font-bold text-gray-400 text-center shrink-0">${index + 1}.</span>
+            <img src="${p.portrait || 'chef.jfif'}" alt="${p.name}" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#D4AF37]/60 shrink-0">
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-xs sm:text-sm text-white truncate">${p.name}</div>
+              <div class="text-[10px] sm:text-[11px] text-[#D4AF37]/90 font-medium truncate">OVR ${p.ovr || 85} ${p.nickname ? `• "${p.nickname}"` : ''}</div>
             </div>
           </div>
 
           <!-- Quick Steppers & Current Score -->
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
             <!-- Minus Button -->
-            <button onclick="changeScore('${game.id}', '${p.id}', -${step})" class="touch-btn w-9 h-9 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-black text-base flex items-center justify-center border border-white/10 shadow">
+            <button onclick="changeScore('${game.id}', '${p.id}', -${step})" class="touch-btn w-8 h-8 sm:w-9 sm:h-9 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-black text-sm sm:text-base flex items-center justify-center border border-white/10 shadow">
               −
             </button>
 
             <!-- Score Display -->
-            <div class="w-14 text-center">
-              <span class="font-fut text-2xl font-black text-[#D4AF37]">${score}</span>
-              <div class="text-[9px] text-gray-400 uppercase -mt-1">${game.unit || 'Pkt'}</div>
+            <div class="w-10 sm:w-14 text-center">
+              <span class="font-fut text-xl sm:text-2xl font-black text-[#D4AF37] leading-tight block">${score}</span>
+              <div class="text-[8px] sm:text-[9px] text-gray-400 uppercase -mt-0.5 leading-none">${game.unit || 'Pkt'}</div>
             </div>
 
             <!-- Plus Button -->
-            <button onclick="changeScore('${game.id}', '${p.id}', +${step})" class="touch-btn w-9 h-9 rounded bg-[#D4AF37] hover:bg-[#C5A059] text-black font-black text-lg flex items-center justify-center border border-[#E5C483]/50 shadow">
+            <button onclick="changeScore('${game.id}', '${p.id}', +${step})" class="touch-btn w-8 h-8 sm:w-9 sm:h-9 rounded bg-[#D4AF37] hover:bg-[#C5A059] text-black font-black text-base sm:text-lg flex items-center justify-center border border-[#E5C483]/50 shadow">
               +
             </button>
 
             <!-- Extra Big Point Button (+5 or +10) -->
-            <button onclick="changeScore('${game.id}', '${p.id}', +${step * 5})" class="touch-btn px-2.5 h-9 rounded bg-[#8A6F1D] hover:bg-[#786017] text-white font-extrabold text-xs flex items-center justify-center border border-[#D4AF37]/30 shadow">
+            <button onclick="changeScore('${game.id}', '${p.id}', +${step * 5})" class="touch-btn px-2 sm:px-2.5 h-8 sm:h-9 rounded bg-[#8A6F1D] hover:bg-[#786017] text-white font-extrabold text-[11px] sm:text-xs flex items-center justify-center border border-[#D4AF37]/30 shadow">
               +${step * 5}
             </button>
           </div>
@@ -3601,9 +3970,9 @@
           <div class="p-1.5 flex flex-col justify-between flex-1">
             <div class="text-[11px] font-bold text-white truncate">${p.sender || 'Gast'}</div>
             ${p.caption ? `<div class="text-[9px] text-amber-300/80 truncate">"${p.caption}"</div>` : ''}
-            <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5">
-              <span class="text-[8px] text-gray-500">${p.uploadedAt || ''}</span>
-              <button onclick="deletePhoto('${p.id}')" class="text-rose-400 hover:text-rose-300 font-bold text-[9px] px-1 tracking-wider">
+            <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/5 gap-1">
+              <span class="text-[8px] text-gray-500 truncate max-w-[50px]">${p.uploadedAt || ''}</span>
+              <button onclick="deletePhoto('${p.id}')" class="text-rose-400 hover:text-rose-300 font-bold text-[9px] px-1 tracking-wider shrink-0">
                 LÖSCHEN
               </button>
             </div>
@@ -3642,6 +4011,410 @@
       } else {
         showToast(`Link: ${guestUploadPageUrl}`);
       }
+    }
+
+    /* ============================================================ */
+    /* LIVE PARTY JUKEBOX REGIE & PLAYLIST CONTROLLER               */
+    /* ============================================================ */
+    function renderAdminMusicQueue() {
+      const queue = (tournament && tournament.musicQueue) ? tournament.musicQueue : [];
+      const listEl = document.getElementById('admin-music-queue-list');
+      if (!listEl) return;
+
+      if (queue.length === 0) {
+        listEl.innerHTML = '<div class="text-center py-4 text-xs text-slate-500">Noch keine Musikwünsche eingereicht.</div>';
+        return;
+      }
+
+      // Sort: 'playing' first, then votes desc, then timestamp asc
+      const sorted = [...queue].sort((a, b) => {
+        if (a.status === 'playing' && b.status !== 'playing') return -1;
+        if (b.status === 'playing' && a.status !== 'playing') return 1;
+        const vA = (a.votes || []).length;
+        const vB = (b.votes || []).length;
+        if (vB !== vA) return vB - vA;
+        return a.timestamp - b.timestamp;
+      });
+
+      listEl.innerHTML = sorted.map((song, idx) => {
+        const votes = (song.votes || []).length;
+        const isPlaying = song.status === 'playing';
+        const isPlayed = song.status === 'played';
+
+        return `
+          <div class="lodge-inner p-2 flex items-center justify-between border ${isPlaying ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-white/10'} rounded-lg shadow-sm">
+            <div class="flex items-center space-x-2 min-w-0 pr-2">
+              <span class="w-5 h-5 rounded bg-white/10 text-[11px] font-fut font-bold flex items-center justify-center text-amber-400">#${idx+1}</span>
+              <div class="min-w-0">
+                <div class="flex items-center space-x-1.5">
+                  <span class="font-fut font-bold text-xs text-white truncate max-w-[130px] sm:max-w-[200px]">${escapeHtml(song.title)}</span>
+                  ${isPlaying ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40">LÄUFT 🎵</span>' : ''}
+                  ${isPlayed ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-500/20 text-slate-400 font-bold">GESPIELT ✅</span>' : ''}
+                </div>
+                <div class="text-[10px] text-slate-400 truncate max-w-[130px] sm:max-w-[200px]">
+                  ${escapeHtml(song.artist || 'Unbekannt')} • von <span class="text-amber-300">${escapeHtml(song.requestedBy)}</span> • <span class="text-amber-400 font-bold">🔥 ${votes}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex items-center space-x-1 shrink-0">
+              <button onclick="copySongForSpotify('${escapeJs(song.title)}', '${escapeJs(song.artist)}')" class="touch-btn px-2 py-1 rounded bg-white/5 hover:bg-white/15 text-slate-300 text-[10px] font-bold" title="Titel & Künstler für Spotify kopieren">
+                📋
+              </button>
+              ${isPlaying 
+                ? `<button onclick="setAdminSongStatus('${song.id}', 'played')" class="touch-btn px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 text-[10px] font-bold">✅ Fertig</button>`
+                : `<button onclick="setAdminSongStatus('${song.id}', 'playing')" class="touch-btn px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold">▶️ Läuft</button>`
+              }
+              <button onclick="setAdminSongStatus('${song.id}', 'delete')" class="touch-btn px-1.5 py-1 text-rose-400 hover:text-rose-300 text-[10px] font-bold" title="Löschen">
+                ✕
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function setAdminSongStatus(songId, status) {
+      haptic();
+      try {
+        const res = await fetch('/api/music/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songId, status })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          if (status === 'delete') {
+            showToast('Song von der Liste entfernt');
+          } else if (status === 'playing') {
+            showToast('Song als "Läuft gerade" markiert 🎵');
+          } else {
+            showToast('Song als "Gespielt" markiert ✅');
+          }
+          const queueRes = await fetch('/api/music/queue');
+          const queueData = await queueRes.json();
+          if (queueData.ok && tournament) tournament.musicQueue = queueData.queue;
+          renderAdminMusicQueue();
+        }
+      } catch (e) {
+        showToast('Fehler beim Aktualisieren des Song-Status');
+      }
+    }
+
+    function copySongForSpotify(title, artist) {
+      const query = artist && artist !== 'Unbekannt' ? `${title} ${artist}` : title;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(query);
+        showToast(`"${query}" in Zwischenablage kopiert! (Spotify bereit)`);
+      } else {
+        showToast(query);
+      }
+    }
+
+    function copyAllSongsToClipboard() {
+      const queue = (tournament && tournament.musicQueue) ? tournament.musicQueue : [];
+      if (queue.length === 0) {
+        showToast('Keine Songs in der Liste');
+        return;
+      }
+      const text = queue.map((s, idx) => `${idx + 1}. ${s.title} - ${s.artist} (${(s.votes||[]).length} Votes, gewünscht von ${s.requestedBy})`).join('\n');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+        showToast('Ganze Playlist in Zwischenablage kopiert!');
+      } else {
+        alert(text);
+      }
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    /* ============================================================ */
+    /* CHATGPT KI-GRUPPENBILD STUDIO (OPTION B) CONTROLLER          */
+    /* ============================================================ */
+    let selectedGroupTheme = 'hangover';
+    let groupPortraitsList = [];
+    let selectedGroupPlayers = new Set();
+    let playerGenderMap = {};
+    let generatedPromptEn = '';
+    let lastPublishedPhoto = null;
+
+    const THEME_LABELS = {
+      hangover: 'The Hangover (Der Morgen danach)',
+      altersheim: 'Altersheim (Sonnenschein)',
+      disco80s: '80er Disco (Studio 54)',
+      sm_party: 'Lack & Leder (Fetisch-Fehlalarm)',
+      haushalt: 'Männer vs. Frauen (Großputz)',
+      sextoy: 'Sextoy-Party (Wohnzimmer)',
+      camper: 'Die Dauercamper (Vorzelt)'
+    };
+
+    const KNOWN_FEMALES = new Set(['mandy', 'nadine', 'kati', 'elena', 'laura', 'sarah', 'lisa']);
+
+    async function loadGroupPortraits() {
+      try {
+        const res = await fetch('/api/portraits');
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.portraits)) {
+          // Filtere temporäre Masken oder Testbilder heraus, behalte echte Gäste
+          groupPortraitsList = data.portraits.filter(p => !p.name.toLowerCase().includes('_head'));
+          
+          groupPortraitsList.forEach(p => {
+            const clean = p.name.toLowerCase();
+            // Test & Boss standardmäßig abwählen, echte Gäste auswählen
+            if (!selectedGroupPlayers.size && !clean.includes('test')) {
+              selectedGroupPlayers.add(p.name);
+            }
+            if (!playerGenderMap[p.name]) {
+              playerGenderMap[p.name] = KNOWN_FEMALES.has(clean) || clean.includes('kati') ? 'F' : 'M';
+            }
+          });
+          renderGroupPlayersChips();
+        }
+      } catch (err) {
+        console.error('Fehler beim Laden der Porträts:', err);
+      }
+    }
+
+    function renderGroupPlayersChips() {
+      const container = document.getElementById('group-players-selection-chips');
+      if (!container) return;
+
+      if (!groupPortraitsList || groupPortraitsList.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 py-1 px-2">Keine freigestellten Porträts gefunden.</div>';
+        return;
+      }
+
+      container.innerHTML = groupPortraitsList.map(p => {
+        const isSelected = selectedGroupPlayers.has(p.name);
+        const gender = playerGenderMap[p.name] || 'M';
+        const isFemale = gender === 'F';
+        const displayName = p.name.replace(/_/g, ' ');
+
+        return `
+          <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-xs font-fut font-bold transition-all ${
+            isSelected 
+              ? 'bg-emerald-500/15 border-emerald-400 text-emerald-200' 
+              : 'bg-black/40 border-white/10 text-slate-500 opacity-60'
+          }">
+            <button type="button" onclick="toggleChatGptPlayer('${p.name}')" class="flex items-center space-x-1.5 focus:outline-none">
+              <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-400' : 'bg-slate-600'}"></span>
+              <span class="truncate max-w-[130px] sm:max-w-[160px]">${displayName}</span>
+            </button>
+            <button type="button" onclick="togglePlayerGender('${p.name}', event)" 
+                    title="Klicke um Geschlecht zu wechseln (Männlich/Weiblich)"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-black tracking-wider transition-all ${
+                      isFemale 
+                        ? 'bg-pink-500/30 text-pink-300 border border-pink-400/50 hover:bg-pink-500/50' 
+                        : 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50 hover:bg-cyan-500/50'
+                    }">
+              ${isFemale ? '♀ F' : '♂ M'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleChatGptPlayer(name) {
+      haptic();
+      if (selectedGroupPlayers.has(name)) {
+        selectedGroupPlayers.delete(name);
+      } else {
+        selectedGroupPlayers.add(name);
+      }
+      renderGroupPlayersChips();
+    }
+
+    function toggleAllChatGptPlayers(all) {
+      haptic();
+      if (all) {
+        groupPortraitsList.forEach(p => selectedGroupPlayers.add(p.name));
+      } else {
+        selectedGroupPlayers.clear();
+      }
+      renderGroupPlayersChips();
+    }
+
+    function togglePlayerGender(name, ev) {
+      if (ev) ev.stopPropagation();
+      haptic();
+      playerGenderMap[name] = playerGenderMap[name] === 'F' ? 'M' : 'F';
+      renderGroupPlayersChips();
+    }
+
+    function selectGroupPhotoTheme(themeKey) {
+      haptic();
+      selectedGroupTheme = themeKey;
+      const label = document.getElementById('selected-theme-label');
+      if (label) {
+        label.textContent = THEME_LABELS[themeKey] || themeKey.toUpperCase();
+      }
+      const chips = document.querySelectorAll('#group-photo-theme-selector .theme-chip');
+      chips.forEach(chip => {
+        const t = chip.getAttribute('data-theme');
+        if (t === themeKey) {
+          chip.className = 'theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-emerald-500/20 border-emerald-400 text-emerald-200 shadow';
+        } else {
+          chip.className = 'theme-chip p-2 rounded-lg border text-left flex items-center space-x-2 transition-all bg-black/40 border-white/10 text-slate-300 hover:border-emerald-400/50';
+        }
+      });
+    }
+
+    async function createChatGptBundle() {
+      if (selectedGroupPlayers.size === 0) {
+        showToast('Bitte wähle mindestens 1 Person aus!');
+        return;
+      }
+
+      haptic();
+      const btn = document.getElementById('btn-create-chatgpt-bundle');
+      const btnText = document.getElementById('btn-create-bundle-text');
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.innerHTML = '⏳ ERSTELLE REFERENZBLATT...';
+
+      try {
+        const playersPayload = Array.from(selectedGroupPlayers).map(name => ({
+          name: name,
+          gender: playerGenderMap[name] || 'M'
+        }));
+
+        const res = await fetch('/api/chatgpt_bundle/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            theme: selectedGroupTheme,
+            players: playersPayload
+          })
+        });
+
+        const data = await res.json();
+        if (data.ok) {
+          generatedPromptEn = data.promptEn;
+
+          // Automatisch in die Zwischenablage kopieren!
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(generatedPromptEn).catch(() => {});
+          }
+
+          // UI aktualisieren
+          const resBox = document.getElementById('bundle-result-box');
+          const previewImg = document.getElementById('bundle-preview-sheet');
+          const dlLink = document.getElementById('btn-download-sheet');
+
+          if (resBox) resBox.classList.remove('hidden');
+          if (previewImg) previewImg.src = data.imageUrl + '?t=' + Date.now();
+          if (dlLink) {
+            dlLink.href = data.imageUrl;
+            dlLink.download = `chatgpt_referenz_${selectedGroupTheme}.jpg`;
+          }
+
+          showToast('📋 Prompt kopiert! Lade das Bild herunter & öffne ChatGPT.');
+        } else {
+          showToast('Fehler: ' + (data.error || 'Erstellung fehlgeschlagen'));
+        }
+      } catch (err) {
+        console.error('Fehler bei createChatGptBundle:', err);
+        showToast('Verbindungsfehler beim Erstellen des Bundles.');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = '📦 CHATGPT-PAKET ERSTELLEN & PROMPT KOPIEREN';
+      }
+    }
+
+    async function copyGeneratedPromptAgain() {
+      if (!generatedPromptEn) {
+        showToast('Bitte erstelle erst ein Paket!');
+        return;
+      }
+      haptic();
+      
+      let copied = false;
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(generatedPromptEn);
+          copied = true;
+        } catch (e) {}
+      }
+
+      if (!copied) {
+        try {
+          const temp = document.createElement('textarea');
+          temp.value = generatedPromptEn;
+          temp.style.position = 'fixed';
+          temp.style.left = '-9999px';
+          document.body.appendChild(temp);
+          temp.focus();
+          temp.select();
+          temp.setSelectionRange(0, 99999);
+          copied = document.execCommand('copy');
+          document.body.removeChild(temp);
+        } catch (e) {}
+      }
+
+      if (copied) {
+        showToast('📋 Prompt erfolgreich in die Zwischenablage kopiert!', 'success');
+      } else {
+        prompt('Prompt kopieren (Strg+C / Kopieren):', generatedPromptEn);
+      }
+    }
+
+    async function handleAiImageSelected(file) {
+      if (!file) return;
+      haptic();
+      showToast('⏳ Lade fertiges KI-Bild hoch & synchronisiere Drive...');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        try {
+          const res = await fetch('/api/chatgpt_bundle/publish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file: base64Data,
+              theme: selectedGroupTheme,
+              caption: `${THEME_LABELS[selectedGroupTheme] || 'Gruppenbild'} • KI Meisterwerk 🍾`
+            })
+          });
+
+          const data = await res.json();
+          if (data.ok && data.photo) {
+            lastPublishedPhoto = data.photo;
+            showToast('🎉 Live auf dem 47" TV enthüllt & zu Google Drive gesichert!');
+
+            // Vorschau in Schritt 3 anzeigen
+            const box = document.getElementById('published-group-photo-box');
+            const img = document.getElementById('published-group-photo-img');
+            const time = document.getElementById('published-group-photo-time');
+
+            if (box) box.classList.remove('hidden');
+            if (img) img.src = data.photo.url;
+            if (time) time.textContent = data.photo.uploadedAt || 'Gerade eben';
+
+            // Galerie aktualisieren
+            if (tournament && tournament.photos) {
+              tournament.photos.unshift(data.photo);
+              renderPhotosAdmin();
+            }
+          } else {
+            showToast('Fehler beim Veröffentlichen: ' + (data.error || 'Unbekannt'));
+          }
+        } catch (err) {
+          console.error('Fehler bei handleAiImageSelected:', err);
+          showToast('Upload-Fehler zum Server.');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function revealPublishedPhotoAgain() {
+      if (!lastPublishedPhoto) return;
+      haptic();
+      sendWs('GROUP_PHOTO_REVEAL', lastPublishedPhoto);
+      showToast('📺 Gruppenbild erneut auf dem TV eingeblendet!');
     }
 
     /* ============================================================ */
@@ -4167,9 +4940,85 @@
       } catch (e) {}
     }
 
+    // ==========================================
+    // PWA INSTALLATION & SERVICE WORKER
+    // ==========================================
+    let deferredPwaPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('ServiceWorker registriert:', reg.scope))
+          .catch((err) => console.warn('ServiceWorker Registrierung fehlgeschlagen:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const installBtn = document.getElementById('btn-pwa-install');
+      if (installBtn) installBtn.classList.remove('hidden');
+      const directBtn = document.getElementById('btn-pwa-direct-install');
+      if (directBtn) directBtn.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPwaPrompt = null;
+      const installBtn = document.getElementById('btn-pwa-install');
+      if (installBtn) installBtn.classList.add('hidden');
+      showToast('Hüttencup App erfolgreich installiert!', 'success');
+    });
+
+    function isRunningStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || 
+             (window.navigator.standalone === true);
+    }
+
+    function initPwaState() {
+      const installBtn = document.getElementById('btn-pwa-install');
+      if (isRunningStandalone()) {
+        if (installBtn) installBtn.classList.add('hidden');
+        return;
+      }
+      
+      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+      const isAndroid = /android/.test(window.navigator.userAgent.toLowerCase());
+      
+      // On mobile devices, make the install button visible so users can easily install
+      if (installBtn && (isIos || isAndroid)) {
+        installBtn.classList.remove('hidden');
+      }
+    }
+
+    function triggerPwaInstall() {
+      if (deferredPwaPrompt) {
+        triggerNativeInstallPrompt();
+      } else {
+        const modal = document.getElementById('modal-pwa-install');
+        if (modal) modal.classList.remove('hidden');
+      }
+    }
+
+    function triggerNativeInstallPrompt() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('PWA installation accepted');
+          }
+          deferredPwaPrompt = null;
+          const installBtn = document.getElementById('btn-pwa-install');
+          if (installBtn) installBtn.classList.add('hidden');
+          closeModal('modal-pwa-install');
+        });
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       connectWebSocket();
       loadNetworkInfo();
+      loadGroupPortraits();
+      initPwaState();
     });
   </script>
 </body>

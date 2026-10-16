@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const CARDS_DIR = path.join(__dirname, 'cards');
 const PHOTOS_DIR = path.join(__dirname, 'photos');
+const PORTRAITS_DIR = path.join(__dirname, 'portraits');
 const DATA_FILE = path.join(DATA_DIR, 'gut_tournament.json');
 const HALL_OF_FAME_FILE = path.join(DATA_DIR, 'hall_of_fame.json');
 
@@ -21,6 +22,7 @@ const HALL_OF_FAME_FILE = path.join(DATA_DIR, 'hall_of_fame.json');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(CARDS_DIR)) fs.mkdirSync(CARDS_DIR, { recursive: true });
 if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
+if (!fs.existsSync(PORTRAITS_DIR)) fs.mkdirSync(PORTRAITS_DIR, { recursive: true });
 
 // Robust IP detection: filter out Tailscale, virtual adapters, and 169.254.x.x link-local
 function getLocalIpAddress() {
@@ -144,9 +146,13 @@ try {
     tournamentData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!tournamentData.inbox) tournamentData.inbox = [];
     if (!tournamentData.photos) tournamentData.photos = [];
+    if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+    if (!tournamentData.guestbook) tournamentData.guestbook = [];
   } else {
     tournamentData = getInitialTournamentData();
     if (!tournamentData.photos) tournamentData.photos = [];
+    if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+    if (!tournamentData.guestbook) tournamentData.guestbook = [];
     saveTournamentData();
   }
   if (!tournamentData.activeEvent) {
@@ -171,6 +177,8 @@ try {
 } catch (e) {
   tournamentData = getInitialTournamentData();
   if (!tournamentData.photos) tournamentData.photos = [];
+  if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+  if (!tournamentData.guestbook) tournamentData.guestbook = [];
   if (!tournamentData.activeEvent) {
     tournamentData.activeEvent = {
       status: 'idle',
@@ -380,8 +388,14 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname, {
   maxAge: '1d',
   setHeaders: (res, filePath) => {
-    // HTML pages and JS scripts must revalidate so updates are immediately visible
+    // HTML pages, JS scripts and Service Worker must revalidate so updates are immediately visible
     if (filePath.endsWith('.html') || filePath.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'no-cache');
+      if (filePath.endsWith('sw.js')) {
+        res.setHeader('Service-Worker-Allowed', '/');
+      }
+    } else if (filePath.endsWith('manifest.json')) {
+      res.setHeader('Content-Type', 'application/manifest+json');
       res.setHeader('Cache-Control', 'no-cache');
     } else if (filePath.includes(path.sep + 'cards' + path.sep) || filePath.includes('/cards/')) {
       // Dynamic player cards should revalidate immediately!
@@ -391,6 +405,17 @@ app.use(express.static(__dirname, {
     }
   }
 }));
+
+// Direct PDF Download Endpoint
+app.get('/download-pdf', (req, res) => {
+  const pdfPath = path.join(__dirname, 'Huettencup_2026_Kompakt_Broschuere.pdf');
+  if (fs.existsSync(pdfPath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.download(pdfPath, 'Huettencup_2026_Kompakt_Broschuere.pdf');
+  } else {
+    res.status(404).send('PDF nicht gefunden.');
+  }
+});
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -1186,6 +1211,98 @@ async function syncFromGoogleDrive() {
         const name = c.name || 'Gast';
         let localImg = null;
 
+        // 0A. Song-Wunsch via Google Drive (Gäste im mobilen Handynetz LTE / 5G / außerhalb des WLANs)
+        let isSongReq = (c.type === 'song_request');
+        let songMeta = null;
+        if (c.caption && (c.caption.includes('"type":"song_request"') || c.caption.startsWith('SONG:'))) {
+          isSongReq = true;
+          try { songMeta = JSON.parse(c.caption); } catch (e) {}
+        }
+        if (isSongReq) {
+          const songTitle = (songMeta && songMeta.title) || c.title || (c.caption && c.caption.replace(/^Song:\s*/i, '').split('von')[0].trim()) || '';
+          const songArtist = (songMeta && songMeta.artist) || c.artist || (c.caption && c.caption.includes('von') ? c.caption.split('von')[1].trim() : 'Unbekannt');
+          
+          if (songTitle) {
+            if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+            const songExists = tournamentData.musicQueue.some(s => 
+              s.title.toLowerCase().trim() === songTitle.toLowerCase().trim() &&
+              s.requestedBy.toLowerCase().trim() === name.toLowerCase().trim()
+            );
+            if (!songExists) {
+              const song = {
+                id: 'drive_song_' + (c.driveId || c.gesendet || Date.now()),
+                title: songTitle,
+                artist: songArtist || 'Unbekannt',
+                requestedBy: name,
+                votes: [name],
+                status: 'pending',
+                requestedAt: c.gesendet || new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+              };
+              tournamentData.musicQueue.unshift(song);
+              saveTournamentData();
+              broadcast({ type: 'NEW_SONG_REQUEST', payload: song });
+              broadcast({ type: 'MUSIC_QUEUE_UPDATED', payload: tournamentData.musicQueue });
+              broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+              console.log(`🎵 Neuer Musikwunsch via Google Drive (LTE/5G) von: ${name} ("${song.title} - ${song.artist}")`);
+            }
+          }
+          continue; // Weder als Foto noch als Karte behandeln!
+        }
+
+        // 0B. Gästebuch-Eintrag via Google Drive (Gäste im mobilen Handynetz LTE / 5G / außerhalb des WLANs)
+        let isGb = (c.type === 'guestbook');
+        let gbMeta = null;
+        if (c.caption && (c.caption.includes('"type":"guestbook"') || c.caption.startsWith('GUESTBOOK:'))) {
+          isGb = true;
+          try { gbMeta = JSON.parse(c.caption); } catch (e) {}
+        }
+        if (isGb) {
+          const gbMsg = (gbMeta && gbMeta.message) || c.message || (c.caption && c.caption.replace(/^GUESTBOOK:\s*/i, '')) || '';
+          if (gbMsg || (gbMeta && gbMeta.hasRealPhoto)) {
+            if (!tournamentData.guestbook) tournamentData.guestbook = [];
+            const gbExists = tournamentData.guestbook.some(g => 
+              g.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+              g.message.trim() === gbMsg.trim()
+            );
+            if (!gbExists) {
+              let photoUrl = null;
+              if (gbMeta && gbMeta.hasRealPhoto && c.imgFileId) {
+                photoUrl = await downloadDriveImageLocally(c.imgFileId, name, true);
+                if (photoUrl) {
+                  const photoItem = {
+                    id: 'gb_photo_' + (c.driveId || Date.now()),
+                    url: photoUrl,
+                    sender: name,
+                    caption: `📖 Gästebuch: ${gbMsg.substring(0, 80)}`,
+                    uploadedAt: c.gesendet || new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+                  };
+                  if (!tournamentData.photos) tournamentData.photos = [];
+                  tournamentData.photos.unshift(photoItem);
+                  broadcast({ type: 'NEW_PHOTO', payload: photoItem });
+                }
+              }
+
+              const entry = {
+                id: 'drive_gb_' + (c.driveId || c.gesendet || Date.now()),
+                name: name,
+                message: gbMsg,
+                photoUrl: photoUrl,
+                createdAt: c.gesendet || new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+                date: new Date().toLocaleDateString('de-DE'),
+                timestamp: Date.now()
+              };
+              tournamentData.guestbook.unshift(entry);
+              saveTournamentData();
+              broadcast({ type: 'NEW_GUESTBOOK_ENTRY', payload: entry });
+              broadcast({ type: 'GUESTBOOK_UPDATED', payload: tournamentData.guestbook });
+              broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+              console.log(`📖 Neuer Gästebuch-Eintrag via Google Drive (LTE/5G) von: ${name}`);
+            }
+          }
+          continue; // Weder als normales Foto noch als Karte behandeln!
+        }
+
         // 1. Unterscheidung: Ist es ein Party-Foto oder eine Spielerkarte?
         const isPhoto = (c.type === 'photo') || 
                         (c.caption !== undefined && c.caption !== null && c.caption !== '') ||
@@ -1305,8 +1422,8 @@ async function syncFromGoogleDrive() {
   }
 }
 
-// Auto-Sync mit Google Drive alle 15 Sekunden im Leerlauf (ressourcenschonend für CPU & WLAN)
-const DRIVE_SYNC_INTERVAL = 15000;
+// Auto-Sync mit Google Drive alle 6 Sekunden (für blitzschnelle Live-Übertragung im Handynetz/LTE/5G)
+const DRIVE_SYNC_INTERVAL = 6000;
 setInterval(syncFromGoogleDrive, DRIVE_SYNC_INTERVAL);
 setTimeout(syncFromGoogleDrive, 1500);
 
@@ -1363,6 +1480,15 @@ app.post('/api/submit_card', (req, res) => {
       fs.writeFileSync(fullPath, Buffer.from(parts[1], 'base64'));
     }
 
+    // If base64 portrait cutout is attached, save to /portraits/
+    if (payload.portraitBase64 && typeof payload.portraitBase64 === 'string' && payload.portraitBase64.includes('base64,')) {
+      const pParts = payload.portraitBase64.split(';base64,');
+      const cleanName = name.replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
+      const pPath = path.join(__dirname, 'portraits', `${cleanName}.png`);
+      fs.writeFileSync(pPath, Buffer.from(pParts[1], 'base64'));
+      console.log(`👤 Freigestelltes Porträt gespeichert: portraits/${cleanName}.png`);
+    }
+
     const cardItem = {
       id,
       name,
@@ -1392,6 +1518,312 @@ app.post('/api/submit_card', (req, res) => {
     res.json({ ok: true, id, name: cardItem.name });
   } catch (err) {
     console.error('Error submitting card:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// ================================================================
+// PORTRAITS (CUTOUTS) ENDPOINT FOR GROUP PICTURES
+// ================================================================
+app.get('/api/portraits', (req, res) => {
+  try {
+    const pDir = path.join(__dirname, 'portraits');
+    if (!fs.existsSync(pDir)) fs.mkdirSync(pDir, { recursive: true });
+    const files = fs.readdirSync(pDir).filter(f => f.match(/\.(png|jpe?g|webp)$/i));
+    const list = files.map(f => ({
+      name: path.basename(f, path.extname(f)),
+      file: f,
+      url: `/portraits/${f}`
+    }));
+    res.json({ ok: true, count: list.length, portraits: list });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e) });
+  }
+});
+
+// ================================================================
+// GUEST CHECK-IN & REAL-TIME PORTRAIT REPO FOR CHATGPT
+// ================================================================
+const CHECKIN_DIR = path.join(__dirname, 'portraits', 'checkin');
+if (!fs.existsSync(CHECKIN_DIR)) fs.mkdirSync(CHECKIN_DIR, { recursive: true });
+
+app.get('/api/checkin/guests', (req, res) => {
+  if (!tournamentData.checkinGuests) tournamentData.checkinGuests = [];
+  res.json({ ok: true, guests: tournamentData.checkinGuests });
+});
+
+app.post('/api/checkin/guests/add', (req, res) => {
+  try {
+    const { name, gender = 'M', portraitBase64 } = req.body || {};
+    if (!name || !name.trim()) {
+      return res.status(400).json({ ok: false, error: 'Bitte einen Namen eingeben' });
+    }
+    if (!portraitBase64 || !portraitBase64.includes('base64,')) {
+      return res.status(400).json({ ok: false, error: 'Kein Foto übergeben' });
+    }
+
+    const cleanName = name.trim().replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
+    const ts = Date.now();
+    const filename = `${cleanName}_${ts}.png`;
+    const fullPath = path.join(CHECKIN_DIR, filename);
+
+    const parts = portraitBase64.split(';base64,');
+    fs.writeFileSync(fullPath, Buffer.from(parts[1], 'base64'));
+
+    const guestItem = {
+      id: 'guest_' + ts,
+      name: name.trim(),
+      gender: gender.toUpperCase() === 'F' ? 'F' : 'M',
+      file: filename,
+      filePath: fullPath,
+      url: `/portraits/checkin/${filename}`,
+      createdAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    if (!tournamentData.checkinGuests) tournamentData.checkinGuests = [];
+    tournamentData.checkinGuests.unshift(guestItem);
+    saveTournamentData();
+
+    console.log(`👤 Neuer Gast eingecheckt: ${guestItem.name} (${guestItem.gender === 'F' ? 'Weiblich' : 'Männlich'})`);
+    res.json({ ok: true, guest: guestItem, total: tournamentData.checkinGuests.length });
+  } catch (err) {
+    console.error('Fehler bei checkin/guests/add:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/checkin/guests/delete', (req, res) => {
+  try {
+    const { guestId } = req.body || {};
+    if (!tournamentData.checkinGuests) tournamentData.checkinGuests = [];
+    const item = tournamentData.checkinGuests.find(g => g.id === guestId);
+    if (item && item.filePath && fs.existsSync(item.filePath)) {
+      try { fs.unlinkSync(item.filePath); } catch (e) {}
+    }
+    tournamentData.checkinGuests = tournamentData.checkinGuests.filter(g => g.id !== guestId);
+    saveTournamentData();
+    res.json({ ok: true, remaining: tournamentData.checkinGuests.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/checkin/generate_bundle', (req, res) => {
+  try {
+    const { execFile } = require('child_process');
+    const { theme = 'hangover', customSetting = '', guestIds = [] } = req.body || {};
+
+    let list = tournamentData.checkinGuests || [];
+    if (guestIds && Array.isArray(guestIds) && guestIds.length > 0) {
+      list = list.filter(g => guestIds.includes(g.id));
+    }
+
+    if (list.length === 0) {
+      return res.status(400).json({ ok: false, error: 'Keine Gäste zum Erstellen des Referenzblattes ausgewählt' });
+    }
+
+    const scriptPath = path.join(__dirname, 'scripts', 'generate_chatgpt_bundle.py');
+    const args = ['--theme', String(theme).toLowerCase()];
+    if (customSetting && customSetting.trim()) {
+      args.push('--custom_setting', customSetting.trim());
+    }
+
+    const payloadPlayers = list.map(g => ({
+      name: g.name,
+      gender: g.gender,
+      filePath: g.filePath || path.join(CHECKIN_DIR, g.file),
+      file: g.file
+    }));
+    args.push('--payload', JSON.stringify(payloadPlayers));
+
+    console.log(`📦 Erstelle ChatGPT-Referenzblatt für ${list.length} Gäste (Thema: ${theme})...`);
+
+    execFile('python', [scriptPath, ...args], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('Fehler bei Python Bundle Generator:', err, stderr);
+        return res.status(500).json({ ok: false, error: 'Fehler beim Erstellen: ' + (stderr || err.message) });
+      }
+
+      try {
+        const outData = JSON.parse(stdout.trim());
+        res.json(outData);
+      } catch (parseErr) {
+        console.error('Fehler beim Parsen der Bundle-Ausgabe:', parseErr, stdout);
+        res.status(500).json({ ok: false, error: 'Ungültige Rückgabe vom Generator' });
+      }
+    });
+  } catch (err) {
+    console.error('Fehler bei checkin/generate_bundle:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// ================================================================
+// 1-CLICK AI GROUP PHOTO GENERATION & TV REVEAL ENDPOINT
+// ================================================================
+app.post('/api/group_photo/generate', (req, res) => {
+  try {
+    const { execFile } = require('child_process');
+    const { theme = 'hangover', players = 'all', title = '', revealOnTv = true } = req.body || {};
+
+    const scriptPath = path.join(__dirname, 'scripts', 'generate_group_photo.py');
+    const args = ['--theme', String(theme).toLowerCase()];
+
+    if (players && Array.isArray(players) && players.length > 0) {
+      args.push('--players', players.join(','));
+    } else if (typeof players === 'string' && players.trim()) {
+      args.push('--players', players.trim());
+    } else {
+      args.push('--players', 'all');
+    }
+
+    if (title && String(title).trim()) {
+      args.push('--title', String(title).trim());
+    }
+
+    console.log(`📸 Starte 1-Klick KI-Gruppenbild Generierung: Thema="${theme}", Spieler="${players}"...`);
+
+    execFile('python', [scriptPath, ...args], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('Fehler bei Python Group Photo Generator:', err, stderr);
+        return res.status(500).json({ ok: false, error: 'Generierung fehlgeschlagen: ' + (stderr || err.message) });
+      }
+
+      try {
+        const outData = JSON.parse(stdout.trim());
+        if (!outData.ok) {
+          return res.status(500).json({ ok: false, error: outData.error || 'Generierung fehlgeschlagen' });
+        }
+
+        const photoItem = {
+          id: 'photo_group_' + Date.now(),
+          url: outData.path,
+          sender: '🤖 KI-Studio',
+          caption: `${outData.title} (${outData.player_count} Legenden)`,
+          isGroupPhoto: true,
+          theme: outData.theme,
+          uploadedAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        if (!tournamentData.photos) tournamentData.photos = [];
+        tournamentData.photos.unshift(photoItem);
+        saveTournamentData();
+
+        // Broadcast to TV and all guests
+        if (revealOnTv) {
+          broadcast({ type: 'GROUP_PHOTO_REVEAL', payload: photoItem });
+        }
+        broadcast({ type: 'NEW_PHOTO', payload: photoItem });
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+        console.log(`✨ KI-Gruppenbild erfolgreich erstellt & auf TV übertragen: ${photoItem.url}`);
+        res.json({ ok: true, photo: photoItem });
+      } catch (parseErr) {
+        console.error('Fehler beim Parsen der Generator-Ausgabe:', parseErr, stdout);
+        res.status(500).json({ ok: false, error: 'Ungültige Rückgabe vom Generator' });
+      }
+    });
+  } catch (err) {
+    console.error('Fehler im group_photo endpoint:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// ================================================================
+// OPTION B: CHATGPT BUNDLE GENERATOR & DRIVE PUBLISHER
+// ================================================================
+app.post('/api/chatgpt_bundle/create', (req, res) => {
+  try {
+    const { execFile } = require('child_process');
+    const { theme = 'hangover', players = [] } = req.body || {};
+
+    const scriptPath = path.join(__dirname, 'scripts', 'generate_chatgpt_bundle.py');
+    const args = ['--theme', String(theme).toLowerCase()];
+
+    if (players && Array.isArray(players) && players.length > 0) {
+      args.push('--payload', JSON.stringify(players));
+    }
+
+    console.log(`📦 Erstelle ChatGPT-Paket: Thema="${theme}", Spieler=${players.length}...`);
+
+    execFile('python', [scriptPath, ...args], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('Fehler bei Python ChatGPT Bundle Generator:', err, stderr);
+        return res.status(500).json({ ok: false, error: 'Bundle-Erstellung fehlgeschlagen: ' + (stderr || err.message) });
+      }
+
+      try {
+        const outData = JSON.parse(stdout.trim());
+        res.json(outData);
+      } catch (parseErr) {
+        console.error('Fehler beim Parsen der Bundle-Ausgabe:', parseErr, stdout);
+        res.status(500).json({ ok: false, error: 'Ungültige Rückgabe' });
+      }
+    });
+  } catch (err) {
+    console.error('Fehler im chatgpt_bundle/create endpoint:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/chatgpt_bundle/publish', async (req, res) => {
+  try {
+    const { file, caption = 'The Hangover • KI Meisterwerk', theme = 'hangover' } = req.body || {};
+
+    if (!file || typeof file !== 'string' || !file.includes('base64,')) {
+      return res.status(400).json({ ok: false, error: 'Kein gültiges Bild empfangen' });
+    }
+
+    const parts = file.split(';base64,');
+    const ext = parts[0].includes('png') ? 'png' : 'jpg';
+    const ts = Date.now();
+    const filename = `photos/Gruppenbild_${theme.toUpperCase()}_KI_${ts}.${ext}`;
+    const fullPath = path.join(__dirname, filename);
+
+    // 1. Lokal in photos/ speichern
+    fs.writeFileSync(fullPath, Buffer.from(parts[1], 'base64'));
+
+    const photoItem = {
+      id: 'photo_ai_group_' + ts,
+      url: filename,
+      sender: '🤖 CHATGPT KI-STUDIO',
+      caption: caption,
+      isGroupPhoto: true,
+      theme: theme,
+      uploadedAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    if (!tournamentData.photos) tournamentData.photos = [];
+    tournamentData.photos.unshift(photoItem);
+    saveTournamentData();
+
+    // 2. Sofortiger Broadcast an TV & Slideshow
+    broadcast({ type: 'GROUP_PHOTO_REVEAL', payload: photoItem });
+    broadcast({ type: 'NEW_PHOTO', payload: photoItem });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    // 3. Im Hintergrund automatisch auf Google Drive hochladen via Google Apps Script
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file: file,
+        name: 'KI-Studio',
+        caption: caption,
+        type: 'photo'
+      })
+    }).then(async r => {
+      const respJson = await r.json().catch(() => null);
+      console.log('☁️ KI-Gruppenbild erfolgreich auf Google Drive hochgeladen!', respJson);
+      triggerFastDriveSync();
+    }).catch(e => {
+      console.warn('Hinweis: Google Drive Upload im Hintergrund verzögert:', e.message);
+    });
+
+    console.log(`🎉 Fertiges KI-Gruppenbild veröffentlicht & auf TV enthüllt: ${filename}`);
+    res.json({ ok: true, photo: photoItem });
+  } catch (err) {
+    console.error('Fehler bei chatgpt_bundle/publish:', err);
     res.status(500).json({ ok: false, error: String(err) });
   }
 });
@@ -1481,6 +1913,290 @@ app.post('/api/delete_photo', (req, res) => {
   }
 });
 
+// 1-KLICK PARTY-FOTOALBUM (ZIP-DOWNLOAD)
+app.get('/api/download_photos_zip', (req, res) => {
+  const scriptPath = path.join(__dirname, 'scripts', 'create_party_zip.py');
+  const zipPath = path.join(__dirname, 'photos', 'Huettencup_Party_Album.zip');
+
+  const { execFile } = require('child_process');
+  execFile('python', [scriptPath], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+    if (err) {
+      console.error('Fehler bei create_party_zip:', err, stderr);
+      return res.status(500).json({ ok: false, error: String(err) });
+    }
+    if (fs.existsSync(zipPath)) {
+      res.download(zipPath, 'Huettencup_Party_Album.zip');
+    } else {
+      res.status(500).json({ ok: false, error: 'Fehler beim Erstellen des ZIP-Archivs' });
+    }
+  });
+});
+
+// SAUBERER NEUSTART VOR DEM EVENT (MIT AUTOMATISCHEM BACKUP)
+app.post('/api/tournament/reset', (req, res) => {
+  try {
+    const { mode = 'scores_only' } = req.body || {};
+    const archiveDir = path.join(__dirname, 'archive');
+    if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const tsStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    const backupFolder = path.join(archiveDir, `Backup_${tsStr}`);
+    fs.mkdirSync(backupFolder, { recursive: true });
+
+    // 1. Automatische Sicherung von tournament.json
+    if (fs.existsSync(DATA_FILE)) {
+      fs.copyFileSync(DATA_FILE, path.join(backupFolder, 'tournament.json'));
+    }
+
+    // 2. Modus ausführen
+    if (mode === 'full') {
+      // Komplett leerer Kader & Fotos
+      tournamentData.players = [];
+      tournamentData.photos = [];
+    } else {
+      // Nur Punkte & Duelle zurücksetzen, Spieler behalten
+      (tournamentData.players || []).forEach(p => {
+        p.scores = {};
+        p.xp = 0;
+      });
+    }
+
+    // Wetten & aktives Match immer zurücksetzen
+    if (!tournamentData.betting) tournamentData.betting = {};
+    tournamentData.betting.bets = [];
+    tournamentData.betting.status = 'open';
+    tournamentData.activeEvent = {
+      status: 'idle',
+      gameId: (tournamentData.games && tournamentData.games[0]?.id) || 'bierpong',
+      tvView: 'welcome'
+    };
+
+    saveTournamentData();
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    console.log(`🔄 Turnier erfolgreich zurückgesetzt (Modus: ${mode}). Backup liegt in: ${backupFolder}`);
+    res.json({ ok: true, backupFolder, mode });
+  } catch (err) {
+    console.error('Fehler bei tournament/reset:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// ================================================================
+// LIVE PARTY JUKEBOX & GUESTBOOK ENDPOINTS
+// ================================================================
+app.get('/api/music/queue', (req, res) => {
+  if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+  // Sort queue: 'playing' first, then votes.length desc, then timestamp asc
+  const sorted = [...tournamentData.musicQueue].sort((a, b) => {
+    if (a.status === 'playing' && b.status !== 'playing') return -1;
+    if (b.status === 'playing' && a.status !== 'playing') return 1;
+    const votesA = (a.votes || []).length;
+    const votesB = (b.votes || []).length;
+    if (votesB !== votesA) return votesB - votesA;
+    return a.timestamp - b.timestamp;
+  });
+  res.json({ ok: true, queue: sorted });
+});
+
+app.post('/api/music/request', (req, res) => {
+  try {
+    const { title, artist, requestedBy } = req.body || {};
+    const cleanTitle = String(title || '').trim();
+    const cleanArtist = String(artist || '').trim();
+    const cleanName = String(requestedBy || 'Gast').trim();
+
+    if (!cleanTitle) {
+      return res.status(400).json({ ok: false, error: 'Bitte gib einen Songtitel ein!' });
+    }
+
+    if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+
+    // Duplicate check
+    const existing = tournamentData.musicQueue.find(s => 
+      s.title.toLowerCase().trim() === cleanTitle.toLowerCase() &&
+      (!cleanArtist || s.artist.toLowerCase().trim() === cleanArtist.toLowerCase())
+    );
+
+    if (existing) {
+      if (!existing.votes) existing.votes = [];
+      if (!existing.votes.includes(cleanName)) {
+        existing.votes.push(cleanName);
+      }
+      saveTournamentData();
+      broadcast({ type: 'MUSIC_QUEUE_UPDATED', payload: tournamentData.musicQueue });
+      broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      return res.json({ 
+        ok: true, 
+        song: existing, 
+        alreadyExisted: true, 
+        message: 'Song stand schon auf der Liste – deine Stimme (+1 Banger) wurde gezählt! 🔥' 
+      });
+    }
+
+    const song = {
+      id: 'song_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      title: cleanTitle,
+      artist: cleanArtist || 'Unbekannt',
+      requestedBy: cleanName,
+      votes: [cleanName],
+      status: 'pending', // 'pending' | 'playing' | 'played'
+      requestedAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    };
+
+    tournamentData.musicQueue.unshift(song);
+    saveTournamentData();
+
+    broadcast({ type: 'NEW_SONG_REQUEST', payload: song });
+    broadcast({ type: 'MUSIC_QUEUE_UPDATED', payload: tournamentData.musicQueue });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    console.log(`🎵 Neuer Musikwunsch von ${cleanName}: "${song.title} - ${song.artist}"`);
+    res.json({ ok: true, song, message: 'Song erfolgreich zur Playlist hinzugefügt! 🔥' });
+  } catch (err) {
+    console.error('Error adding song request:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/music/vote', (req, res) => {
+  try {
+    const { songId, voterName } = req.body || {};
+    const cleanName = String(voterName || 'Gast').trim();
+
+    if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+    const song = tournamentData.musicQueue.find(s => s.id === songId);
+
+    if (!song) {
+      return res.status(404).json({ ok: false, error: 'Song nicht gefunden' });
+    }
+
+    if (!song.votes) song.votes = [];
+    const idx = song.votes.indexOf(cleanName);
+    let voted = false;
+    if (idx !== -1) {
+      song.votes.splice(idx, 1);
+      voted = false;
+    } else {
+      song.votes.push(cleanName);
+      voted = true;
+    }
+
+    saveTournamentData();
+    broadcast({ type: 'MUSIC_QUEUE_UPDATED', payload: tournamentData.musicQueue });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    res.json({ ok: true, song, voted, votesCount: song.votes.length });
+  } catch (err) {
+    console.error('Error voting song:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/music/status', (req, res) => {
+  try {
+    const { songId, status } = req.body || {};
+    if (!tournamentData.musicQueue) tournamentData.musicQueue = [];
+
+    if (status === 'delete') {
+      tournamentData.musicQueue = tournamentData.musicQueue.filter(s => s.id !== songId);
+    } else {
+      const song = tournamentData.musicQueue.find(s => s.id === songId);
+      if (song) {
+        song.status = status; // 'pending' | 'playing' | 'played'
+      }
+    }
+
+    saveTournamentData();
+    broadcast({ type: 'MUSIC_QUEUE_UPDATED', payload: tournamentData.musicQueue });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Error updating song status:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+// GUESTBOOK ENDPOINTS
+app.get('/api/guestbook', (req, res) => {
+  res.json({ ok: true, entries: tournamentData.guestbook || [] });
+});
+
+app.post('/api/guestbook', (req, res) => {
+  try {
+    const { name, message, photo } = req.body || {};
+    const cleanName = String(name || 'Gast').trim();
+    const cleanMessage = String(message || '').trim();
+
+    if (!cleanMessage && !photo) {
+      return res.status(400).json({ ok: false, error: 'Bitte gib eine Nachricht oder ein Foto ein!' });
+    }
+
+    let photoFilename = null;
+    if (photo && typeof photo === 'string' && photo.includes('base64,')) {
+      const parts = photo.split(';base64,');
+      const ext = parts[0].includes('png') ? 'png' : (parts[0].includes('webp') ? 'webp' : 'jpg');
+      const cleanSafeName = cleanName.replace(/[^\wÄÖÜäöüß\- ]/g, '').replace(/\s+/g, '_');
+      photoFilename = `photos/${Date.now()}_gb_${cleanSafeName}.${ext}`;
+      fs.writeFileSync(path.join(__dirname, photoFilename), Buffer.from(parts[1], 'base64'));
+
+      // Also add to slideshow photos so it displays live on the TV!
+      const photoItem = {
+        id: 'photo_gb_' + Date.now(),
+        url: photoFilename,
+        sender: cleanName,
+        caption: `📖 Gästebuch: ${cleanMessage.substring(0, 80)}`,
+        uploadedAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+      };
+      if (!tournamentData.photos) tournamentData.photos = [];
+      tournamentData.photos.unshift(photoItem);
+      broadcast({ type: 'NEW_PHOTO', payload: photoItem });
+    }
+
+    if (!tournamentData.guestbook) tournamentData.guestbook = [];
+    const entry = {
+      id: 'gb_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      name: cleanName,
+      message: cleanMessage,
+      photoUrl: photoFilename,
+      createdAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toLocaleDateString('de-DE'),
+      timestamp: Date.now()
+    };
+
+    tournamentData.guestbook.unshift(entry);
+    saveTournamentData();
+
+    broadcast({ type: 'NEW_GUESTBOOK_ENTRY', payload: entry });
+    broadcast({ type: 'GUESTBOOK_UPDATED', payload: tournamentData.guestbook });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+
+    console.log(`📖 Neuer Gästebuch-Eintrag von ${cleanName}: "${cleanMessage.substring(0, 50)}..."`);
+    res.json({ ok: true, entry });
+  } catch (err) {
+    console.error('Error posting guestbook entry:', err);
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/guestbook/delete', (req, res) => {
+  try {
+    const { entryId } = req.body || {};
+    if (!tournamentData.guestbook) tournamentData.guestbook = [];
+    tournamentData.guestbook = tournamentData.guestbook.filter(e => e.id !== entryId);
+    saveTournamentData();
+    broadcast({ type: 'GUESTBOOK_UPDATED', payload: tournamentData.guestbook });
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
 // REST Endpoints
 app.get('/api/state', (req, res) => res.json(tournamentData));
 app.get('/api/hall_of_fame', (req, res) => res.json(hallOfFame));
@@ -1489,8 +2205,9 @@ app.get('/api/network', async (req, res) => {
   const localIp = getLocalIpAddress();
   const mobileAdminUrl = `http://${localIp}:${PORT}/admin.html`;
   const tvUrl = `http://localhost:${PORT}/tv.html`;
-  // Online erreichbar für alle Gäste per Handynetz / LTE / 5G / WLAN:
-  // Mit ?host= Parameter, damit Geräte im selben WLAN direkt blitzschnell lokal hochladen können!
+  const partyHubUrl = `http://${localIp}:${PORT}/party.html`;
+  // Online weltweit erreichbar für alle Gäste per Handynetz / LTE / 5G (ohne im WLAN sein zu müssen!):
+  const partyOnlineUrl = `https://ricfritzsche89.github.io/h-ttenkarten/party.html?host=${localIp}:${PORT}`;
   const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html?host=${localIp}:${PORT}`;
   try {
     const qrDataUrl = await QRCode.toDataURL(mobileAdminUrl, {
@@ -1503,12 +2220,20 @@ app.get('/api/network', async (req, res) => {
       scale: 8,
       color: { dark: '#000000', light: '#ffffff' }
     });
+    const qrPartyUrl = await QRCode.toDataURL(partyOnlineUrl, {
+      margin: 2,
+      scale: 10,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
     res.json({
       localIp,
       port: PORT,
       mobileAdminUrl,
       tvUrl,
+      partyHubUrl,
+      partyOnlineUrl,
       qrDataUrl,
+      qrPartyUrl,
       guestFotosUrl,
       qrFotosUrl
     });

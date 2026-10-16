@@ -16,16 +16,45 @@ const ZEITZONE = 'Europe/Berlin';
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    const dataUrl = payload.file || '';
 
-    const m = dataUrl.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
-    if (!m) {
-      return json_({ ok: false, error: 'Kein gueltiges Bild (Data-URL erwartet)' });
+    // 1. Bereinigung / Löschen alter Broschüren-Entwürfe
+    if (payload.action === 'cleanup_brochures') {
+      const folder = getOrCreateFolder_(ZIEL_ORDNER);
+      const files = folder.getFiles();
+      let count = 0;
+      while (files.hasNext()) {
+        const f = files.next();
+        const n = f.getName().toLowerCase();
+        // Löscht alte oder fehlerhafte Broschüren-Dateien
+        if ((n.includes('broschuere') || n.includes('broschüre')) && !n.includes('2026-10-15_1922')) {
+          f.setTrashed(true);
+          count++;
+        }
+      }
+      return json_({ ok: true, trashed: count });
     }
 
-    const ext = m[1].toLowerCase() === 'jpg' ? 'jpg' : m[1].toLowerCase();
-    const mime = 'image/' + (ext === 'jpg' ? 'jpeg' : ext);
-    const blob = Utilities.newBlob(Utilities.base64Decode(m[2]), mime, 'karte.' + ext);
+    const dataUrl = payload.file || '';
+
+    // 2. Unterstützung für PDF und Bilder
+    let ext = 'png';
+    let mime = 'image/png';
+    let blob = null;
+
+    const pdfMatch = dataUrl.match(/^data:application\/pdf;base64,(.+)$/);
+    if (pdfMatch) {
+      ext = 'pdf';
+      mime = 'application/pdf';
+      blob = Utilities.newBlob(Utilities.base64Decode(pdfMatch[1]), mime, 'broschuere.pdf');
+    } else {
+      const m = dataUrl.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
+      if (!m) {
+        return json_({ ok: false, error: 'Kein gueltiges Bild oder PDF (Data-URL erwartet)' });
+      }
+      ext = m[1].toLowerCase() === 'jpg' ? 'jpeg' : m[1].toLowerCase();
+      mime = 'image/' + ext;
+      blob = Utilities.newBlob(Utilities.base64Decode(m[2]), mime, 'datei.' + (ext === 'jpeg' ? 'jpg' : ext));
+    }
 
     // Dateiname: Zeitstempel_Name.png (nur harmlose Zeichen)
     const name = String(payload.name || 'Gast')
