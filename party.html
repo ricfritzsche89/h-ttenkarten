@@ -596,6 +596,15 @@
       showToast(`Servus ${currentGuestName}! Mach die Party unsicher! 🎉`);
     }
 
+    function getCandidateBaseUrl(host) {
+      if (!host) return '';
+      if (host.startsWith('http://') || host.startsWith('https://')) return host;
+      if (host.includes('ngrok') || host.includes('.dev') || host.includes('.app')) {
+        return `https://${host}`;
+      }
+      return `http://${host}`;
+    }
+
     /* ============================================================ */
     /* DUAL-CHANNEL TRANSMITTER: LOKAL (WLAN) & CLOUD (LTE/5G)      */
     /* ============================================================ */
@@ -609,7 +618,7 @@
         candidateUrls.push(localPath);
       }
       if (localHost) {
-        candidateUrls.push(`http://${localHost}${localPath}`);
+        candidateUrls.push(`${getCandidateBaseUrl(localHost)}${localPath}`);
       }
 
       for (const u of candidateUrls) {
@@ -619,7 +628,10 @@
           const tId = setTimeout(() => ctrl.abort(), 2000); // 2s Timeout
           const res = await fetch(u, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': '1'
+            },
             body: JSON.stringify(localPayload),
             signal: ctrl.signal
           });
@@ -805,14 +817,17 @@
         candidateUrls.push('/api/music/queue');
       }
       if (localHost) {
-        candidateUrls.push(`http://${localHost}/api/music/queue`);
+        candidateUrls.push(`${getCandidateBaseUrl(localHost)}/api/music/queue`);
       }
 
       for (const u of candidateUrls) {
         try {
           const ctrl = new AbortController();
           const tId = setTimeout(() => ctrl.abort(), 2000);
-          const res = await fetch(u, { signal: ctrl.signal });
+          const res = await fetch(u, { 
+            headers: { 'ngrok-skip-browser-warning': '1' },
+            signal: ctrl.signal 
+          });
           clearTimeout(tId);
           const data = await res.json();
           if (data.ok && Array.isArray(data.queue)) {
@@ -1113,14 +1128,17 @@
         candidateUrls.push('/api/guestbook');
       }
       if (localHost) {
-        candidateUrls.push(`http://${localHost}/api/guestbook`);
+        candidateUrls.push(`${getCandidateBaseUrl(localHost)}/api/guestbook`);
       }
 
       for (const u of candidateUrls) {
         try {
           const ctrl = new AbortController();
           const tId = setTimeout(() => ctrl.abort(), 2000);
-          const res = await fetch(u, { signal: ctrl.signal });
+          const res = await fetch(u, { 
+            headers: { 'ngrok-skip-browser-warning': '1' },
+            signal: ctrl.signal 
+          });
           clearTimeout(tId);
           const data = await res.json();
           if (data.ok && Array.isArray(data.entries)) {

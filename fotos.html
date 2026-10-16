@@ -111,6 +111,16 @@
         <!-- Image Preview (Hidden by default) -->
         <img id="photo-preview" class="max-h-[340px] w-auto max-w-full rounded-md object-contain hidden shadow-2xl" alt="Vorschau">
         
+        <!-- Live Story Overlay Preview -->
+        <div id="overlay-preview" class="absolute bottom-3 left-3 right-3 bg-black/85 backdrop-blur-md border border-amber-400/50 rounded-xl p-3 text-center shadow-2xl hidden transition-all pointer-events-none">
+          <div class="text-[10px] font-fut font-bold text-amber-400 uppercase tracking-widest flex items-center justify-center space-x-1 mb-0.5">
+            <span>📸</span>
+            <span id="overlay-preview-sender">PARTY-GAST</span>
+          </div>
+          <div id="overlay-preview-text" class="text-sm font-fut font-black text-white drop-shadow leading-snug break-words uppercase">
+          </div>
+        </div>
+
         <!-- Retake Button overlay -->
         <button id="btn-retake" type="button" onclick="event.stopPropagation(); document.getElementById('file-input').click();" class="absolute top-3 right-3 px-3 py-1 bg-black/85 hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-md text-xs font-bold hidden shadow-lg uppercase tracking-wider">
           Anderes Foto
@@ -123,13 +133,29 @@
       <!-- INPUT: SENDER NAME -->
       <div class="space-y-1">
         <label class="block text-xs font-bold text-[#D4AF37] uppercase tracking-wide">DEIN NAME / SPITZNAME</label>
-        <input type="text" id="input-sender" placeholder="z. B. Max, Lukas..." class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
+        <input type="text" id="input-sender" oninput="updateOverlayPreview()" placeholder="z. B. Max, Lukas..." class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
       </div>
 
       <!-- INPUT: CAPTION / SPRUCH -->
       <div class="space-y-1">
-        <label class="block text-xs font-bold text-[#D4AF37] uppercase tracking-wide">BILDUNTERSCHRIFT / SPRUCH (OPTIONAL)</label>
-        <input type="text" id="input-caption" placeholder="z. B. Bierpong-Finale, Runde 3..." maxlength="60" class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
+        <div class="flex items-center justify-between">
+          <label class="block text-xs font-bold text-[#D4AF37] uppercase tracking-wide">BILDUNTERSCHRIFT / STORY-SPRUCH</label>
+          <span class="text-[10px] text-slate-400">Erscheint als Text-Overlay auf dem TV</span>
+        </div>
+        <input type="text" id="input-caption" oninput="updateOverlayPreview()" placeholder="z. B. Der Chef hat wieder Durst! 🍻" maxlength="70" class="w-full bg-[#080B10] border border-white/10 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37] shadow-inner">
+        
+        <!-- Quick Emojis -->
+        <div class="flex items-center space-x-1.5 pt-1 overflow-x-auto pb-1">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mr-1">Tipp:</span>
+          <button type="button" onclick="insertEmoji('🍻')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🍻</button>
+          <button type="button" onclick="insertEmoji('🔥')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🔥</button>
+          <button type="button" onclick="insertEmoji('🎯')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🎯</button>
+          <button type="button" onclick="insertEmoji('👑')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">👑</button>
+          <button type="button" onclick="insertEmoji('😂')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">😂</button>
+          <button type="button" onclick="insertEmoji('🏆')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🏆</button>
+          <button type="button" onclick="insertEmoji('🥩')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🥩</button>
+          <button type="button" onclick="insertEmoji('🥳')" class="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-sm active:scale-95 transition">🥳</button>
+        </div>
       </div>
 
       <!-- SUBMIT BUTTON -->
@@ -160,7 +186,32 @@
       if (savedName) {
         document.getElementById('input-sender').value = savedName;
       }
+      updateOverlayPreview();
     });
+
+    function updateOverlayPreview() {
+      const sender = document.getElementById('input-sender').value.trim() || 'PARTY-GAST';
+      const caption = document.getElementById('input-caption').value.trim();
+      const overlay = document.getElementById('overlay-preview');
+      const senderEl = document.getElementById('overlay-preview-sender');
+      const textEl = document.getElementById('overlay-preview-text');
+
+      if (senderEl) senderEl.textContent = sender.toUpperCase();
+
+      if (caption && currentBase64) {
+        if (textEl) textEl.textContent = `„${caption}“`;
+        if (overlay) overlay.classList.remove('hidden');
+      } else {
+        if (overlay) overlay.classList.add('hidden');
+      }
+    }
+
+    function insertEmoji(emoji) {
+      const input = document.getElementById('input-caption');
+      input.value += emoji;
+      input.focus();
+      updateOverlayPreview();
+    }
 
     // Handle image selection, downscale on client canvas for fast upload
     function handleFileSelected(event) {
@@ -201,6 +252,7 @@
           previewImg.classList.remove('hidden');
           document.getElementById('placeholder-ui').classList.add('hidden');
           document.getElementById('btn-retake').classList.remove('hidden');
+          updateOverlayPreview();
         };
         img.src = e.target.result;
       };

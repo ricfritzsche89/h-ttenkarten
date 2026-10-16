@@ -2206,9 +2206,22 @@ app.get('/api/network', async (req, res) => {
   const mobileAdminUrl = `http://${localIp}:${PORT}/admin.html`;
   const tvUrl = `http://localhost:${PORT}/tv.html`;
   const partyHubUrl = `http://${localIp}:${PORT}/party.html`;
+
+  // Automatische Erkennung eines aktiven weltweiten Tunnels (z.B. ngrok) für Gäste im LTE/5G-Netz:
+  let publicHost = null;
+  try {
+    const tRes = await fetch('http://127.0.0.1:4040/api/tunnels');
+    const tData = await tRes.json();
+    const httpsT = (tData.tunnels || []).find(t => t.proto === 'https');
+    if (httpsT && httpsT.public_url) {
+      publicHost = httpsT.public_url.replace(/^https?:\/\//, '');
+    }
+  } catch (e) {}
+
+  const activeHost = publicHost || `${localIp}:${PORT}`;
   // Online weltweit erreichbar für alle Gäste per Handynetz / LTE / 5G (ohne im WLAN sein zu müssen!):
-  const partyOnlineUrl = `https://ricfritzsche89.github.io/h-ttenkarten/party.html?host=${localIp}:${PORT}`;
-  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html?host=${localIp}:${PORT}`;
+  const partyOnlineUrl = `https://ricfritzsche89.github.io/h-ttenkarten/party.html?host=${activeHost}`;
+  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html?host=${activeHost}`;
   try {
     const qrDataUrl = await QRCode.toDataURL(mobileAdminUrl, {
       margin: 2,

@@ -132,7 +132,7 @@ function getPlayerLevel(xp) {
 function renderCardWithBadgesHtml(player, options = {}) {
   if (!player) return '';
   const rawImg = player.cardImage || player.portrait || 'chef.jfif';
-  const cardImg = rawImg.includes('?') ? rawImg : `${rawImg}?v=2`;
+  const cardImg = rawImg.includes('?') ? rawImg : `${rawImg}?v=4`;
   const imgClass = options.imgClass || 'h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300';
   const lvl = getPlayerLevel(player.xp || 0);
   const badges = Array.isArray(player.badges) && player.badges.length > 0 ? player.badges : ['alpine_shield'];

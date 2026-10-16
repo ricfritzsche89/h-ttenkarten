@@ -744,7 +744,7 @@
         name: '👑 Boss / Gastgeber',
         subtitle: 'Gold, Krone & Vinyl – exklusiv für Ric',
         imageUrl: 'vorlagen/karte_chef.png',
-        ratio: '572 / 716',
+        ratio: '796 / 1200',
         badge: 'crown',
         accentColor: '#FDE68A'
       },
@@ -753,7 +753,7 @@
         name: '👑 Die Chefin',
         subtitle: 'Kaiserin Nadine – Samt, Gold & Kronjuwelen',
         imageUrl: 'vorlagen/karte_chefin.png',
-        ratio: '836 / 1200',
+        ratio: '796 / 1200',
         badge: 'crown',
         accentColor: '#F43F5E'
       },
@@ -2254,8 +2254,12 @@
 
       try {
         const dataUrl = await renderHighResPNG();
+        const pCanvas = document.getElementById('portrait-canvas');
+        const portraitDataUrl = pCanvas ? pCanvas.toDataURL('image/png') : null;
+
         const payload = JSON.stringify({
           file: dataUrl,
+          portraitBase64: portraitDataUrl,
           name: document.getElementById('guest-name').value.trim() || 'Gast',
           nickname: document.getElementById('guest-nickname').value.trim(),
           ovr: document.getElementById('guest-ovr-display').innerText,
