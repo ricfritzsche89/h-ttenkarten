@@ -97,15 +97,29 @@
     <div class="lodge-card p-5 space-y-4">
       
       <!-- PHOTO PICKER / PREVIEW AREA -->
-      <div id="preview-container" class="relative lodge-inner min-h-[240px] flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-[#D4AF37]/30 cursor-pointer p-2" onclick="document.getElementById('file-input').click()">
+      <div id="preview-container" class="relative lodge-inner min-h-[250px] flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-[#D4AF37]/35 p-3">
         
         <!-- Placeholder State -->
-        <div id="placeholder-ui" class="text-center space-y-2 p-4">
-          <div class="w-14 h-14 rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center mx-auto text-[#D4AF37] font-fut font-black text-sm tracking-wider shadow">
-            FOTO
+        <div id="placeholder-ui" class="text-center space-y-3.5 p-3 w-full">
+          <div class="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center mx-auto text-3xl shadow-inner">
+            📸
           </div>
-          <div class="font-bold text-sm text-white">Tippe hier zum Fotografieren</div>
-          <div class="text-[11px] text-gray-400">Kamera starten oder aus Galerie wählen</div>
+          <div>
+            <div class="font-fut font-black text-xl text-white uppercase tracking-wider">Party-Foto auswählen</div>
+            <div class="text-xs text-slate-400 mt-0.5">Schnappschuss machen oder aus deinen Fotos wählen:</div>
+          </div>
+
+          <!-- 2 Große, native Touch-Buttons via <label> (funktioniert 100% verlässlich auf iOS & Android) -->
+          <div class="grid grid-cols-2 gap-2.5 pt-2 max-w-xs mx-auto">
+            <label for="file-camera" class="touch-btn py-3 px-2 bg-gradient-to-b from-amber-500/25 to-amber-600/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/60 rounded-xl text-xs font-fut font-black tracking-wider uppercase flex flex-col items-center justify-center space-y-1 cursor-pointer shadow-lg active:scale-95 transition">
+              <span class="text-2xl">📷</span>
+              <span>Kamera</span>
+            </label>
+            <label for="file-gallery" class="touch-btn py-3 px-2 bg-gradient-to-b from-slate-800 to-slate-900 hover:bg-slate-700 text-white border border-white/20 rounded-xl text-xs font-fut font-black tracking-wider uppercase flex flex-col items-center justify-center space-y-1 cursor-pointer shadow-lg active:scale-95 transition">
+              <span class="text-2xl">🖼️</span>
+              <span>Mediathek</span>
+            </label>
+          </div>
         </div>
 
         <!-- Image Preview (Hidden by default) -->
@@ -121,14 +135,20 @@
           </div>
         </div>
 
-        <!-- Retake Button overlay -->
-        <button id="btn-retake" type="button" onclick="event.stopPropagation(); document.getElementById('file-input').click();" class="absolute top-3 right-3 px-3 py-1 bg-black/85 hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-md text-xs font-bold hidden shadow-lg uppercase tracking-wider">
-          Anderes Foto
-        </button>
+        <!-- Retake Buttons overlay -->
+        <div id="btn-retake" class="absolute top-3 right-3 flex items-center gap-1.5 hidden z-10">
+          <label for="file-camera" class="px-2.5 py-1.5 bg-black/90 hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-lg text-[10px] font-bold shadow-lg uppercase tracking-wider cursor-pointer flex items-center space-x-1">
+            <span>📷</span> <span>Kamera</span>
+          </label>
+          <label for="file-gallery" class="px-2.5 py-1.5 bg-black/90 hover:bg-black text-white border border-white/30 rounded-lg text-[10px] font-bold shadow-lg uppercase tracking-wider cursor-pointer flex items-center space-x-1">
+            <span>🖼️</span> <span>Mediathek</span>
+          </label>
+        </div>
       </div>
 
-      <!-- Hidden native file input with camera capture support -->
-      <input type="file" id="file-input" accept="image/*" capture="environment" onchange="handleFileSelected(event)" class="hidden">
+      <!-- Native file inputs via Label - pointer-events: none, opacity: 0 -->
+      <input type="file" id="file-camera" accept="image/*" capture="environment" onchange="handleFileSelected(event)" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
+      <input type="file" id="file-gallery" accept="image/*" onchange="handleFileSelected(event)" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
 
       <!-- INPUT: SENDER NAME -->
       <div class="space-y-1">
@@ -259,10 +279,20 @@
       reader.readAsDataURL(file);
     }
 
+    function triggerCamera() {
+      const el = document.getElementById('file-camera');
+      if (el) el.click();
+    }
+
+    function triggerGallery() {
+      const el = document.getElementById('file-gallery');
+      if (el) el.click();
+    }
+
     async function uploadPhoto() {
       if (!currentBase64) {
         alert('Bitte wähle zuerst ein Foto aus!');
-        document.getElementById('file-input').click();
+        triggerGallery();
         return;
       }
 
