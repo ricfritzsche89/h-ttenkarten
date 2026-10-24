@@ -336,13 +336,22 @@
       const localHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
 
       const candidateUrls = [];
-      // 1. Direkt-Upload: Wenn wir NICHT auf github.io sind, läuft fotos.html direkt über unseren Express-Server (localhost, LAN-IP oder ngrok-Tunnel)!
+      // 1. Relativer Upload-Pfad (wenn direkt über Server oder ngrok aufgerufen)
       if (!window.location.hostname.includes('github.io')) {
         candidateUrls.push('/api/upload_photo');
       }
+
+      // 2. Aktiver weltweiter HTTPS-Tunnel (funktioniert auch von GitHub Pages aus ohne Mixed-Content Block!)
+      const TUNNEL_URL = 'https://arletha-panicky-macey.ngrok-free.dev/api/upload_photo';
+      if (!candidateUrls.includes(TUNNEL_URL)) {
+        candidateUrls.push(TUNNEL_URL);
+      }
+
+      // 3. Fallback über URL-Parameter host (z. B. lokales WLAN)
       if (localHost) {
         const fullHostUrl = localHost.startsWith('http') ? localHost : (localHost.includes('.') && !localHost.includes(':') ? `https://${localHost}` : `http://${localHost}`);
-        candidateUrls.push(`${fullHostUrl}/api/upload_photo`);
+        const u = `${fullHostUrl}/api/upload_photo`;
+        if (!candidateUrls.includes(u)) candidateUrls.push(u);
       }
 
       for (const u of candidateUrls) {
@@ -352,7 +361,10 @@
           const tId = setTimeout(() => ctrl.abort(), 15000); // 15s Timeout für Mobilfunk
           const localRes = await fetch(u, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true'
+            },
             body: jsonPayload,
             signal: ctrl.signal
           });
@@ -364,7 +376,7 @@
             break;
           }
         } catch (e) {
-          console.log('Lokaler Upload über', u, 'nicht erreichbar (evtl. Gast im mobilen Handynetz).');
+          console.log('Upload über', u, 'nicht erreichbar:', e);
         }
       }
 
