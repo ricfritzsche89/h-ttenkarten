@@ -1,6 +1,14 @@
 const dns = require('dns');
 try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
 
+// Prevent server crashes on unhandled errors/rejections (e.g. temporary network dropouts)
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ Uncaught Exception abgefangen:', err.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Unhandled Rejection abgefangen:', reason && (reason.message || reason));
+});
+
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -209,6 +217,7 @@ if (tournamentData.activeEvent && !tournamentData.activeEvent.betting) {
 }
 
 function ensureTournamentMetaDefaults() {
+  if (!tournamentData.deletedPhotoIds) tournamentData.deletedPhotoIds = [];
   if (!tournamentData.meta) tournamentData.meta = {};
   if (!tournamentData.meta.title) tournamentData.meta.title = 'Hüttencup 2026';
   if (!tournamentData.meta.eventTheme) tournamentData.meta.eventTheme = 'oktoberfest';
@@ -219,6 +228,27 @@ function ensureTournamentMetaDefaults() {
   if (!tournamentData.meta.eventYear) tournamentData.meta.eventYear = 2026;
 }
 ensureTournamentMetaDefaults();
+
+function cleanupMissingPhotos() {
+  if (!tournamentData.photos || !Array.isArray(tournamentData.photos)) {
+    tournamentData.photos = [];
+    return;
+  }
+  const initialCount = tournamentData.photos.length;
+  tournamentData.photos = tournamentData.photos.filter(p => {
+    if (!p || !p.url) return false;
+    const fullPath = path.join(__dirname, p.url);
+    return fs.existsSync(fullPath);
+  });
+  if (tournamentData.photos.length !== initialCount) {
+    console.log(`🧹 ${initialCount - tournamentData.photos.length} verwaiste/gelöschte Foto-Einträge aus der Slideshow bereinigt.`);
+    saveTournamentData();
+    if (typeof wss !== 'undefined' && wss) {
+      try { broadcast({ type: 'STATE_UPDATE', payload: tournamentData }); } catch (e) {}
+    }
+  }
+}
+cleanupMissingPhotos();
 
 function saveTournamentData() {
   try {
@@ -276,6 +306,7 @@ function ensurePlayerBadgeDefaults(p) {
   if (typeof p.xp !== 'number') p.xp = 100;
   if (!Array.isArray(p.badges)) p.badges = ['alpine_shield'];
   if (!p.badges.includes('alpine_shield')) p.badges.unshift('alpine_shield');
+  if (p.active === undefined) p.active = true;
   checkChampionStatus(p);
   p.level = getPlayerLevel(p.xp).level;
 }
@@ -446,7 +477,7 @@ function generateTeamsInternal(gameId, playerIds = null) {
   const isRic = (p) => p && /^(ric|riccardo|richard)\b/i.test((p.name || '').trim());
   const isMandy = (p) => p && /^(mandy|mandi)\b/i.test((p.name || '').trim());
 
-  const allPlayers = tournamentData.players || [];
+  const allPlayers = (tournamentData.players || []).filter(p => p.active !== false);
   const poolIds = (playerIds && playerIds.length > 0) ? playerIds : allPlayers.map(p => p.id);
   const selectedPlayers = poolIds.map(id => allPlayers.find(p => p.id === id)).filter(Boolean);
 
@@ -800,6 +831,40 @@ function handleClientMessage(msg) {
       });
       saveTournamentData();
       broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      break;
+    }
+
+    case 'TOGGLE_PLAYER_ACTIVE': {
+      const p = (tournamentData.players || []).find(x => x.id === payload.playerId);
+      if (p) {
+        p.active = (p.active === false) ? true : false;
+        saveTournamentData();
+        broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+        broadcast({ 
+          type: 'TOAST', 
+          payload: { 
+            text: p.active ? `✅ ${p.name} ist wieder aktiv im Kader!` : `⏸️ ${p.name} wurde pausiert / abgewählt.`,
+            type: p.active ? 'success' : 'info'
+          } 
+        });
+      }
+      break;
+    }
+
+    case 'SET_ALL_PLAYERS_ACTIVE': {
+      const shouldBeActive = payload.active !== false;
+      (tournamentData.players || []).forEach(p => {
+        p.active = shouldBeActive;
+      });
+      saveTournamentData();
+      broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+      broadcast({ 
+        type: 'TOAST', 
+        payload: { 
+          text: shouldBeActive ? '✅ Alle Spieler wurden im Kader aktiviert!' : '⏸️ Alle Spieler wurden pausiert.',
+          type: 'info'
+        } 
+      });
       break;
     }
 
@@ -1190,6 +1255,7 @@ async function downloadDriveImageLocally(imgFileId, name, isPhoto = false) {
 }
 
 let isSyncingDrive = false;
+let lastDriveSyncFailed = false;
 
 async function syncFromGoogleDrive() {
   if (isSyncingDrive) return { ok: false, busy: true };
@@ -1200,7 +1266,14 @@ async function syncFromGoogleDrive() {
   try {
     const res = await fetch(GOOGLE_SCRIPT_URL, { signal: controller.signal });
     clearTimeout(timeoutId);
-    const data = await res.json();
+    if (!res.ok) {
+      return { ok: false, error: `HTTP ${res.status}` };
+    }
+    const text = await res.text();
+    if (!text || !text.trim().startsWith('{')) {
+      return { ok: false, error: 'Keine gültige JSON-Antwort von Google Drive Script' };
+    }
+    const data = JSON.parse(text);
     if (data.ok && Array.isArray(data.cards)) {
       let newCount = 0;
       if (!tournamentData.inbox) tournamentData.inbox = [];
@@ -1310,6 +1383,15 @@ async function syncFromGoogleDrive() {
                         (!c.ovr && !c.pos && (!c.stats || Object.keys(c.stats).length === 0));
         if (isPhoto) {
           const photoId = 'drive_photo_' + (c.driveId || c.gesendet || c.datei || Date.now());
+
+          if (!tournamentData.deletedPhotoIds) tournamentData.deletedPhotoIds = [];
+          const isDeleted = tournamentData.deletedPhotoIds.some(id => 
+            id === photoId || (c.driveId && id === c.driveId) || (c.imgFileId && id === c.imgFileId) || (c.datei && id === c.datei)
+          );
+          if (isDeleted) {
+            continue;
+          }
+
           const alreadyExists = tournamentData.photos.some(p => p.id === photoId || (p.sender === name && p.uploadedAt === c.gesendet));
 
           if (!alreadyExists) {
@@ -1409,12 +1491,16 @@ async function syncFromGoogleDrive() {
         broadcast({ type: 'CARD_RECEIVED', payload: tournamentData.inbox[0] });
         console.log(`☁️ ${newCount} neue Karte(n) aus Google Drive synchronisiert!`);
       }
+      lastDriveSyncFailed = false;
       return { ok: true, newCards: newCount };
     }
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name !== 'AbortError') {
-      console.error('Fehler beim Synchronisieren mit Google Drive:', err.message || err);
+      if (!lastDriveSyncFailed) {
+        console.warn('⚠️ Google Drive Sync offline/nicht erreichbar (Offline-Modus aktiv):', err.message || err);
+        lastDriveSyncFailed = true;
+      }
     }
     return { ok: false, error: String(err) };
   } finally {
@@ -1450,8 +1536,10 @@ function addCardToPlayers_(card) {
   };
   const existingIdx = tournamentData.players.findIndex(p => p.id === player.id || p.name.toLowerCase() === player.name.toLowerCase());
   if (existingIdx !== -1) {
+    player.active = tournamentData.players[existingIdx].active !== false;
     tournamentData.players[existingIdx] = player;
   } else {
+    player.active = true;
     tournamentData.players.push(player);
   }
   tournamentData.games.forEach(g => {
@@ -1831,6 +1919,13 @@ app.post('/api/chatgpt_bundle/publish', async (req, res) => {
 // ================================================================
 // LIVE PARTY PHOTO UPLOAD & SLIDESHOW ENDPOINTS
 // ================================================================
+// Remote TV Screen Reload
+app.all('/api/restart_tv', (req, res) => {
+  broadcast({ type: 'RELOAD_TV' });
+  console.log('🔄 TV Screen Remote-Reload per API ausgelöst');
+  res.json({ ok: true, message: 'TV Screen reloaded' });
+});
+
 app.get('/api/photos', (req, res) => {
   res.json({ ok: true, photos: tournamentData.photos || [] });
 });
@@ -1897,17 +1992,57 @@ app.post('/api/delete_photo', (req, res) => {
   try {
     const { photoId } = req.body;
     if (!tournamentData.photos) tournamentData.photos = [];
+    if (!tournamentData.deletedPhotoIds) tournamentData.deletedPhotoIds = [];
+
     const photo = tournamentData.photos.find(p => p.id === photoId);
-    if (photo && photo.url) {
-      const fullPath = path.join(__dirname, photo.url);
-      if (fs.existsSync(fullPath)) {
-        try { fs.unlinkSync(fullPath); } catch (e) {}
+    if (photo) {
+      if (photo.id) tournamentData.deletedPhotoIds.push(photo.id);
+      if (photo.driveId) tournamentData.deletedPhotoIds.push(photo.driveId);
+      if (photo.imgFileId) tournamentData.deletedPhotoIds.push(photo.imgFileId);
+      if (photo.url) {
+        const fullPath = path.join(__dirname, photo.url);
+        if (fs.existsSync(fullPath)) {
+          try { fs.unlinkSync(fullPath); } catch (e) {}
+        }
       }
+    } else if (photoId) {
+      tournamentData.deletedPhotoIds.push(photoId);
     }
     tournamentData.photos = tournamentData.photos.filter(p => p.id !== photoId);
     saveTournamentData();
     broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err) });
+  }
+});
+
+app.post('/api/clear_all_photos', (req, res) => {
+  try {
+    if (!tournamentData.photos) tournamentData.photos = [];
+    if (!tournamentData.deletedPhotoIds) tournamentData.deletedPhotoIds = [];
+
+    let deletedFilesCount = 0;
+    for (const photo of tournamentData.photos) {
+      if (photo.id) tournamentData.deletedPhotoIds.push(photo.id);
+      if (photo.driveId) tournamentData.deletedPhotoIds.push(photo.driveId);
+      if (photo.imgFileId) tournamentData.deletedPhotoIds.push(photo.imgFileId);
+      if (photo.url) {
+        const fullPath = path.join(__dirname, photo.url);
+        if (fs.existsSync(fullPath)) {
+          try {
+            fs.unlinkSync(fullPath);
+            deletedFilesCount++;
+          } catch (e) {}
+        }
+      }
+    }
+
+    tournamentData.photos = [];
+    saveTournamentData();
+    broadcast({ type: 'STATE_UPDATE', payload: tournamentData });
+    console.log(`🗑️ Alle Slideshow-Fotos gelöscht (${deletedFilesCount} Dateien entfernt)`);
+    res.json({ ok: true, deletedFilesCount });
   } catch (err) {
     res.status(500).json({ ok: false, error: String(err) });
   }
@@ -2205,7 +2340,7 @@ app.get('/api/network', async (req, res) => {
   const localIp = getLocalIpAddress();
   const mobileAdminUrl = `http://${localIp}:${PORT}/admin.html`;
   const tvUrl = `http://localhost:${PORT}/tv.html`;
-  const partyHubUrl = `http://${localIp}:${PORT}/party.html`;
+  const partyHubUrl = `http://${localIp}:${PORT}/fotos.html`;
 
   // Automatische Erkennung eines aktiven weltweiten Tunnels (z.B. ngrok) für Gäste im LTE/5G-Netz:
   let publicHost = null;
@@ -2219,25 +2354,26 @@ app.get('/api/network', async (req, res) => {
   } catch (e) {}
 
   const activeHost = publicHost || `${localIp}:${PORT}`;
-  // Online weltweit erreichbar für alle Gäste per Handynetz / LTE / 5G (ohne im WLAN sein zu müssen!):
-  const partyOnlineUrl = `https://ricfritzsche89.github.io/h-ttenkarten/party.html?host=${activeHost}`;
-  const guestFotosUrl = `https://ricfritzsche89.github.io/h-ttenkarten/fotos.html?host=${activeHost}`;
+  // Falls ein weltweiter HTTPS-Tunnel aktiv ist (z. B. ngrok), wird dieser genutzt.
+  // Andernfalls direkt der blitzschnelle lokale WLAN-Link (verhindert Mixed-Content Blocking & Cloud-Verzögerung):
+  const guestFotosUrl = publicHost 
+    ? `https://${publicHost}/fotos.html` 
+    : `http://${localIp}:${PORT}/fotos.html`;
+  const partyOnlineUrl = guestFotosUrl;
   try {
     const qrDataUrl = await QRCode.toDataURL(mobileAdminUrl, {
+      width: 1024,
       margin: 2,
-      scale: 8,
+      errorCorrectionLevel: 'H',
       color: { dark: '#000000', light: '#ffffff' }
     });
     const qrFotosUrl = await QRCode.toDataURL(guestFotosUrl, {
+      width: 1024,
       margin: 2,
-      scale: 8,
+      errorCorrectionLevel: 'H',
       color: { dark: '#000000', light: '#ffffff' }
     });
-    const qrPartyUrl = await QRCode.toDataURL(partyOnlineUrl, {
-      margin: 2,
-      scale: 10,
-      color: { dark: '#000000', light: '#ffffff' }
-    });
+    const qrPartyUrl = qrFotosUrl;
     res.json({
       localIp,
       port: PORT,

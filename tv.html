@@ -1052,6 +1052,11 @@
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
+          if (msg.type === 'RELOAD_TV') {
+            console.log('🔄 Reload command received from server');
+            window.location.reload();
+            return;
+          }
           if (msg.type === 'STATE_INIT' || msg.type === 'STATE_UPDATE') {
             const prevPlayers = (tournament && tournament.players) ? [...tournament.players] : [];
             const prevCount = prevPlayers.length;
