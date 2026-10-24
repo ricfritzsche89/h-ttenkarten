@@ -105,8 +105,8 @@
             📸
           </div>
           <div>
-            <div class="font-fut font-black text-xl text-white uppercase tracking-wider">Party-Foto auswählen</div>
-            <div class="text-xs text-slate-400 mt-0.5">Schnappschuss machen oder aus deinen Fotos wählen:</div>
+            <div class="font-fut font-black text-xl text-white uppercase tracking-wider">Party-Fotos auswählen</div>
+            <div class="text-xs text-slate-400 mt-0.5">Schnappschuss machen oder mehrere Fotos aus der Galerie wählen:</div>
           </div>
 
           <!-- 2 Große, native Touch-Buttons via <label> (funktioniert 100% verlässlich auf iOS & Android) -->
@@ -117,13 +117,25 @@
             </label>
             <label for="file-gallery" class="touch-btn py-3 px-2 bg-gradient-to-b from-slate-800 to-slate-900 hover:bg-slate-700 text-white border border-white/20 rounded-xl text-xs font-fut font-black tracking-wider uppercase flex flex-col items-center justify-center space-y-1 cursor-pointer shadow-lg active:scale-95 transition">
               <span class="text-2xl">🖼️</span>
-              <span>Mediathek</span>
+              <span>Mediathek (Mehrere)</span>
             </label>
           </div>
         </div>
 
-        <!-- Image Preview (Hidden by default) -->
+        <!-- Image Preview (für 1 einzelnes Foto) -->
         <img id="photo-preview" class="max-h-[340px] w-auto max-w-full rounded-md object-contain hidden shadow-2xl" alt="Vorschau">
+        
+        <!-- Multi-Photo Preview Grid (für mehrere ausgewählte Fotos) -->
+        <div id="multi-preview" class="w-full space-y-2 hidden">
+          <div class="flex items-center justify-between px-1">
+            <span id="multi-count-badge" class="px-2.5 py-1 rounded bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] text-xs font-fut font-black uppercase tracking-wider">
+              2 FOTOS AUSGEWÄHLT
+            </span>
+            <span class="text-[10px] text-slate-400">Tippe auf ein Foto zum Entfernen</span>
+          </div>
+          <div id="multi-grid" class="grid grid-cols-3 gap-2 max-h-[260px] overflow-y-auto p-1.5 lodge-inner">
+          </div>
+        </div>
         
         <!-- Live Story Overlay Preview -->
         <div id="overlay-preview" class="absolute bottom-3 left-3 right-3 bg-black/85 backdrop-blur-md border border-amber-400/50 rounded-xl p-3 text-center shadow-2xl hidden transition-all pointer-events-none">
@@ -138,17 +150,17 @@
         <!-- Retake Buttons overlay -->
         <div id="btn-retake" class="absolute top-3 right-3 flex items-center gap-1.5 hidden z-10">
           <label for="file-camera" class="px-2.5 py-1.5 bg-black/90 hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-lg text-[10px] font-bold shadow-lg uppercase tracking-wider cursor-pointer flex items-center space-x-1">
-            <span>📷</span> <span>Kamera</span>
+            <span>📷</span> <span>+ Kamera</span>
           </label>
           <label for="file-gallery" class="px-2.5 py-1.5 bg-black/90 hover:bg-black text-white border border-white/30 rounded-lg text-[10px] font-bold shadow-lg uppercase tracking-wider cursor-pointer flex items-center space-x-1">
-            <span>🖼️</span> <span>Mediathek</span>
+            <span>🖼️</span> <span>+ Mediathek</span>
           </label>
         </div>
       </div>
 
       <!-- Native file inputs via Label - pointer-events: none, opacity: 0 -->
       <input type="file" id="file-camera" accept="image/*" capture="environment" onchange="handleFileSelected(event)" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
-      <input type="file" id="file-gallery" accept="image/*" onchange="handleFileSelected(event)" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
+      <input type="file" id="file-gallery" accept="image/*" multiple onchange="handleFileSelected(event)" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
 
       <!-- INPUT: SENDER NAME -->
       <div class="space-y-1">
@@ -198,7 +210,7 @@
   </footer>
 
   <script>
-    let currentBase64 = null;
+    let selectedPhotos = []; // Array of Base64 JPEG strings
 
     // Pre-fill sender name from localStorage if available
     window.addEventListener('DOMContentLoaded', () => {
@@ -218,7 +230,7 @@
 
       if (senderEl) senderEl.textContent = sender.toUpperCase();
 
-      if (caption && currentBase64) {
+      if (caption && selectedPhotos.length === 1) {
         if (textEl) textEl.textContent = `„${caption}“`;
         if (overlay) overlay.classList.remove('hidden');
       } else {
@@ -233,50 +245,134 @@
       updateOverlayPreview();
     }
 
-    // Handle image selection, downscale on client canvas for fast upload
-    function handleFileSelected(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
+    // Helper: Resizes a single File to max 1920x1080 JPEG
+    function processFile(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1920;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          // Resize down to max 1920x1080 to ensure lightning upload and high quality on TV
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 1920;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
             }
-          }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
 
-          // 85% JPEG quality gives crisp look under 400KB
-          currentBase64 = canvas.toDataURL('image/jpeg', 0.85);
-
-          // Update UI Preview
-          const previewImg = document.getElementById('photo-preview');
-          previewImg.src = currentBase64;
-          previewImg.classList.remove('hidden');
-          document.getElementById('placeholder-ui').classList.add('hidden');
-          document.getElementById('btn-retake').classList.remove('hidden');
-          updateOverlayPreview();
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          };
+          img.onerror = () => resolve(null);
+          img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Handle selection of 1 or MULTIPLE photos
+    async function handleFileSelected(event) {
+      const files = Array.from(event.target.files || []);
+      if (files.length === 0) return;
+
+      const statusBox = document.getElementById('status-box');
+      const statusText = document.getElementById('status-text');
+      const spinner = document.getElementById('status-spinner');
+
+      statusBox.classList.remove('hidden');
+      spinner.classList.remove('hidden');
+
+      const newPhotos = [];
+      for (let i = 0; i < files.length; i++) {
+        statusText.textContent = files.length > 1 
+          ? `Bereite Foto ${i + 1} von ${files.length} vor...` 
+          : 'Foto wird verarbeitet...';
+        const b64 = await processFile(files[i]);
+        if (b64) newPhotos.push(b64);
+      }
+
+      statusBox.classList.add('hidden');
+      spinner.classList.add('hidden');
+
+      if (newPhotos.length === 0) {
+        alert('Keine gültigen Bilddateien erkannt.');
+        return;
+      }
+
+      // Append to existing selection or set
+      selectedPhotos = [...selectedPhotos, ...newPhotos];
+      updatePreviewUI();
+    }
+
+    function removePhoto(index) {
+      selectedPhotos.splice(index, 1);
+      if (selectedPhotos.length === 0) {
+        resetForm();
+      } else {
+        updatePreviewUI();
+      }
+    }
+
+    function updatePreviewUI() {
+      const placeholder = document.getElementById('placeholder-ui');
+      const previewImg = document.getElementById('photo-preview');
+      const multiPreview = document.getElementById('multi-preview');
+      const multiCount = document.getElementById('multi-count-badge');
+      const multiGrid = document.getElementById('multi-grid');
+      const btnRetake = document.getElementById('btn-retake');
+      const btnSubmit = document.getElementById('btn-submit');
+      const btnSubmitText = btnSubmit.querySelector('span');
+
+      if (selectedPhotos.length === 0) {
+        placeholder.classList.remove('hidden');
+        previewImg.classList.add('hidden');
+        multiPreview.classList.add('hidden');
+        btnRetake.classList.add('hidden');
+        if (btnSubmitText) btnSubmitText.textContent = 'FOTO HOCHLADEN';
+        updateOverlayPreview();
+        return;
+      }
+
+      placeholder.classList.add('hidden');
+      btnRetake.classList.remove('hidden');
+
+      if (selectedPhotos.length === 1) {
+        multiPreview.classList.add('hidden');
+        previewImg.src = selectedPhotos[0];
+        previewImg.classList.remove('hidden');
+        if (btnSubmitText) btnSubmitText.textContent = 'FOTO HOCHLADEN';
+      } else {
+        previewImg.classList.add('hidden');
+        multiPreview.classList.remove('hidden');
+        if (multiCount) multiCount.textContent = `${selectedPhotos.length} FOTOS AUSGEWÄHLT`;
+        if (multiGrid) {
+          multiGrid.innerHTML = selectedPhotos.map((b64, idx) => `
+            <div class="relative group aspect-square rounded-lg overflow-hidden border border-white/15 shadow bg-black cursor-pointer" onclick="removePhoto(${idx})">
+              <img src="${b64}" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-rose-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-rose-300 font-fut font-black text-xs uppercase tracking-wider">
+                ✕ Löschen
+              </div>
+              <div class="absolute top-1 right-1 w-5 h-5 bg-black/85 border border-white/20 rounded-full text-white text-[10px] flex items-center justify-center font-bold">
+                ✕
+              </div>
+            </div>
+          `).join('');
+        }
+        if (btnSubmitText) btnSubmitText.textContent = `${selectedPhotos.length} FOTOS HOCHLADEN`;
+      }
+      updateOverlayPreview();
     }
 
     function triggerCamera() {
@@ -290,8 +386,8 @@
     }
 
     async function uploadPhoto() {
-      if (!currentBase64) {
-        alert('Bitte wähle zuerst ein Foto aus!');
+      if (!selectedPhotos || selectedPhotos.length === 0) {
+        alert('Bitte wähle zuerst Fotos aus!');
         triggerGallery();
         return;
       }
@@ -313,88 +409,78 @@
       btnSubmit.disabled = true;
       btnSubmit.classList.add('opacity-50');
       statusBox.classList.remove('hidden');
-      statusText.textContent = 'Foto wird übertragen...';
       spinner.classList.remove('hidden');
 
-      const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
-      const payloadObj = {
-        file: currentBase64,
-        name: sender,
-        caption: caption,
-        type: 'photo'
-      };
-      const jsonPayload = JSON.stringify(payloadObj);
+      const total = selectedPhotos.length;
+      let successCount = 0;
 
-      let delivered = false;
-
-      // 1. Direktlokaler Upload (wenn im selben WLAN oder lokaler Host bekannt)
-      const urlParams = new URLSearchParams(window.location.search);
-      const hostParam = urlParams.get('host');
-      if (hostParam) {
-        try { localStorage.setItem('gut_local_host', hostParam); } catch (e) {}
-      }
-      const localHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
-
+      // Candidate upload URLs
       const candidateUrls = [];
-      // 1. Relativer Upload-Pfad (wenn direkt über Server oder ngrok aufgerufen)
       if (!window.location.hostname.includes('github.io')) {
         candidateUrls.push('/api/upload_photo');
       }
 
-      // 2. Aktiver weltweiter HTTPS-Tunnel (funktioniert auch von GitHub Pages aus ohne Mixed-Content Block!)
       const TUNNEL_URL = 'https://arletha-panicky-macey.ngrok-free.dev/api/upload_photo';
       if (!candidateUrls.includes(TUNNEL_URL)) {
         candidateUrls.push(TUNNEL_URL);
       }
 
-      // 3. Fallback über URL-Parameter host (z. B. lokales WLAN)
-      if (localHost) {
-        const fullHostUrl = localHost.startsWith('http') ? localHost : (localHost.includes('.') && !localHost.includes(':') ? `https://${localHost}` : `http://${localHost}`);
+      const urlParams = new URLSearchParams(window.location.search);
+      const hostParam = urlParams.get('host') || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
+      if (hostParam) {
+        const fullHostUrl = hostParam.startsWith('http') ? hostParam : (hostParam.includes('.') && !hostParam.includes(':') ? `https://${hostParam}` : `http://${hostParam}`);
         const u = `${fullHostUrl}/api/upload_photo`;
         if (!candidateUrls.includes(u)) candidateUrls.push(u);
       }
 
-      for (const u of candidateUrls) {
-        if (delivered) break;
-        try {
-          const ctrl = new AbortController();
-          const tId = setTimeout(() => ctrl.abort(), 15000); // 15s Timeout für Mobilfunk
-          const localRes = await fetch(u, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true'
-            },
-            body: jsonPayload,
-            signal: ctrl.signal
-          });
-          clearTimeout(tId);
-          const localJson = await localRes.json();
-          if (localJson && localJson.ok) {
-            delivered = true;
-            console.log('⚡ Blitzschneller Direkt-Upload zum TV erfolgreich über:', u);
-            break;
+      const GUT_SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbzjjuwFg5ZQe_JBDfCTlNrg0pBa35ffkEGE0r2-vyQnzCS8MWzGfBZJykQb1LnFyydI/exec';
+
+      // Upload each selected photo sequentially with real-time progress
+      for (let i = 0; i < total; i++) {
+        statusText.textContent = total > 1 
+          ? `Übertrage Foto ${i + 1} von ${total}...` 
+          : 'Foto wird übertragen...';
+        
+        const b64 = selectedPhotos[i];
+        const payloadObj = {
+          file: b64,
+          name: sender,
+          caption: caption,
+          type: 'photo'
+        };
+        const jsonPayload = JSON.stringify(payloadObj);
+
+        let photoDelivered = false;
+
+        // Try direct endpoints first
+        for (const u of candidateUrls) {
+          if (photoDelivered) break;
+          try {
+            const ctrl = new AbortController();
+            const tId = setTimeout(() => ctrl.abort(), 15000);
+            const res = await fetch(u, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+              },
+              body: jsonPayload,
+              signal: ctrl.signal
+            });
+            clearTimeout(tId);
+            const data = await res.json();
+            if (data && data.ok) {
+              photoDelivered = true;
+              successCount++;
+              break;
+            }
+          } catch (e) {
+            console.log('Upload über', u, 'nicht erreichbar:', e);
           }
-        } catch (e) {
-          console.log('Upload über', u, 'nicht erreichbar:', e);
-        }
-      }
-
-      // 2. Online-Cloud-Upload (für alle Gäste im Handynetz / LTE / 5G / außerhalb des WLANs)
-      if (!delivered) {
-        try {
-          const res = await fetch(GUT_SUBMIT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: jsonPayload
-          });
-          const json = await res.json();
-          if (json && json.ok) delivered = true;
-        } catch (e) {
-          console.warn('Standard-CORS fehlgeschlagen, versuche no-cors Fallback:', e);
         }
 
-        if (!delivered) {
+        // Fallback to Cloud Script if direct server failed
+        if (!photoDelivered) {
           try {
             await fetch(GUT_SUBMIT_URL, {
               method: 'POST',
@@ -402,22 +488,23 @@
               body: jsonPayload,
               mode: 'no-cors'
             });
-            delivered = true;
-          } catch (e) {
-            console.error('No-cors Fallback ebenfalls fehlgeschlagen:', e);
-          }
+            photoDelivered = true;
+            successCount++;
+          } catch (e) {}
         }
       }
 
-      if (delivered) {
-        spinner.classList.add('hidden');
-        statusText.innerHTML = '<strong>Super!</strong> Dein Foto ist live und erscheint in wenigen Augenblicken auf dem TV!';
-        btnSubmit.innerHTML = '<span>WEITERES FOTO HOCHLADEN</span>';
+      spinner.classList.add('hidden');
+
+      if (successCount > 0) {
+        statusText.innerHTML = total > 1
+          ? `<strong>Klasse!</strong> Alle ${successCount} Fotos sind live auf dem TV!`
+          : '<strong>Klasse!</strong> Dein Foto ist live auf dem TV!';
+        btnSubmit.innerHTML = '<span>WEITERE FOTOS HOCHLADEN</span>';
         btnSubmit.disabled = false;
         btnSubmit.classList.remove('opacity-50');
         btnSubmit.onclick = resetForm;
       } else {
-        spinner.classList.add('hidden');
         statusText.textContent = 'Upload fehlgeschlagen. Bitte prüfe deine Internetverbindung!';
         btnSubmit.disabled = false;
         btnSubmit.classList.remove('opacity-50');
@@ -425,18 +512,24 @@
     }
 
     function resetForm() {
-      currentBase64 = null;
+      selectedPhotos = [];
       document.getElementById('photo-preview').classList.add('hidden');
+      document.getElementById('multi-preview').classList.add('hidden');
       document.getElementById('placeholder-ui').classList.remove('hidden');
       document.getElementById('btn-retake').classList.add('hidden');
       document.getElementById('input-caption').value = '';
       document.getElementById('status-box').classList.add('hidden');
       
+      const fileGallery = document.getElementById('file-gallery');
+      if (fileGallery) fileGallery.value = '';
+      const fileCamera = document.getElementById('file-camera');
+      if (fileCamera) fileCamera.value = '';
+
       const btnSubmit = document.getElementById('btn-submit');
       btnSubmit.innerHTML = '<span>FOTO HOCHLADEN</span>';
       btnSubmit.onclick = uploadPhoto;
       
-      document.getElementById('file-input').click();
+      triggerGallery();
     }
   </script>
 </body>
