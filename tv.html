@@ -174,14 +174,20 @@
     .showcase-column, 
     #slide-layer-1, 
     #slide-layer-2, 
-    #tekken-vs-centerpiece, 
-    .game-panel, 
-    #podium-cards,
-    .card-clean-shadow {
+    .game-panel {
       will-change: transform;
       transform: translateZ(0);
       backface-visibility: hidden;
-      contain: layout paint;
+    }
+
+    /* Dead-Center Positioning for Tekken VS Centerpiece */
+    #tekken-vs-centerpiece {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 40 !important;
+      will-change: transform;
     }
 
     /* High-Precision Sports Timing Rank Badges (Chrono Titanium & Champagne) */
@@ -217,9 +223,251 @@
       border-radius: 4px;
     }
 
+    /* ============================================================ */
+    /* LAPTOP & SCREENSHOT SCALING ENGINE (1600x900 & 47" TV)       */
+    /* ============================================================ */
+    :root {
+      --tv-zoom: 1;
+    }
+
+    #screen-welcome, 
+    #screen-scoreboard, 
+    #screen-event, 
+    #screen-ceremony {
+      transform: scale(var(--tv-zoom, 1));
+      transform-origin: center center;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Clean Screenshot Mode: Removes all overlays, toolbars, buttons, and mouse cursor */
+    body.clean-screenshot-mode {
+      cursor: none !important;
+    }
+    body.clean-screenshot-mode #tv-scale-toolbar,
+    body.clean-screenshot-mode #tv-toolbar-minipill,
+    body.clean-screenshot-mode #tv-floating-banner,
+    body.clean-screenshot-mode .screenshot-hide,
+    body.clean-screenshot-mode #ws-indicator,
+    body.clean-screenshot-mode #ws-status,
+    body.clean-screenshot-mode button {
+      display: none !important;
+    }
+
+    /* Responsive scaling for Laptop screens (height <= 940px OR width <= 1680px) unless TV mode forced */
+    @media (max-height: 940px), (max-width: 1680px) {
+      body:not(.force-tv-mode) .welcome-main-title {
+        font-size: clamp(1.75rem, 3.8vh, 2.75rem) !important;
+      }
+      body:not(.force-tv-mode) .welcome-stage-card-img {
+        height: clamp(210px, 33vh, 310px) !important;
+        max-height: 33vh !important;
+      }
+      body:not(.force-tv-mode) .welcome-player-name {
+        font-size: clamp(1.6rem, 3.2vh, 2.4rem) !important;
+      }
+      body:not(.force-tv-mode) .podium-showcase-card-img {
+        height: clamp(100px, 14.5vh, 140px) !important;
+        max-height: 14.5vh !important;
+      }
+      body:not(.force-tv-mode) .event-clash-card-img {
+        height: clamp(180px, 27vh, 250px) !important;
+        max-height: 27vh !important;
+      }
+      body:not(.force-tv-mode) .ceremony-rank-1-card {
+        height: clamp(200px, 30vh, 280px) !important;
+      }
+      body:not(.force-tv-mode) .ceremony-rank-2-card {
+        height: clamp(165px, 25vh, 230px) !important;
+      }
+      body:not(.force-tv-mode) .ceremony-rank-3-card {
+        height: clamp(145px, 22vh, 200px) !important;
+      }
+      body:not(.force-tv-mode) .ceremony-pedestal-1 {
+        height: 6rem !important;
+      }
+      body:not(.force-tv-mode) .ceremony-pedestal-2 {
+        height: 4.5rem !important;
+      }
+      body:not(.force-tv-mode) .ceremony-pedestal-3 {
+        height: 3rem !important;
+      }
+      body:not(.force-tv-mode) .ceremony-title {
+        font-size: clamp(1.8rem, 4vh, 2.8rem) !important;
+      }
+      body:not(.force-tv-mode) .welcome-highlight-card {
+        padding: 0.65rem !important;
+      }
+      body:not(.force-tv-mode) .welcome-highlight-card h4 {
+        font-size: 1.15rem !important;
+      }
+      body:not(.force-tv-mode) .welcome-highlight-card p {
+        font-size: 0.75rem !important;
+      }
+      body:not(.force-tv-mode) .welcome-highlight-card img {
+        height: 2rem !important;
+        width: auto !important;
+      }
+      body:not(.force-tv-mode) #welcome-card-stage .w-64 {
+        width: 10rem !important;
+        margin-top: 0.5rem !important;
+      }
+      body:not(.force-tv-mode) #tekken-vs-centerpiece {
+        transform: translate(-50%, -50%) scale(0.85) !important;
+      }
+    }
+
+    /* Force Laptop Mode when user explicitly selects it */
+    body.scale-laptop .welcome-main-title {
+      font-size: clamp(1.75rem, 3.8vh, 2.75rem) !important;
+    }
+    body.scale-laptop .welcome-stage-card-img {
+      height: clamp(210px, 33vh, 310px) !important;
+      max-height: 33vh !important;
+    }
+    body.scale-laptop .welcome-player-name {
+      font-size: clamp(1.6rem, 3.2vh, 2.4rem) !important;
+    }
+    body.scale-laptop .podium-showcase-card-img {
+      height: clamp(100px, 14.5vh, 140px) !important;
+      max-height: 14.5vh !important;
+    }
+    body.scale-laptop .event-clash-card-img {
+      height: clamp(180px, 27vh, 250px) !important;
+      max-height: 27vh !important;
+    }
+    body.scale-laptop .ceremony-rank-1-card {
+      height: clamp(200px, 30vh, 280px) !important;
+    }
+    body.scale-laptop .ceremony-rank-2-card {
+      height: clamp(165px, 25vh, 230px) !important;
+    }
+    body.scale-laptop .ceremony-rank-3-card {
+      height: clamp(145px, 22vh, 200px) !important;
+    }
+    body.scale-laptop .ceremony-pedestal-1 {
+      height: 6rem !important;
+    }
+    body.scale-laptop .ceremony-pedestal-2 {
+      height: 4.5rem !important;
+    }
+    body.scale-laptop .ceremony-pedestal-3 {
+      height: 3rem !important;
+    }
+    body.scale-laptop .ceremony-title {
+      font-size: clamp(1.8rem, 4vh, 2.8rem) !important;
+    }
+    body.scale-laptop .welcome-highlight-card {
+      padding: 0.65rem !important;
+    }
+    body.scale-laptop .welcome-highlight-card h4 {
+      font-size: 1.15rem !important;
+    }
+    body.scale-laptop .welcome-highlight-card p {
+      font-size: 0.75rem !important;
+    }
+    body.scale-laptop .welcome-highlight-card img {
+      height: 2rem !important;
+      width: auto !important;
+    }
+    body.scale-laptop #welcome-card-stage .w-64 {
+      width: 10rem !important;
+      margin-top: 0.5rem !important;
+    }
+    body.scale-laptop #tekken-vs-centerpiece {
+      transform: translate(-50%, -50%) scale(0.85) !important;
+    }
+
+    /* Ultra-crisp QR code rendering (zero anti-aliased blur / mathematically sharp pixels) */
+    .qr-pixel-sharp {
+      image-rendering: -webkit-optimize-contrast !important;
+      image-rendering: crisp-edges !important;
+      image-rendering: pixelated !important;
+    }
+
+    @media (max-height: 940px), (max-width: 1680px) {
+      body:not(.force-tv-mode) #slideshow-qr {
+        width: 10.5rem !important;
+        height: 10.5rem !important;
+      }
+      body:not(.force-tv-mode) #slideshow-qr-badge {
+        bottom: 1.25rem !important;
+        right: 1.25rem !important;
+        padding: 0.75rem !important;
+      }
+    }
+    body.scale-laptop #slideshow-qr {
+      width: 10.5rem !important;
+      height: 10.5rem !important;
+    }
+    body.scale-laptop #slideshow-qr-badge {
+      bottom: 1.25rem !important;
+      right: 1.25rem !important;
+      padding: 0.75rem !important;
+    }
+
   </style>
 </head>
 <body class="slate-lodge-bg alpine-wood-frame w-screen h-screen select-none overflow-hidden text-gray-100 relative">
+  <!-- ============================================================ -->
+  <!-- FLOATING TV DISPLAY & SCREENSHOT CONTROLLER TOOLBAR         -->
+  <!-- ============================================================ -->
+  <div id="tv-scale-toolbar" class="screenshot-hide fixed bottom-3 left-1/2 -translate-x-1/2 z-[9999] bg-[#0A0D14]/92 backdrop-blur-md border border-amber-500/40 rounded-2xl px-3.5 py-1.5 shadow-[0_10px_35px_rgba(0,0,0,0.95)] flex items-center space-x-3 text-xs select-none transition-all duration-300 hidden">
+    <!-- Presets -->
+    <div class="flex items-center space-x-1 bg-black/60 p-1 rounded-xl border border-white/10">
+      <button id="btn-scale-auto" onclick="setTvScaleMode('auto')" class="px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition bg-amber-500 text-slate-950 font-bold shadow" title="Automatische Erkennung">
+        ⚙️ Auto
+      </button>
+      <button id="btn-scale-laptop" onclick="setTvScaleMode('laptop')" class="px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition text-slate-300 hover:bg-white/10" title="Optimiert für Laptop (1600x900) - Perfekt für Screenshots">
+        💻 Laptop (1600x900)
+      </button>
+      <button id="btn-scale-tv" onclick="setTvScaleMode('tv')" class="px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition text-slate-300 hover:bg-white/10" title="Großformat 47 Zoll TV (1080p)">
+        📺 47" TV
+      </button>
+    </div>
+
+    <!-- Zoom Control -->
+    <div class="flex items-center space-x-1 bg-black/60 px-2 py-1 rounded-xl border border-white/10 text-[11px] font-fut font-bold text-slate-300">
+      <button onclick="adjustTvZoom(-0.05)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/15 text-amber-300 font-black text-sm" title="Zoom verkleinern (-)">−</button>
+      <span id="tv-zoom-display" class="px-1.5 min-w-[42px] text-center text-amber-400 font-mono font-bold">100%</span>
+      <button onclick="adjustTvZoom(0.05)" class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/15 text-amber-300 font-black text-sm" title="Zoom vergrößern (+)">+</button>
+      <button onclick="resetTvZoom()" class="text-[9px] text-slate-400 hover:text-white px-1 uppercase tracking-wider" title="Zoom zurücksetzen (Taste 0)">Reset</button>
+    </div>
+
+    <!-- Screen Switcher (Instant preview for screenshots) -->
+    <div class="flex items-center space-x-1 bg-black/60 p-1 rounded-xl border border-white/10">
+      <button onclick="switchTvScreen('scoreboard')" class="px-2 py-0.5 rounded text-[10px] font-fut font-black uppercase tracking-wider text-slate-300 hover:bg-white/15 hover:text-white" title="Scoreboard (Taste 1)">
+        1. Board
+      </button>
+      <button onclick="switchTvScreen('welcome')" class="px-2 py-0.5 rounded text-[10px] font-fut font-black uppercase tracking-wider text-slate-300 hover:bg-white/15 hover:text-white" title="Lobby (Taste 2)">
+        2. Lobby
+      </button>
+      <button onclick="switchTvScreen('announced')" class="px-2 py-0.5 rounded text-[10px] font-fut font-black uppercase tracking-wider text-slate-300 hover:bg-white/15 hover:text-white" title="Tekken Clash Arena (Taste 3)">
+        3. VS Duel
+      </button>
+      <button onclick="switchTvScreen('ceremony')" class="px-2 py-0.5 rounded text-[10px] font-fut font-black uppercase tracking-wider text-slate-300 hover:bg-white/15 hover:text-white" title="Siegerehrung Podium (Taste 4)">
+        4. Podium
+      </button>
+      <button onclick="switchTvScreen('slideshow')" class="px-2 py-0.5 rounded text-[10px] font-fut font-black uppercase tracking-wider text-slate-300 hover:bg-white/15 hover:text-white" title="Foto-Galerie (Taste 5)">
+        5. Fotos
+      </button>
+    </div>
+
+    <!-- Clean Screenshot Mode Button -->
+    <button onclick="toggleCleanScreenshotMode()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-fut font-black text-xs uppercase tracking-wider shadow-lg flex items-center space-x-1.5 transition transform active:scale-95" title="Versteckt alle Leisten & Knöpfe für saubere Screenshots (Taste C)">
+      <span>📸</span>
+      <span>SCREENSHOT-MODUS (C)</span>
+    </button>
+
+    <!-- Toolbar collapse / hide toggle -->
+    <button onclick="toggleToolbarCollapse()" id="btn-collapse-toolbar" class="w-6 h-6 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs" title="Toolbar ein-/ausklappen (Taste S)">
+      ✕
+    </button>
+  </div>
+
+  <!-- Collapsed Mini Pill (when toolbar is hidden) -->
+  <button id="tv-toolbar-minipill" onclick="toggleToolbarCollapse()" class="screenshot-hide fixed bottom-3 left-1/2 -translate-x-1/2 z-[9998] bg-[#0A0D14]/90 backdrop-blur-md border border-amber-500/40 rounded-full px-3 py-1 shadow-lg text-[10px] font-fut font-black text-amber-300 uppercase tracking-wider hidden hover:bg-amber-500/20 transition">
+    ⚙️ TV DISPLAY-STEUERUNG (S)
+  </button>
   <!-- ============================================================ -->
   <!-- SCREEN 0: FULLSCREEN OKTOBERFEST PRE-GAME LOBBY              -->
   <!-- ============================================================ -->
@@ -247,7 +495,7 @@
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span id="welcome-live-clock">19:45 UHR</span>
         </div>
-        <button onclick="toggleFullscreen()" title="Vollbild umschalten (Taste F oder Doppelklick)" class="cursor-pointer flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-500/40 font-fut font-black text-xs uppercase tracking-wider transition-all shadow">
+        <button onclick="toggleFullscreen()" title="Vollbild umschalten (Taste F oder Doppelklick)" class="screenshot-hide cursor-pointer flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-500/40 font-fut font-black text-xs uppercase tracking-wider transition-all shadow">
           <span>⛶</span>
           <span>VOLLBILD</span>
         </button>
@@ -270,7 +518,7 @@
         </div>
 
         <!-- Poster 1: Bierpong -->
-        <div class="flex-1 bg-gradient-to-br from-[#120808] to-[#0B0F17] rounded-2xl border-2 border-red-500/50 p-4 shadow-xl flex flex-col justify-between hover:border-red-400 transition-all">
+        <div class="welcome-highlight-card flex-1 bg-gradient-to-br from-[#120808] to-[#0B0F17] rounded-2xl border-2 border-red-500/50 p-4 shadow-xl flex flex-col justify-between hover:border-red-400 transition-all">
           <div class="flex items-center justify-between">
             <span class="px-3 py-1 rounded-full bg-red-950/90 text-red-200 border border-red-500/50 font-fut font-black text-xs uppercase tracking-wider shadow">
               🍺 BIERPONG DUELL
@@ -292,7 +540,7 @@
         </div>
 
         <!-- Poster 2: Live-Bargeld-Wettbüro -->
-        <div class="flex-1 bg-gradient-to-br from-[#161206] to-[#0B0F17] rounded-2xl border-2 border-amber-500/50 p-4 shadow-xl flex flex-col justify-between hover:border-amber-400 transition-all">
+        <div class="welcome-highlight-card flex-1 bg-gradient-to-br from-[#161206] to-[#0B0F17] rounded-2xl border-2 border-amber-500/50 p-4 shadow-xl flex flex-col justify-between hover:border-amber-400 transition-all">
           <div class="flex items-center justify-between">
             <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/50 font-fut font-black text-xs uppercase tracking-wider shadow">
               💰 ECHTGELD-WETTEN
@@ -313,25 +561,35 @@
           </div>
         </div>
 
-        <!-- Poster 3: Live Foto-Wall -->
-        <div class="flex-1 bg-gradient-to-br from-[#07140e] to-[#0B0F17] rounded-2xl border-2 border-emerald-500/50 p-4 shadow-xl flex flex-col justify-between hover:border-emerald-400 transition-all">
+        <!-- Poster 3: Live Foto-Wall & Handy Schnappschüsse -->
+        <div onclick="toggleQrModal('guest')" class="welcome-highlight-card flex-1 bg-gradient-to-br from-[#07140e] to-[#0B0F17] rounded-2xl border-2 border-emerald-500/50 p-3 sm:p-4 shadow-xl flex flex-col justify-between hover:border-emerald-400 transition-all cursor-pointer group">
           <div class="flex items-center justify-between">
             <span class="px-3 py-1 rounded-full bg-emerald-950/90 text-emerald-200 border border-emerald-500/50 font-fut font-black text-xs uppercase tracking-wider shadow">
-              📸 LIVE STREAM
+              📸 LIVE STREAM & FOTOS
             </span>
-            <img src="assets/badges/paparazzi.png" alt="Fotos" class="w-12 h-12 object-contain drop-shadow">
+            <span class="text-[10px] font-fut font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">LTE / 5G</span>
           </div>
-          <div class="my-auto py-2">
-            <h4 class="font-fut font-black text-2xl text-emerald-300 uppercase tracking-wider drop-shadow leading-tight">
-              HANDY-SCHNAPPSCHÜSSE
-            </h4>
-            <p class="font-fut font-bold text-base text-slate-100 mt-1 leading-snug">
-              Lade Party-Fotos direkt auf die Großleinwand hoch!
-            </p>
+
+          <div class="flex items-center space-x-3 my-1">
+            <div class="bg-white p-1 rounded-lg shrink-0 shadow-lg border border-white/40 group-hover:scale-105 transition-transform">
+              <img id="lobby-foto-qr" src="" alt="QR" class="w-14 h-14 sm:w-16 sm:h-16 object-contain qr-pixel-sharp block">
+            </div>
+            <div class="min-w-0">
+              <h4 class="font-fut font-black text-xl sm:text-2xl text-emerald-300 uppercase tracking-wider drop-shadow leading-tight">
+                SCHNAPPSCHÜSSE
+              </h4>
+              <p class="font-fut font-bold text-xs sm:text-sm text-slate-100 mt-0.5 leading-snug line-clamp-2">
+                Scannen & sofort Party-Fotos an die Großleinwand werfen!
+              </p>
+            </div>
           </div>
-          <div class="text-xs font-fut font-black text-emerald-300 tracking-wider uppercase flex items-center space-x-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>QR-CODE SCANNEN & SOFORT DABEI SEIN</span>
+
+          <div class="text-[11px] font-fut font-black text-emerald-300 tracking-wider uppercase flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>QR-CODE SCANNEN • OHNE APP</span>
+            </div>
+            <span class="text-white/60 group-hover:text-white transition">🔍 Groß</span>
           </div>
         </div>
 
@@ -346,7 +604,7 @@
             <span id="welcome-players-count-badge">SPIELER-SPOTLIGHT • DIE STARS DES ABENDS</span>
             <span>★</span>
           </div>
-          <h1 id="welcome-event-main-heading" class="font-fut font-black text-5xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)] mt-1">
+          <h1 id="welcome-event-main-heading" class="welcome-main-title font-fut font-black text-5xl sm:text-6xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 uppercase drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)] mt-1">
             OKTOBERFEST 2026
           </h1>
         </div>
@@ -452,7 +710,7 @@
           <span id="ws-indicator" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="ws-status" class="font-fut text-xs tracking-wider uppercase text-slate-300">LIVE SYNC AKTIV</span>
         </div>
-        <button onclick="toggleQrModal()" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-200 rounded border border-white/15 text-[10px] font-fut font-bold tracking-wider uppercase transition">
+        <button onclick="toggleQrModal()" class="screenshot-hide px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-200 rounded border border-white/15 text-[10px] font-fut font-bold tracking-wider uppercase transition">
           QR-CODE
         </button>
       </div>
@@ -475,7 +733,7 @@
     </div>
 
     <!-- Floating status bar at top right -->
-    <div class="absolute top-4 right-6 flex items-center space-x-3 text-xs text-gray-400 z-30">
+    <div class="screenshot-hide absolute top-4 right-6 flex items-center space-x-3 text-xs text-gray-400 z-30">
       <div class="flex items-center space-x-2 bg-black/70 px-3 py-1 rounded border border-white/10">
         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <span class="font-fut font-bold text-xs tracking-wider text-slate-300 uppercase">LIVE SYNC</span>
@@ -510,24 +768,54 @@
       </div>
     </div>
 
-    <!-- Floating Bottom-Right Badge: QR Code to Upload Photos -->
-    <div class="absolute bottom-8 right-8 bg-[#0B0F17]/95 border border-white/15 rounded-xl p-2.5 shadow-[0_10px_35px_rgba(0,0,0,0.9)] flex items-center space-x-3 z-20">
-      <img id="slideshow-qr" src="" alt="QR" class="w-16 h-16 rounded bg-white p-0.5 object-contain">
-      <div class="pr-2">
-        <div class="text-[11px] font-fut font-bold text-amber-300 uppercase tracking-wider">FOTO HOCHLADEN</div>
-        <div class="text-[10px] text-slate-300 font-medium">Scanne mit deinem Smartphone</div>
+    <!-- Floating Bottom-Right Badge: QR Code to Upload Photos (Ultra HD & Groß für 47" TV) -->
+    <div id="slideshow-qr-badge" onclick="toggleQrModal('guest')" class="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 bg-[#0B0F17]/95 backdrop-blur-md border-2 border-amber-400/70 rounded-2xl p-3.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.95)] flex flex-col items-center z-20 cursor-pointer group hover:border-amber-300 transition-all duration-300">
+      <!-- Top Status Header -->
+      <div class="w-full flex items-center justify-between space-x-2 mb-2 pb-1.5 border-b border-white/15">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-fut font-black text-xs sm:text-sm text-emerald-300 uppercase tracking-wider">LIVE FOTO-STREAM</span>
+        </div>
+        <span class="text-[9px] sm:text-[10px] font-fut font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">LTE/5G/WLAN</span>
+      </div>
+
+      <!-- Ultra-Sharp High-Contrast QR Code Card -->
+      <div class="relative bg-white p-2.5 sm:p-3 rounded-xl shadow-2xl border-2 border-white/90 transition-transform duration-300 group-hover:scale-[1.03]">
+        <img id="slideshow-qr" src="" alt="QR-Code zum Foto-Upload" class="w-44 h-44 sm:w-56 sm:h-56 object-contain qr-pixel-sharp block">
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-[2px] rounded-xl transition text-white font-fut font-black text-xs uppercase tracking-wider pointer-events-none">
+          🔍 Tippen für XXL
+        </div>
+      </div>
+
+      <!-- Bottom Headline & Instructions -->
+      <div class="text-center mt-2 max-w-[230px]">
+        <div class="font-fut font-black text-sm sm:text-base text-white uppercase tracking-wider leading-none drop-shadow">
+          📸 FOTO HOCHLADEN
+        </div>
+        <p class="text-[10px] sm:text-[11px] text-amber-300 font-medium leading-tight mt-1">
+          Handykamera draufhalten & Schnappschuss an den TV senden!
+        </p>
       </div>
     </div>
 
     <!-- Empty State if no photos yet -->
     <div id="slideshow-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 hidden">
-      <div class="game-panel p-10 max-w-lg space-y-4">
-        <div class="text-xs font-fut font-bold tracking-widest text-amber-400 uppercase py-1 px-3 border border-amber-500/30 rounded inline-block">FOTOGALERIE</div>
-        <h2 class="font-fut font-bold text-3xl text-white uppercase tracking-wider">NOCH KEINE FOTOS</h2>
-        <p class="text-xs text-slate-300">
-          Scanne den QR-Code mit deinem Smartphone und lade den ersten Schnappschuss direkt auf den TV!
+      <div class="game-panel p-8 sm:p-12 max-w-xl space-y-4 border-2 border-amber-500/50 shadow-[0_25px_60px_rgba(0,0,0,0.95)]">
+        <div class="text-xs sm:text-sm font-fut font-black tracking-widest text-amber-400 uppercase py-1 px-4 border border-amber-500/40 rounded-full inline-block bg-amber-500/10">
+          📸 FOTOGALERIE DER PARTY
+        </div>
+        <h2 class="font-fut font-black text-3xl sm:text-4xl text-white uppercase tracking-wider">
+          NOCH KEINE FOTOS HOCHGELADEN
+        </h2>
+        <p class="text-sm text-slate-200 max-w-md mx-auto leading-relaxed">
+          Scanne den QR-Code mit deinem Smartphone – schieße ein Foto oder wähle eins aus deiner Galerie und wirf es live auf den großen 47" Fernseher!
         </p>
-        <img id="slideshow-empty-qr" src="" alt="QR" class="w-44 h-44 mx-auto rounded bg-white p-1.5 shadow-2xl">
+        <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-2xl inline-block border-4 border-amber-400">
+          <img id="slideshow-empty-qr" src="" alt="QR" class="w-64 h-64 sm:w-72 sm:h-72 mx-auto object-contain qr-pixel-sharp block">
+        </div>
+        <div class="text-xs font-fut font-bold text-emerald-400 tracking-wider uppercase">
+          ⚡ FUNKTIONIERT AUCH IM MOBILEN HANDYNETZ (LTE / 5G / 4G) OHNE WLAN!
+        </div>
       </div>
     </div>
   </div>
@@ -542,7 +830,7 @@
         <span id="ceremony-badge-icon">🏆</span>
         <span id="ceremony-badge-text">SIEGEREHRUNG</span>
       </div>
-      <h1 id="ceremony-main-title" class="font-fut font-black text-6xl tracking-wider text-amber-300 uppercase drop-shadow mt-1">
+      <h1 id="ceremony-main-title" class="ceremony-title font-fut font-black text-6xl tracking-wider text-amber-300 uppercase drop-shadow mt-1">
         DAS PODIUM
       </h1>
     </div>
@@ -571,24 +859,63 @@
     </div>
   </div>
 
-  <!-- QR CODE MODAL FOR SMARTPHONES -->
+  <!-- QR CODE MODAL FOR SMARTPHONES (DUAL TAB: XXL GÄSTE-UPLOAD & ADMIN) -->
   <div id="qr-modal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center hidden" onclick="toggleQrModal()">
-    <div class="bg-[#0D1117] border border-white/15 rounded-xl p-8 max-w-md w-full text-center shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
-      <div class="text-[11px] font-fut font-bold tracking-widest text-amber-400 uppercase px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded mb-3">SMARTPHONE VERBINDUNG</div>
-      <h3 class="text-2xl font-bold font-fut text-white mb-1 uppercase tracking-wider">TURNIER-REGIE ÖFFNEN</h3>
-      <p class="text-xs text-slate-300 mb-6">
-        Scanne diesen QR-Code mit der Smartphone-Kamera, um das mobile Admin-Dashboard im Browser zu öffnen.
-      </p>
-
-      <div class="bg-white p-3 rounded-lg shadow-lg mb-4">
-        <img id="qr-image" src="" alt="Admin QR Code" class="w-64 h-64 mx-auto">
+    <div class="bg-[#0D1117] border-2 border-amber-500/60 rounded-2xl p-6 sm:p-8 max-w-lg w-full text-center shadow-[0_25px_70px_rgba(0,0,0,0.95)] flex flex-col items-center" onclick="event.stopPropagation()">
+      
+      <!-- Top Modal Tabs -->
+      <div class="flex items-center space-x-2 p-1 bg-white/5 rounded-xl border border-white/10 mb-5 w-full">
+        <button id="qr-tab-guest-btn" onclick="switchQrModalTab('guest')" class="flex-1 py-2 px-3 rounded-lg font-fut font-black text-xs sm:text-sm uppercase tracking-wider transition-all bg-amber-500 text-slate-950 shadow">
+          📸 FOTO-UPLOAD
+        </button>
+        <button id="qr-tab-admin-btn" onclick="switchQrModalTab('admin')" class="flex-1 py-2 px-3 rounded-lg font-fut font-bold text-xs sm:text-sm uppercase tracking-wider transition-all text-slate-300 hover:text-white hover:bg-white/5">
+          ⚙️ TURNIER-REGIE
+        </button>
       </div>
 
-      <div class="text-xs font-mono text-slate-300 bg-black/60 px-3 py-1.5 rounded border border-white/10 mb-6" id="qr-url-text">
-        Lade Verbindung...
+      <!-- VIEW 1: GUEST PORTAL & PHOTO UPLOAD (XXL SCANNABLE FROM 5 METERS) -->
+      <div id="qr-view-guest" class="w-full flex flex-col items-center">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-fut font-bold text-xs uppercase tracking-wider mb-2">
+          <span>⚡</span> <span>KEIN WLAN NÖTIG (LTE / 5G / 4G)</span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-fut font-black text-white uppercase tracking-wider mb-1">
+          PARTY-FOTOS HOCHLADEN
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-300 mb-4 max-w-md">
+          Scanne den Code mit deiner Smartphone-Kamera: Schieße ein Foto oder wähle eins aus der Galerie und wirf es live auf den 47" Fernseher!
+        </p>
+
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-2xl mb-4 border-4 border-emerald-400">
+          <img id="qr-guest-image" src="" alt="Gäste Portal QR" class="w-64 h-64 sm:w-80 sm:h-80 mx-auto object-contain qr-pixel-sharp block">
+        </div>
+
+        <div class="text-[11px] font-mono text-emerald-300 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/30 mb-5 max-w-md break-all" id="qr-guest-url-text">
+          Lade Verbindung...
+        </div>
       </div>
 
-      <button onclick="toggleQrModal()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-bold text-sm tracking-wider uppercase rounded transition">
+      <!-- VIEW 2: ADMIN / TURNIER-REGIE -->
+      <div id="qr-view-admin" class="w-full flex flex-col items-center hidden">
+        <div class="text-[11px] font-fut font-bold tracking-widest text-amber-400 uppercase px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded mb-2">
+          SMARTPHONE REGIE
+        </div>
+        <h3 class="text-2xl font-fut font-black text-white uppercase tracking-wider mb-1">
+          TURNIER-REGIE (ADMIN)
+        </h3>
+        <p class="text-xs text-slate-300 mb-4 max-w-md">
+          Scanne diesen QR-Code, um das mobile Admin-Dashboard zur Steuerung der Spiele zu öffnen.
+        </p>
+
+        <div class="bg-white p-3.5 rounded-2xl shadow-2xl mb-4 border-2 border-amber-400">
+          <img id="qr-image" src="" alt="Admin QR Code" class="w-64 h-64 mx-auto object-contain qr-pixel-sharp block">
+        </div>
+
+        <div class="text-xs font-mono text-slate-300 bg-black/60 px-3 py-1.5 rounded-lg border border-white/10 mb-5 max-w-md break-all" id="qr-url-text">
+          Lade Verbindung...
+        </div>
+      </div>
+
+      <button onclick="toggleQrModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-fut font-black text-sm tracking-wider uppercase rounded-xl transition shadow-lg">
         SCHLIESSEN (Oder 'Q' drücken)
       </button>
     </div>
@@ -768,10 +1095,9 @@
             }
             showTvBanner(`📸 NEUER SCHNAPPSCHUSS VON ${(msg.payload.sender || 'Gast').toUpperCase()}!`);
             triggerPhotoSpotlight(msg.payload, 9000);
-            const ev = tournament.activeEvent || {};
-            if (ev.tvView === 'slideshow') {
+            if (activeView === 'slideshow' || (tournament.activeEvent && tournament.activeEvent.tvView === 'slideshow')) {
               currentSlideIndex = 0;
-              renderCurrentSlide();
+              startSlideshowTicker();
             }
           } else if (msg.type === 'CARD_RECEIVED') {
             showTvBanner(`NEUER SPIELER: ${msg.payload.name.toUpperCase()} (${msg.payload.ovr} OVR)`);
@@ -955,8 +1281,10 @@
     }
 
     function updateScreenView() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlView = urlParams.get('view');
       const ev = tournament.activeEvent || { status: 'idle' };
-      const viewMode = ev.tvView || 'auto';
+      const viewMode = urlView || ev.tvView || 'auto';
 
       let activeView = 'scoreboard';
       if (viewMode === 'welcome') {
@@ -964,13 +1292,12 @@
       } else if (viewMode === 'scoreboard') {
         activeView = 'scoreboard';
       } else if (viewMode === 'announced') {
-        if (ev.status === 'announced' && ev.timerEndsAt && ev.timerEndsAt > Date.now()) {
-          activeView = 'announced';
-        } else {
-          activeView = 'scoreboard';
-        }
+        activeView = 'announced';
+        if (ev.status !== 'announced') ev.status = 'announced';
+        if (!ev.timerEndsAt || ev.timerEndsAt < Date.now()) ev.timerEndsAt = Date.now() + 180000;
       } else if (viewMode === 'live') {
         activeView = 'live';
+        if (ev.status !== 'live') ev.status = 'live';
       } else if (viewMode === 'slideshow') {
         activeView = 'slideshow';
       } else if (viewMode === 'ceremony') {
@@ -1038,7 +1365,9 @@
 
     function renderFullscreenAnnounced(ev) {
       const container = document.getElementById('event-announced-view');
-      const game = (tournament.games || []).find(g => g.id === ev.gameId) || { name: 'Turnierspiel', type: 'match' };
+      const qGame = new URLSearchParams(window.location.search).get('game');
+      const targetGameId = qGame || ev.gameId;
+      const game = (tournament.games || []).find(g => g.id === targetGameId) || (qGame ? { name: 'Bierpong', type: 'team_match' } : { name: 'Turnierspiel', type: 'match' });
       const endsAt = ev.timerEndsAt;
 
       if (game.type === 'team_match') {
@@ -1088,7 +1417,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'event-clash-card-img h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-2">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1142,7 +1471,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'event-clash-card-img h-[340px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-2">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1338,7 +1667,9 @@
     function renderFullscreenLive(ev, isPreRender = false) {
       const container = document.getElementById('event-live-view');
       if (!container) return;
-      const game = (tournament.games || []).find(g => g.id === ev.gameId) || { name: 'Bierpong', type: 'team_match' };
+      const qGame = new URLSearchParams(window.location.search).get('game');
+      const targetGameId = qGame || ev.gameId;
+      const game = (tournament.games || []).find(g => g.id === targetGameId) || { name: 'Bierpong', type: 'team_match' };
 
       const teamAIds = (ev.teamA?.playerIds || []).join(',');
       const teamBIds = (ev.teamB?.playerIds || []).join(',');
@@ -1389,7 +1720,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'event-clash-card-img h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-3">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1420,7 +1751,7 @@
                   const lvl = getPlayerLevel(p.xp || 0);
                   return `
                     <div class="flex flex-col items-center">
-                      ${renderCardWithBadgesHtml(p, { imgClass: 'h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
+                      ${renderCardWithBadgesHtml(p, { imgClass: 'event-clash-card-img h-[360px] aspect-[796/1200] max-w-full object-contain card-clean-shadow hover:scale-105 transition-transform duration-300' })}
                       <div class="text-center mt-3">
                         <div class="font-fut font-black italic text-2xl uppercase tracking-wider text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] leading-tight">${p.name}</div>
                         <div class="text-[11px] font-fut font-bold uppercase tracking-wider mt-0.5" style="color: ${lvl.color};">
@@ -1677,19 +2008,22 @@
         renderWelcomeLobby();
       } else if (activeView === 'ceremony') {
         renderFullscreenCeremony();
+      } else if (activeView === 'slideshow') {
+        startSlideshowTicker();
       }
     }
 
     // Calculate total scores per player across all games
     function calculatePlayerTotals() {
       const totals = {};
-      tournament.players.forEach(p => {
+      const activePlayers = (tournament.players || []).filter(p => p.active !== false);
+      activePlayers.forEach(p => {
         totals[p.id] = { player: p, total: 0, byGame: {} };
       });
 
       tournament.games.forEach(g => {
         const factor = Number(g.multiplier) || 1;
-        tournament.players.forEach(p => {
+        activePlayers.forEach(p => {
           const rawScore = Number((g.scores && g.scores[p.id]) || 0);
           const pts = rawScore * factor;
           totals[p.id].byGame[g.id] = pts;
@@ -1734,7 +2068,8 @@
       box.className = 'game-panel flex flex-col h-full overflow-hidden';
 
       // Sort players by score in this game
-      const sorted = [...tournament.players].map(p => {
+      const activePlayers = (tournament.players || []).filter(p => p.active !== false);
+      const sorted = [...activePlayers].map(p => {
         const rawScore = Number((game.scores && game.scores[p.id]) || 0);
         return {
           player: p,
@@ -1960,8 +2295,8 @@
 
         <!-- The Pure Card Shield with Badges Option A -->
         <div class="relative flex items-center justify-center my-0.5 transition-transform duration-300 hover:scale-105">
-          ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}`, beltSize: 'sm' }) : `
-            <img src="${cardImgSrc}" alt="${p.name}" class="h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
+          ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, { imgClass: `podium-showcase-card-img h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}`, beltSize: 'sm' }) : `
+            <img src="${cardImgSrc}" alt="${p.name}" class="podium-showcase-card-img h-[215px] aspect-[796/1200] max-w-full object-contain ${cardShadowClass}" onerror="this.onerror=null; this.src='${ed.img}';">
           `}
         </div>
 
@@ -2016,9 +2351,9 @@
       const p2 = totalsList[1] || null;
       const p3 = totalsList[2] || null;
 
-      renderCeremonyPedestal('ceremony-rank-1', p1, 1, '01. PLATZ (SIEGER)', '#D4AF37', 'h-[440px]', 'h-44');
-      renderCeremonyPedestal('ceremony-rank-2', p2, 2, '02. PLATZ', '#E2E8F0', 'h-[360px]', 'h-32');
-      renderCeremonyPedestal('ceremony-rank-3', p3, 3, '03. PLATZ', '#CD7F32', 'h-[320px]', 'h-24');
+      renderCeremonyPedestal('ceremony-rank-1', p1, 1, '01. PLATZ (SIEGER)', '#D4AF37', 'ceremony-rank-1-card h-[440px]', 'ceremony-pedestal-1 h-44');
+      renderCeremonyPedestal('ceremony-rank-2', p2, 2, '02. PLATZ', '#E2E8F0', 'ceremony-rank-2-card h-[360px]', 'ceremony-pedestal-2 h-32');
+      renderCeremonyPedestal('ceremony-rank-3', p3, 3, '03. PLATZ', '#CD7F32', 'ceremony-rank-3-card h-[320px]', 'ceremony-pedestal-3 h-24');
     }
 
     function renderCeremonyPedestal(containerId, item, rank, title, accentColor, cardHeightClass, pedestalHeightClass) {
@@ -2123,11 +2458,37 @@
 
     function renderCurrentSlide() {
       const photos = tournament.photos || [];
-      if (photos.length === 0) return;
+      if (photos.length === 0) {
+        startSlideshowTicker();
+        return;
+      }
 
       if (currentSlideIndex >= photos.length) currentSlideIndex = 0;
       const photo = photos[currentSlideIndex];
+      if (!photo || !photo.url) {
+        photos.splice(currentSlideIndex, 1);
+        renderCurrentSlide();
+        return;
+      }
 
+      // Preload image to ensure it exists and prevent black screens on TV
+      const preImg = new Image();
+      preImg.onerror = () => {
+        console.warn('Foto auf Disk gelöscht oder nicht erreichbar:', photo.url);
+        photos.splice(currentSlideIndex, 1);
+        if (photos.length === 0) {
+          startSlideshowTicker();
+        } else {
+          renderCurrentSlide();
+        }
+      };
+      preImg.onload = () => {
+        applySlide(photo);
+      };
+      preImg.src = photo.url;
+    }
+
+    function applySlide(photo) {
       const layer1 = document.getElementById('slide-layer-1');
       const layer2 = document.getElementById('slide-layer-2');
       const senderEl = document.getElementById('slide-sender');
@@ -2263,11 +2624,6 @@
       }
     }
 
-    function toggleQrModal() {
-      const m = document.getElementById('qr-modal');
-      if (m) m.classList.toggle('hidden');
-    }
-
     // Escape-Taste schließt aktive Overlays / Modals
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -2303,7 +2659,7 @@
       renderWelcomeLobby();
       if (!welcomeStageTimer) {
         welcomeStageTimer = setInterval(() => {
-          const players = tournament.players || [];
+          const players = (tournament.players || []).filter(p => p.active !== false);
           if (players.length > 0) {
             welcomePlayerIndex = (welcomePlayerIndex + 1) % players.length;
             renderWelcomeStage();
@@ -2345,7 +2701,8 @@
       const headerIconLeft = document.getElementById('welcome-header-icon-left');
 
       const gamesCount = (tournament.games || []).length;
-      const playersCount = (tournament.players || []).length;
+      const activePlayers = (tournament.players || []).filter(p => p.active !== false);
+      const playersCount = activePlayers.length;
 
       const eventTitle = meta.title || 'HÜTTENCUP 2026';
       const eventName = meta.eventName || 'Oktoberfest-Edition';
@@ -2552,7 +2909,7 @@
     function renderWelcomeStage() {
       const stage = document.getElementById('welcome-card-stage');
       if (!stage) return;
-      const players = tournament.players || [];
+      const players = (tournament.players || []).filter(p => p.active !== false);
 
       if (players.length === 0) {
         stage.innerHTML = `
@@ -2578,10 +2935,10 @@
           <div class="relative group">
             <div class="relative z-10 transition-transform duration-500 hover:scale-105">
               ${typeof renderCardWithBadgesHtml === 'function' ? renderCardWithBadgesHtml(p, {
-                imgClass: 'h-[360px] md:h-[400px] xl:h-[460px] 2xl:h-[500px] max-h-[50vh] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
+                imgClass: 'welcome-stage-card-img h-[360px] md:h-[400px] xl:h-[460px] 2xl:h-[500px] max-h-[50vh] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]',
                 beltSize: 'lg'
               }) : `
-                <img src="${cardImg}" alt="${p.name}" class="h-[360px] md:h-[400px] xl:h-[460px] 2xl:h-[500px] max-h-[50vh] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
+                <img src="${cardImg}" alt="${p.name}" class="welcome-stage-card-img h-[360px] md:h-[400px] xl:h-[460px] 2xl:h-[500px] max-h-[50vh] aspect-[796/1200] max-w-full object-contain card-clean-shadow filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]">
               `}
             </div>
 
@@ -2592,7 +2949,7 @@
           <!-- Player Legend Bar Under Card (Super bold for 5m distance) -->
           <div class="mt-4 flex flex-col items-center text-center space-y-1.5">
             <div class="flex items-center space-x-3">
-              <span class="font-fut font-black italic text-5xl sm:text-6xl uppercase tracking-wider text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)]">
+              <span class="welcome-player-name font-fut font-black italic text-5xl sm:text-6xl uppercase tracking-wider text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.95)]">
                 ${p.name}
               </span>
               <span class="px-3.5 py-1 rounded-xl bg-amber-500/25 border border-amber-400/60 text-amber-300 font-fut font-black text-2xl shadow">
@@ -2633,10 +2990,33 @@
     /* QR CODE MODAL & NETWORK DATA INITIALIZATION                  */
     /* ============================================================ */
     let qrModalOpen = false;
-    function toggleQrModal() {
+    let qrModalCurrentTab = 'guest';
+
+    function switchQrModalTab(tab) {
+      qrModalCurrentTab = tab;
+      const guestView = document.getElementById('qr-view-guest');
+      const adminView = document.getElementById('qr-view-admin');
+      const guestBtn = document.getElementById('qr-tab-guest-btn');
+      const adminBtn = document.getElementById('qr-tab-admin-btn');
+      
+      if (tab === 'guest') {
+        if (guestView) guestView.classList.remove('hidden');
+        if (adminView) adminView.classList.add('hidden');
+        if (guestBtn) guestBtn.className = 'flex-1 py-2 px-3 rounded-lg font-fut font-black text-xs sm:text-sm uppercase tracking-wider transition-all bg-amber-500 text-slate-950 shadow';
+        if (adminBtn) adminBtn.className = 'flex-1 py-2 px-3 rounded-lg font-fut font-bold text-xs sm:text-sm uppercase tracking-wider transition-all text-slate-300 hover:text-white hover:bg-white/5';
+      } else {
+        if (guestView) guestView.classList.add('hidden');
+        if (adminView) adminView.classList.remove('hidden');
+        if (guestBtn) guestBtn.className = 'flex-1 py-2 px-3 rounded-lg font-fut font-bold text-xs sm:text-sm uppercase tracking-wider transition-all text-slate-300 hover:text-white hover:bg-white/5';
+        if (adminBtn) adminBtn.className = 'flex-1 py-2 px-3 rounded-lg font-fut font-black text-xs sm:text-sm uppercase tracking-wider transition-all bg-amber-500 text-slate-950 shadow';
+      }
+    }
+
+    function toggleQrModal(preferredTab = 'guest') {
       const modal = document.getElementById('qr-modal');
       qrModalOpen = !qrModalOpen;
       if (qrModalOpen) {
+        if (preferredTab) switchQrModalTab(preferredTab);
         modal.classList.remove('hidden');
         loadQrData();
       } else {
@@ -2644,8 +3024,154 @@
       }
     }
 
-    // Keyboard shortcuts: 'Q' for QR Modal, 'F' for Fullscreen, 'W' for Oktoberfest Welcome Screen
+    /* ============================================================ */
+    /* LAPTOP & SCREENSHOT SCALING CONTROLLER                       */
+    /* ============================================================ */
+    let tvScaleMode = localStorage.getItem('tv_scale_mode') || 'auto';
+    let tvZoomLevel = 1.0;
+    let cleanScreenshotActive = false;
+
+    function setTvScaleMode(mode, save = true) {
+      tvScaleMode = mode;
+      if (save) localStorage.setItem('tv_scale_mode', mode);
+
+      const body = document.body;
+      const isLaptopScreen = window.innerHeight <= 940 || window.innerWidth <= 1680;
+
+      if (mode === 'laptop') {
+        body.classList.add('scale-laptop');
+        body.classList.remove('force-tv-mode');
+        showTvBanner('💻 SKALIERUNG: LAPTOP (1600x900) AKTIVIERT');
+      } else if (mode === 'tv') {
+        body.classList.remove('scale-laptop');
+        body.classList.add('force-tv-mode');
+        showTvBanner('📺 SKALIERUNG: 47" TV (1080p) AKTIVIERT');
+      } else {
+        // Auto mode
+        body.classList.remove('force-tv-mode');
+        if (isLaptopScreen) {
+          body.classList.add('scale-laptop');
+        } else {
+          body.classList.remove('scale-laptop');
+        }
+        showTvBanner(`⚙️ SKALIERUNG: AUTO (${isLaptopScreen ? 'LAPTOP 1600x900' : '47" TV'})`);
+      }
+      updateToolbarScaleButtons();
+    }
+
+    function updateToolbarScaleButtons() {
+      const btnAuto = document.getElementById('btn-scale-auto');
+      const btnLaptop = document.getElementById('btn-scale-laptop');
+      const btnTv = document.getElementById('btn-scale-tv');
+      if (!btnAuto || !btnLaptop || !btnTv) return;
+
+      const activeClass = 'bg-amber-500 text-slate-950 font-bold shadow';
+      const inactiveClass = 'text-slate-300 hover:bg-white/10';
+
+      btnAuto.className = `px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition ${tvScaleMode === 'auto' ? activeClass : inactiveClass}`;
+      btnLaptop.className = `px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition ${tvScaleMode === 'laptop' ? activeClass : inactiveClass}`;
+      btnTv.className = `px-2.5 py-1 rounded-lg font-fut font-black text-[11px] uppercase tracking-wider transition ${tvScaleMode === 'tv' ? activeClass : inactiveClass}`;
+    }
+
+    function adjustTvZoom(delta) {
+      tvZoomLevel = Math.round((tvZoomLevel + delta) * 100) / 100;
+      if (tvZoomLevel < 0.7) tvZoomLevel = 0.7;
+      if (tvZoomLevel > 1.3) tvZoomLevel = 1.3;
+      applyTvZoom();
+    }
+
+    function resetTvZoom() {
+      tvZoomLevel = 1.0;
+      applyTvZoom();
+    }
+
+    function applyTvZoom() {
+      document.documentElement.style.setProperty('--tv-zoom', tvZoomLevel);
+      const display = document.getElementById('tv-zoom-display');
+      if (display) display.textContent = `${Math.round(tvZoomLevel * 100)}%`;
+      showTvBanner(`🔍 ZOOM: ${Math.round(tvZoomLevel * 100)}%`);
+    }
+
+    function toggleCleanScreenshotMode() {
+      cleanScreenshotActive = !cleanScreenshotActive;
+      document.body.classList.toggle('clean-screenshot-mode', cleanScreenshotActive);
+      if (cleanScreenshotActive) {
+        showTvBanner('📸 SCREENSHOT-MODUS AKTIV • TASTE "C" ODER ESC ZUM BEENDEN');
+      } else {
+        showTvBanner('📸 SCREENSHOT-MODUS BEENDET');
+      }
+    }
+
+    function toggleToolbarCollapse() {
+      const toolbar = document.getElementById('tv-scale-toolbar');
+      const minipill = document.getElementById('tv-toolbar-minipill');
+      if (!toolbar || !minipill) return;
+      const isHidden = toolbar.classList.contains('hidden');
+      if (isHidden) {
+        toolbar.classList.remove('hidden');
+        minipill.classList.add('hidden');
+      } else {
+        toolbar.classList.add('hidden');
+        minipill.classList.remove('hidden');
+      }
+    }
+
+    function switchTvScreen(view) {
+      if (!tournament.activeEvent) tournament.activeEvent = { status: 'idle' };
+      tournament.activeEvent.tvView = view;
+      if (view === 'announced' && tournament.activeEvent.status !== 'announced') {
+        tournament.activeEvent.status = 'announced';
+        tournament.activeEvent.timerEndsAt = Date.now() + 180000;
+      } else if (view === 'live' && tournament.activeEvent.status !== 'live') {
+        tournament.activeEvent.status = 'live';
+      }
+      sendWs('SET_ACTIVE_EVENT', tournament.activeEvent);
+      updateScreenView();
+      showTvBanner(`🎬 SCREEN GEWECHSELT: ${view.toUpperCase()}`);
+    }
+
+    window.addEventListener('resize', () => {
+      if (tvScaleMode === 'auto') {
+        setTvScaleMode('auto', false);
+      }
+    });
+
+    // Keyboard shortcuts: 'C' for Clean Screenshot, 'S' for Scale, '1-5' for Screens, 'Q' for QR, 'F' for Fullscreen, 'W' for Lobby
     window.addEventListener('keydown', (e) => {
+      // Don't trigger if user is typing in an input
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
+      if (e.key === 'c' || e.key === 'C') {
+        toggleCleanScreenshotMode();
+      }
+      if (e.key === 's' || e.key === 'S') {
+        const nextMode = tvScaleMode === 'auto' ? 'laptop' : (tvScaleMode === 'laptop' ? 'tv' : 'auto');
+        setTvScaleMode(nextMode);
+      }
+      if (e.key === '+' || e.key === '=') {
+        adjustTvZoom(0.05);
+      }
+      if (e.key === '-' || e.key === '_') {
+        adjustTvZoom(-0.05);
+      }
+      if (e.key === '0') {
+        resetTvZoom();
+      }
+      if (e.key === '1') {
+        switchTvScreen('scoreboard');
+      }
+      if (e.key === '2') {
+        switchTvScreen('welcome');
+      }
+      if (e.key === '3') {
+        switchTvScreen('announced');
+      }
+      if (e.key === '4') {
+        switchTvScreen('ceremony');
+      }
+      if (e.key === '5') {
+        switchTvScreen('slideshow');
+      }
       if (e.key === 'q' || e.key === 'Q') {
         toggleQrModal();
       }
@@ -2662,6 +3188,14 @@
       }
       if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
+      }
+      if (e.key === 'Escape') {
+        if (cleanScreenshotActive) {
+          toggleCleanScreenshotMode();
+        }
+        if (qrModalOpen) {
+          toggleQrModal();
+        }
       }
     });
 
@@ -2696,12 +3230,22 @@
         const qrText = document.getElementById('qr-url-text');
         if (qrText && data.mobileAdminUrl) qrText.textContent = data.mobileAdminUrl;
 
-        // Fotos QR for Slideshow
-        if (data.qrFotosUrl) {
+        // Fotos / Guest Portal QR (High-Res 1024px for Slideshow, Empty State, Lobby & Modal)
+        const guestQrUrl = data.qrFotosUrl || data.qrPartyUrl;
+        if (guestQrUrl) {
           const sqr = document.getElementById('slideshow-qr');
           const seqr = document.getElementById('slideshow-empty-qr');
-          if (sqr) sqr.src = data.qrFotosUrl;
-          if (seqr) seqr.src = data.qrFotosUrl;
+          const lfq = document.getElementById('lobby-foto-qr');
+          const gqr = document.getElementById('qr-guest-image');
+          if (sqr) sqr.src = guestQrUrl;
+          if (seqr) seqr.src = guestQrUrl;
+          if (lfq) lfq.src = guestQrUrl;
+          if (gqr) gqr.src = guestQrUrl;
+        }
+
+        const guestUrlText = document.getElementById('qr-guest-url-text');
+        if (guestUrlText) {
+          guestUrlText.textContent = data.guestFotosUrl || data.partyOnlineUrl || 'https://ricfritzsche89.github.io/h-ttenkarten/fotos.html';
         }
       } catch (e) {
         const qrText = document.getElementById('qr-url-text');
@@ -2711,8 +3255,21 @@
 
     // Initialize on load
     window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('clean') === '1' || urlParams.get('clean') === 'true') {
+        document.body.classList.add('clean-screenshot-mode');
+        cleanScreenshotActive = true;
+      }
+      if (urlParams.get('mode')) {
+        tvScaleMode = urlParams.get('mode');
+      }
+      if (urlParams.get('player')) {
+        welcomePlayerIndex = parseInt(urlParams.get('player')) || 0;
+      }
       connectWebSocket();
       loadQrData();
+      setTvScaleMode(tvScaleMode, false);
+      updateScreenView();
     });
   </script>
 </body>

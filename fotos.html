@@ -336,18 +336,20 @@
       const localHost = hostParam || (function() { try { return localStorage.getItem('gut_local_host'); } catch(e) { return null; } })();
 
       const candidateUrls = [];
-      if (window.location.port === '3000' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // 1. Direkt-Upload: Wenn wir NICHT auf github.io sind, läuft fotos.html direkt über unseren Express-Server (localhost, LAN-IP oder ngrok-Tunnel)!
+      if (!window.location.hostname.includes('github.io')) {
         candidateUrls.push('/api/upload_photo');
       }
       if (localHost) {
-        candidateUrls.push(`http://${localHost}/api/upload_photo`);
+        const fullHostUrl = localHost.startsWith('http') ? localHost : (localHost.includes('.') && !localHost.includes(':') ? `https://${localHost}` : `http://${localHost}`);
+        candidateUrls.push(`${fullHostUrl}/api/upload_photo`);
       }
 
       for (const u of candidateUrls) {
         if (delivered) break;
         try {
           const ctrl = new AbortController();
-          const tId = setTimeout(() => ctrl.abort(), 2500); // 2.5s Timeout
+          const tId = setTimeout(() => ctrl.abort(), 15000); // 15s Timeout für Mobilfunk
           const localRes = await fetch(u, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
